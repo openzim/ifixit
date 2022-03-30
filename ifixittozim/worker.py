@@ -1,6 +1,7 @@
 
 import queue
 import threading
+from worker import worker, ThreadWorkerManager
 
 from ifixittozim import logger
 
@@ -20,41 +21,25 @@ def add_work_item(item):
 def process_work_items(worker_pool=1000):
     if items_queue.empty():
         return
-    workers = start_workers(worker_pool)
-    # Blocks until all tasks are complete
-    items_queue.join()
-    stop_workers(workers)
+    workers=[]
+    for i in range(worker_pool):
+        worker = do_work()
+        workers.append(worker)
+    for worker in workers:
+        worker.wait()
+        worker.abort()
 
-# Worker, handles each task
-def worker():
+@worker()
+def do_work():
     while True:
         #item = items_queue.get()
         try:
             item = items_queue.get(timeout=0.1)
         except queue.Empty as e:
-            continue
+            break
         if item is None:
             break
-        try:
-            remaining_items =  items_queue.qsize()
-            if remaining_items % 1000 == 0:
-                logger.info("\tAbout {} work items remaining".format(remaining_items))
-            work_kinds[item['kind']](item)
-        finally:
-            items_queue.task_done()
-
-def start_workers(worker_pool):
-    threads = []
-    for i in range(worker_pool):
-        t = threading.Thread(target=worker)
-        t.start()
-        threads.append(t)
-    return threads
-
-
-def stop_workers(threads):
-    # stop workers
-    for i in threads:
-        items_queue.put(None)
-    for t in threads:
-        t.join()
+        remaining_items =  items_queue.qsize()
+        if remaining_items % 1000 == 0:
+            logger.info("\tAbout {} work items remaining".format(remaining_items))
+        work_kinds[item['kind']](item)

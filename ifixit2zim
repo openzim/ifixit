@@ -48,7 +48,7 @@ def main(arguments):
 
     if DO_GET_IMAGES:
         logger.info("Getting images from {}".format(IFIXIT_API_BASE_URL))
-        get_images(ifixit_api_base_url=IFIXIT_API_BASE_URL)
+        get_images()
 
     if DO_GENERATE_WEBSITE:
         logger.info("Generating website")
