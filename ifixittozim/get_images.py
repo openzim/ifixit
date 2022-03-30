@@ -3,99 +3,99 @@
 from os.path import exists, join, isfile
 from os import listdir
 import json
-import queue
-import threading
 
 from ifixittozim import logger, LANGS
 from ifixittozim.utils import get_file_content, get_cache_path
+from ifixittozim.worker import process_work_items, add_work_item, add_work_kind
 
-items_queue = queue.Queue()
+image_guids = dict()
 
-def get_image(image):
-    get_file_content(image['original'],cache_file_path)
+def download_image(work_item):
+    get_file_content(work_item['url'],work_item['path'])
 
-# Worker, handles each task
-def worker():
-    while True:
-        image = items_queue.get()
-        if image is None:
-            break
+def list_images_in_category(work_item):
+    category_path = work_item['path']
+    with open(category_path, 'r', encoding='utf-8') as category_file:
+        category_content = json.load(category_file)
+        if not category_content:
+            return
         try:
-            remaining_items =  items_queue.qsize()
-            if remaining_items % 1000 == 0:
-                logger.info("\tAbout {} images remaining".format(remaining_items))
-            get_file_content(image['url'],image['path'])
-        finally:
-            items_queue.task_done()
+            if 'image' in category_content and category_content['image']:
+                image_guids[category_content['image']['guid']] = category_content['image']
+        except Exception as e:
+            logger.warning('\tFailed to process {}: {}'.format(category_path, e))
 
-def start_workers(worker_pool=1000):
-    threads = []
-    for i in range(worker_pool):
-        t = threading.Thread(target=worker)
-        t.start()
-        threads.append(t)
-    return threads
+def list_images_in_guide(work_item):
+    guide_path = work_item['path']
+    with open(guide_path, 'r', encoding='utf-8') as guide_file:
+        try:
+            guide_content = json.load(guide_file)
+            if not guide_content:
+                return
+            if 'image' in guide_content and guide_content['image']:
+                image_guids[guide_content['image']['guid']] = guide_content['image']
+            if 'author' in guide_content and guide_content['author']:
+                if 'image' in guide_content['author']:
+                    image_guids[guide_content['author']['image']['guid']] = guide_content['author']['image']
+            if 'steps' in guide_content and guide_content['steps']:
+                for step in guide_content['steps']:
+                    if step['media']['type'] != 'image':
+                        continue
+                    for image in step['media']['data']:
+                        image_guids[image['guid']] = image
+        except Exception as e:
+            logger.warning('\tFailed to process {}: {}'.format(guide_path, e))
 
+def check_if_image_needs_download(work_item):
+    image = work_item['image']
+    cache_path = work_item['cache_path']
+    if 'standard' in image:
+        cache_file_path = join(cache_path, 'images', "image_{}.standard".format(image['guid']))
+    else:
+        cache_file_path = join(cache_path, 'images', "image_{}.full".format(image['guid']))
+    if exists(cache_file_path):
+        return
+    imageAdded = True
+    if 'standard' in image:
+        add_work_item({'kind': 'download_image', 'url': image['standard'], 'path': cache_file_path})
+    else:
+        add_work_item({'kind': 'download_image', 'url': image['original'], 'path': cache_file_path})
 
-def stop_workers(threads):
-    # stop workers
-    for i in threads:
-        items_queue.put(None)
-    for t in threads:
-        t.join()
+def add_work_for_category_files(cache_path):
+    #for lang in LANGS:
+    for lang in ['en']:
+        cur_path = join(cache_path, 'categories', lang)
+        #for category_filename in listdir(cur_path):
+        for category_filename in ['wiki_Mac.json','wiki_Apple Watch.json','wiki_MacBook Pro 15" Retina Display Mid 2015.json']:
+            category_path = join(cur_path,category_filename)
+            add_work_item({'kind': 'list_images_in_category', 'path': category_path})
+
+def add_work_for_guide_files(cache_path):
+    #for lang in LANGS:
+    for lang in ['en']:
+        cur_path = join(cache_path, 'guides', lang)
+        #for guide_filename in listdir(cur_path):
+        for guide_filename in ['guide_147263.json']:
+            guide_path = join(cur_path,guide_filename)
+            add_work_item({'kind': 'list_images_in_guide', 'path': guide_path})
 
 def get_images(ifixit_api_base_url):
 
     cache_path = get_cache_path()
 
-    image_guids = dict()
+    add_work_kind('download_image', download_image)
+    add_work_kind('list_images_in_category', list_images_in_category)
+    add_work_kind('list_images_in_guide', list_images_in_guide)
+    add_work_kind('check_if_image_needs_download', check_if_image_needs_download)
 
-    #for lang in LANGS:
-    for lang in ['en']:
-        cur_path = join(cache_path, 'categories', lang)
-        for category_filename in listdir(cur_path):
-        #for category_filename in ['wiki_Mac.json','wiki_Apple Watch.json','wiki_MacBook Pro 15" Retina Display Mid 2015.json']:
-            category_path = join(cur_path,category_filename)
-            with open(category_path, 'r', encoding='utf-8') as category_file:
-                category_content = json.load(category_file)
-                if not category_content:
-                    continue
-                try:
-                    if category_content['image']:
-                        image_guids[category_content['image']['guid']] = category_content['image']
-                        # image_guids.add(category_content['image']['guid'])
-                except Exception as e:
-                    logger.warning('\tFailed to process {}: {}'.format(category_path, e))
+    add_work_for_category_files(cache_path)
+    add_work_for_guide_files(cache_path)
 
-    logger.info('\t{} images found in categories'.format(len(image_guids)))
+    process_work_items(4)
 
-    #for lang in LANGS:
-    for lang in ['en']:
-        cur_path = join(cache_path, 'guides', lang)
-        for guide_filename in listdir(cur_path):
-            guide_path = join(cur_path,guide_filename)
-            with open(guide_path, 'r', encoding='utf-8') as guide_file:
-                try:
-                    guide_content = json.load(guide_file)
-                    if not guide_content:
-                        continue
-                    if guide_content['image']:
-                        image_guids[guide_content['image']['guid']] = guide_content['image']
-                    # image_guids.add(guide_content['image']['guid'])
-                    if guide_content['author']:
-                        if guide_content['author']['image']:
-                            image_guids[guide_content['author']['image']['guid']] = guide_content['author']['image']
-                    for step in guide_content['steps']:
-                        if step['media']['type'] != 'image':
-                            continue
-                        for image in step['media']['data']:
-                            image_guids[image['guid']] = image
-                            # image_guids.add(image['guid'])
-                except Exception as e:
-                    logger.warning('\tFailed to process {}: {}'.format(guide_path, e))
-    
-    logger.info('\t{} images found in categories + guides'.format(len(image_guids)))
+    logger.info('\t{} images found'.format(len(image_guids)))
 
+    #imageAdded = False
     for image_id in image_guids:
         image = image_guids[image_id]
         if 'standard' in image:
@@ -104,14 +104,14 @@ def get_images(ifixit_api_base_url):
             cache_file_path = join(cache_path, 'images', "image_{}.full".format(image['guid']))
         if exists(cache_file_path):
             continue
+        # imageAdded = True
         if 'standard' in image:
-            items_queue.put({'url': image['standard'], 'path': cache_file_path})
+            add_work_item({'kind': 'download_image', 'url': image['standard'], 'path': cache_file_path})
         else:
-            items_queue.put({'url': image['original'], 'path': cache_file_path})
+            add_work_item({'kind': 'download_image', 'url': image['original'], 'path': cache_file_path})
+        # add_work_item({'kind': 'check_if_image_needs_download', 'image': image, 'cache_path': cache_path})
     
-    workers = start_workers(worker_pool=100)
-
-    # Blocks until all tasks are complete
-    items_queue.join()
-
-    stop_workers(workers)
+    #process_work_items(4)
+    
+    #if imageAdded:
+    process_work_items(100)
