@@ -1,0 +1,7 @@
+dist
+cache
+venv
+saved_pages
+**/__pycache__
+
+
