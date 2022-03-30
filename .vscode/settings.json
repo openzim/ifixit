@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "cache": true,
+        "dist": true,
+        "venv": true
+    }
+}

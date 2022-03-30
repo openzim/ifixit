@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}{{category['display_title']}}{% endblock title%}
+
+{% block specific_css %}
+<link type="text/css" href="../../shared/Wiki-topic-r_spN9srKqcGQAC8emdeTA.css" rel="stylesheet" as="style">
+<link type="text/css" href="../../shared/Wiki-common-Zf5O-KLmFhhZ0w9cRZYZoQ.css" rel="stylesheet" as="style">
+{% endblock specific_css%}
+
+{% block content %}
+<div id="page" class=" invisible">
+
+
+    <div id="page-sidebar">
+        <div id="sidebar-wiki-toc" class="sticky js-dynamic-toc">
+            <div class="toc-title"><a href="#main">Mac Repair</a></div>
+            <div class="toc">
+                <div class="header">Contents</div>
+                <ul>
+                    <li><a href="#Section_Identification" class="muted">Identification</a></li>
+                    <li><a href="#Section_Additional_Information" class="muted">Additional Information</a></li>
+                    <li><a href="#Section_Mac_Laptop" class="muted">Mac Laptop</a></li>
+                    <li><a href="#Section_Mac_Desktop" class="muted">Mac Desktop</a></li>
+                    <li><a href="#Section_Hardware" class="muted">Hardware</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="main">
+        <div id="mainBody">
+            <!-- MAIN BODY -->
+            <div id="banner">
+                <div id="banner-wrap">
+                    <div id="banner-wrap-bg-container">
+                        <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                        <img id="banner-wrap-bg"
+                            src="../../../cache/images/image_{{category['image']['guid']}}.standard">
+                    </div>
+                    <div class="banner-content">
+                        <div class="banner-bucket">
+                            <div class="banner-small-photo">
+                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                                <img src="../../../cache/images/image_{{category['image']['guid']}}.standard"
+                                    width="252" height="189" alt="{{category['image']['display_title']}}">
+                                {% if category['repairability_score'] %}
+                                <!-- TODO: Retrieve the href of the teardown
+                                <a href="/Teardown/Apple+Watch+Teardown/40655#teardownConclusion"> -->
+                                <a href="#" class="banner-repairability-score hidden-mobile repairability-score-{{category['repairability_score']}}"> {{label['repairability']}}  
+                                    <strong>{{category['repairability_score']}}</strong> / 10
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="banner-bucket banner-summary">
+                            <div class="banner-text">
+                                <h1 class="banner-title" itemprop="headline">
+                                    {{category['display_title']}}</h1>
+                                <p class="banner-blurb">
+                                    <span class="topicHeaderText originalText" itemprop="description">
+                                        {{category['description']}}</span>
+                                </p>
+                                <!--
+                                <div class="wiki-author">
+                                    {{label['author']}}<span>
+                                         TODO: Retrieve author
+                                             TODO: Retrieve other contributors
+                                             TODO: Retrieve user profile
+                                             TODO: Retrieve page history
+                                        <a class="main" href="/User/17/Miroslav+Djuric">Miroslav Djuric</a>
+                                        <a class="others" href="/Device/History/Mac" rel="ugc">(and 24 other
+                                            contributors)</a>
+                                    </span>
+                                </div>-->
+                            </div>
+                        </div>
+                        <div class="clearer"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="topContent">
+                <!-- TODO: Check wether this is working or not at all -->
+                <div id="mobile-wiki-toc" class="hidden-desktop">
+                    <div class="react-component" data-reactroot data-name="Toc" data-props="[]">
+                        <style>
+                            #mobile-skeleton-toc {
+                                background: white;
+                                box-shadow: 0px 1px 4px rgba(16, 22, 26, 0.1), 0px 1px 2px rgba(16, 22, 26, 0.1);
+                                height: 83px;
+                            }
+                        </style>
+                        <div id="mobile-skeleton-toc"></div>
+                    </div>
+                </div>
+
+                {% if category['children'] | length > 0 %}
+                <div class="subcategorySection">
+                    <!-- <h2 id='Section_3_Categories' class="js-dynamic-toc-section"> -->
+                    <h2 id='Section_Childrens' class="js-dynamic-toc-section">
+                        {{ category['children'] | length }}{{ label['categories']}}
+                    </h2>
+                    <div class="grid">
+                        {% for child in category['children'] %}
+                        <div class="categoryListCell">
+                            <a href="./category_{{child['filename']}}.html" class="categoryAnchor">
+                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                                <img src="../../../cache/images/image_{{child['image']['guid']}}.standard" width="179"
+                                    height="143" alt="{{child['display_title']}}" class="category-image" />
+                                <h5 class="title">
+                                    {{child['display_title']}}</h5>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if category['featured_guides'] | length > 0 %}
+                <div class="highlight-guides">
+                    <h2 id="Section_Guides" class="blurbListTitle js-dynamic-toc-section js-guide-section">
+                        {{label['featured_guides']}}</h2>
+                    <div class="entry-container">
+                        {% for guide in category['featured_guides'] %}
+                        {% if loop.index < 3 %} <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html"
+                            class="entry">
+                            <div class="thumbnail">
+                                <span class="featured-icon"><i class="svg-icon" alt="Featured" title="Featured"
+                                        style="display: inline-block; width: 24px; height: 24px;"><svg
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <circle cx="12" cy="8" r="7" />
+                                            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                                        </svg></i></span>
+                                <img src="{{guide | get_guide_image_path }}"
+                                    alt="{{guide['title']}}" width="176" height="131" />
+                            </div>
+                            <div class="entry-text">
+                                <h4>{{guide['title']}}</h4>
+                                <p>{{guide['summary']}}</p>
+                            </div>
+                            </a>
+                            {% endif %}
+                            {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- TODO: Check if display is appropriate for a category without featured
+                  guides (do we need to have another <h2> title ?)-->
+                {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'technique') | list | length > 0 %}
+                <div class="blurbListWide" data-type="technique">
+                    <h3 id='Section_Technique' class="blurbListTitle js-dynamic-toc-section">
+                        <a href='#Section_Technique' style="text-decoration: none;">
+                            {{label['technique_guides']}}</a>
+                    </h3>
+                    <div class="grid">
+                        {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'technique') %}
+                        <div class="cell">
+                            <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                                <img src="{{guide | get_guide_image_path }}" width="133"
+                                    height="100" alt="{{guide['title']}}" class="thumb" />
+                                <div class='title-text'>
+                                    <p>{{guide['title']}}</p>
+                                </div>
+                            </a>
+
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- TODO: Check if display order on a category with both technique and replacement guides -->
+                {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'replacement') | list | length > 0 %}
+                <div class="blurbListWide" data-type="replacement">
+                    <h3 id="Section_Replacement" class="blurbListTitle js-dynamic-toc-section">
+                        <a href="#Section_Replacement" style="text-decoration: none;">
+                            {{label['replacement_guides']}}</a>
+                    </h3>
+                    <div class="grid">
+                        {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'replacement') %}
+                        <div class="cell">
+                            <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                <img src="{{guide | get_guide_image_path }}" width="133"
+                                    height="100" alt="{{guide['subject']}}" class="thumb" />
+                                <div class='title-text'>
+                                    <p>{{guide['subject']}}</p>
+                                </div>
+                            </a>
+
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if category['related_wikis'] | length > 0 %}
+                <div class="subcategorySection">
+                    <h2 id='Section_Related_Pages' class="js-dynamic-toc-section">
+                        {{label['related_pages']}}
+                    </h2>
+                    <div class="grid">
+                        {% for wiki in category['related_wikis'] %}
+                        <div class="categoryListCell">
+                            <a href="../../wikis/{{lang}}/wiki_{{wiki['wikiid']}}.html" class="categoryAnchor">
+                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                                <img src="../../../cache/images/image_{{wiki['image']['guid']}}.standard" width="179"
+                                    height="143" alt="{{wiki['display_title']}}" class="category-image" />
+                                <h5 class="title">{{wiki['display_title']}}</h5>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="contentFloat">
+                <div id="content">
+                    <div class="container articleContainer topic">
+                        {% if category['guides'] | guides_in_progress | list | length > 0 %}
+                        <div class="blurbListWide" data-type="inprogress">
+                            <h3 class="blurbListTitle">
+                                <a href='#Section_In_Progress' style="text-decoration: none;">
+                                    {{label['in_progress_guides']}}</a>
+                            </h3>
+                            <div class="grid">
+                                {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'replacement') %}
+                                <div class="cell">
+                                    <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                        <img src="{{guide | get_guide_image_path }}" width="133"
+                                            height="100" alt="{{guide['subject']}}" class="thumb" />
+                                        <div class='title-text'>
+                                            <p>{{guide['subject']}}</p>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endfor %}
+                                {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'teardown') %}
+                                <div class="cell">
+                                    <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                        <img src="{{guide | get_guide_image_path }}" width="133"
+                                            height="100" alt="{{guide['title']}}" class="thumb" />
+                                        <div class='title-text'>
+                                            <p>{{guide['title']}}</p>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endfor %}
+                                {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'technique') %}
+                                <div class="cell">
+                                    <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                        <img src="{{guide | get_guide_image_path }}" width="133"
+                                            height="100" alt="{{guide['title']}}" class="thumb" />
+                                        <div class='title-text'>
+                                            <p>{{guide['title']}}</p>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <!-- TODO : retrieve questions if this makes sense 
+                        <div class="questionsContainer">
+                            <h2 id='Section_Support_Questions' class="device-questions js-dynamic-toc-section header">
+                                <a href="/Answers/Device/Mac"> Support Questions<i class="svg-icon headerLinkArrow"
+                                        style="width: 16px; height: 16px;"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M14.71 7.3l-5-5A.965.965 0 0 0 9 2a1.003 1.003 0 0 0-.71 1.71L11.58 7H2c-.55 0-1 .45-1 1s.45 1 1 1h9.59L8.3 12.29a1.003 1.003 0 0 0 1.42 1.42l5-5c.18-.18.29-.43.29-.71 0-.28-.12-.52-.3-.7z">
+                                            </path>
+                                        </svg></i> </a>
+                            </h2>
+                            <a href="/Answers/Ask/Mac" rel="nofollow" id="askQuestionButton"
+                                class="subtleButton readonly-hidden"><i class="fa fa-comment-o "></i>Ask a Question</a>
+                        </div>
+                        <div id="questions">
+                            <table>
+                                <tr class="row firstRow" data-postid="205192" itemprop="hasPart" itemscope
+                                    itemtype="http://schema.org/Question">
+                                    <td class="questionStatus">
+                                        <meta itemprop="answerCount" content="21">
+                                        <meta itemprop="upvoteCount" content="41">
+                                        <p id="answers-205192" class="answers answered">
+                                            21 Answers </p>
+                                        <p id="score-205192" class="score">41 Score</p>
+                                    </td>
+
+                                    <td class="questionTitle">
+                                        <h3>
+                                            <a class="focus"
+                                                href="/Answers/View/205192/Why+Magic+Mouse+curser+does+not+move"
+                                                itemprop="url"
+                                                title="When i switch on my magic mouse, it stated connected in my mac but the curser is not moving. Button and scroll work well...."><span
+                                                    itemprop="name">Why Magic Mouse curser does not move?</span></a>
+
+                                        </h3>
+
+
+                                        <p>
+                                            <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                                                <a class="muted" href="/Answers/Device/Magic%20Mouse"
+                                                    itemprop="url"><span itemprop="name">Magic Mouse</span></a>
+                                            </span>
+
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr class="row" data-postid="197" itemprop="hasPart" itemscope
+                                    itemtype="http://schema.org/Question">
+                                    <td class="questionStatus">
+                                        <meta itemprop="answerCount" content="9">
+                                        <meta itemprop="upvoteCount" content="28">
+                                        <p id="answers-197" class="answers acceptedAnswer">
+                                            9 Answers </p>
+                                        <p id="score-197" class="score">28 Score</p>
+                                    </td>
+
+                                    <td class="questionTitle">
+                                        <h3>
+                                            <a class="focus"
+                                                href="/Answers/View/197/How+dangerous+is+it+to+work+on+a+CRT+display"
+                                                itemprop="url"
+                                                title="I&#039;ve heard that taking apart a CRT can be dangerous, so before I go ahead on the eMac teardown I plan to create for..."><span
+                                                    itemprop="name">How dangerous is it to work on a CRT
+                                                    display?</span></a>
+
+                                        </h3>
+
+
+                                        <p>
+                                            <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                                                <a class="muted" href="/Answers/Device/eMac" itemprop="url"><span
+                                                        itemprop="name">eMac</span></a>
+                                            </span>
+
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr class="row" data-postid="189844" itemprop="hasPart" itemscope
+                                    itemtype="http://schema.org/Question">
+                                    <td class="questionStatus">
+                                        <meta itemprop="answerCount" content="12">
+                                        <meta itemprop="upvoteCount" content="46">
+                                        <p id="answers-189844" class="answers acceptedAnswer">
+                                            12 Answers </p>
+                                        <p id="score-189844" class="score">46 Score</p>
+                                    </td>
+
+                                    <td class="questionTitle">
+                                        <h3>
+                                            <a class="focus" href="/Answers/View/189844/Can+RAM+be+upgraded"
+                                                itemprop="url"
+                                                title="I just got a MacBook Pro and already regret not doing the 16GB upgrade. (For now, it&#039;s fine, but I&#039;m thinking about the..."><span
+                                                    itemprop="name">Can RAM be upgraded?</span></a>
+
+                                        </h3>
+
+
+                                        <p>
+                                            <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                                                <a class="muted"
+                                                    href="/Answers/Device/MacBook%20Pro%2013%22%20Retina%20Display%20Mid%202014"
+                                                    itemprop="url"><span itemprop="name">MacBook Pro 13&quot; Retina
+                                                        Display Mid 2014</span></a>
+                                            </span>
+
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr class="row" data-postid="78792" itemprop="hasPart" itemscope
+                                    itemtype="http://schema.org/Question">
+                                    <td class="questionStatus">
+                                        <meta itemprop="answerCount" content="11">
+                                        <meta itemprop="upvoteCount" content="66">
+                                        <p id="answers-78792" class="answers acceptedAnswer">
+                                            11 Answers </p>
+                                        <p id="score-78792" class="score">66 Score</p>
+                                    </td>
+
+                                    <td class="questionTitle">
+                                        <h3>
+                                            <a class="focus"
+                                                href="/Answers/View/78792/How+do+I+reset+the+firmware+password+on+my+MacBook+Pro"
+                                                itemprop="url"
+                                                title="Hi, everybody. I&#039;m Wilson, as you see on the forum. Well, I got a MacBook Pro early 2011 that I bought from a friend 2..."><span
+                                                    itemprop="name">How do I reset the firmware password on my MacBook
+                                                    Pro?</span></a>
+
+                                        </h3>
+
+
+                                        <p>
+                                            <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                                                <a class="muted"
+                                                    href="/Answers/Device/MacBook%20Pro%2013%22%20Unibody%20Early%202011"
+                                                    itemprop="url"><span itemprop="name">MacBook Pro 13&quot; Unibody
+                                                        Early 2011</span></a>
+                                            </span>
+
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>-->
+                        <!-- TODO : Retrieve tools
+                        <div id="Section_Tools" class="js-dynamic-toc-section">
+
+
+                            <h2>
+                                <a href="/Store/Tools">
+                                    Tools<i class="svg-icon headerLinkArrow" style="width: 16px; height: 16px;"><svg
+                                            xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 16 16" fill="currentColor">
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M14.71 7.3l-5-5A.965.965 0 0 0 9 2a1.003 1.003 0 0 0-.71 1.71L11.58 7H2c-.55 0-1 .45-1 1s.45 1 1 1h9.59L8.3 12.29a1.003 1.003 0 0 0 1.42 1.42l5-5c.18-.18.29-.43.29-.71 0-.28-.12-.52-.3-.7z">
+                                            </path>
+                                        </svg></i> </a>
+                            </h2>
+                            <div class="deviceToolsContainer">
+                                <p>These are some common tools used to work on this device. You might not need every
+                                    tool for every procedure.</p>
+
+                                <div class="deviceToolsList">
+                                    <ul class="attachment-link-list two-columns">
+                                        <li class="attachment-link">
+                                            <div class="row attachment-container" itemprop="offers" itemscope
+                                                itemtype="http://schema.org/Offer">
+                                                <a href="https://store.ifixit.fr/products/t5-torx-screwdriver">
+                                                    <img itemprop="image"
+                                                        src="https://cart-products.cdn.ifixit.com/cart-products/VCIhWASIaMKygo1T.mini"
+                                                        width="41" height="41" alt="">
+                                                </a>
+                                                <div class="column">
+                                                    <a href="https://store.ifixit.fr/products/t5-torx-screwdriver">
+                                                        <p itemprop=name class="title">Tournevis Torx T5</p>
+                                                    </a>
+                                                    <p class="attachment-info"></p>
+                                                    <p class="file-metadata attachment-subtitle"></p>
+                                                </div>
+                                                <a href="https://store.ifixit.fr/products/t5-torx-screwdriver"
+                                                    class="button button-small button-transparent">View</a>
+
+                                                <meta itemprop="priceCurrency" content="USD">
+                                                <meta itemprop="price" content="5.49">
+                                                <link itemprop="availability" href="http://schema.org/InStock">
+                                                <meta itemprop="priceValidUntil" content="2023-03-28">
+                                                <meta itemprop="itemCondition" content="http://schema.org/ConditionNew">
+                                                <link itemprop="url"
+                                                    href="https://www.ifixit.com/Store/Tools/T5-Torx-Screwdriver/IF145-039?o=5">
+                                            </div>
+                                        </li>
+                                        <li class="attachment-link">
+                                            <div class="row attachment-container" itemprop="offers" itemscope
+                                                itemtype="http://schema.org/Offer">
+                                                <a href="https://store.ifixit.fr/products/phillips-00-screwdriver">
+                                                    <img itemprop="image"
+                                                        src="https://cart-products.cdn.ifixit.com/cart-products/x2GYlXMjmAQneKIK.mini"
+                                                        width="41" height="41" alt="">
+                                                </a>
+                                                <div class="column">
+                                                    <a href="https://store.ifixit.fr/products/phillips-00-screwdriver">
+                                                        <p itemprop=name class="title">Tournevis cruciforme #00</p>
+                                                    </a>
+                                                    <p class="attachment-info"></p>
+                                                    <p class="file-metadata attachment-subtitle"></p>
+                                                </div>
+                                                <a href="https://store.ifixit.fr/products/phillips-00-screwdriver"
+                                                    class="button button-small button-transparent">View</a>
+
+                                                <meta itemprop="priceCurrency" content="USD">
+                                                <meta itemprop="price" content="6.99">
+                                                <link itemprop="availability" href="http://schema.org/OutOfStock">
+                                                <meta itemprop="priceValidUntil" content="2023-03-28">
+                                                <meta itemprop="itemCondition" content="http://schema.org/ConditionNew">
+                                                <link itemprop="url"
+                                                    href="https://www.ifixit.com/Store/Tools/Phillips-00-Screwdriver/IF145-006?o=4">
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="clearer"></div>
+                            </div>
+                        </div>-->
+
+                        <div id="Wiki_Details">
+                            <div id="wikiRenderedText" class="wikiRenderedText renderedText originalText"
+                                itemprop="text">
+                                <!-- TODO: find a proper way to render wiki content:
+    - the rendered way is not ideal since there is a lot of links to replace
+    - the json/raw relies on wiki lists which seems to not be available through the API
+                                -->
+                                {{category['contents_rendered']|safe}}
+                            </div>
+                        </div>
+
+                        <div class="clearer"></div>
+
+                    </div>
+
+                </div>
+                <!-- TODO: make this work offline -->
+                <script type="text/javascript">
+                    (function () {
+                        var mobileToc = document.getElementById('mobile-skeleton-toc');
+                        if (document.getElementById('sidebar-wiki-toc')) {
+                            var headings = document.querySelectorAll('#mainBody [id^="Section_"]');
+                            var pageSidebar = document.getElementById('page-sidebar');
+                            if (headings.length <= 1) {
+                                // Must remove elements this way to maintain IE11 support
+                                pageSidebar && pageSidebar.parentNode.removeChild(pageSidebar);
+                                mobileToc && mobileToc.parentNode.removeChild(mobileToc);
+                            }
+                        } else {
+                            mobileToc && mobileToc.parentNode.removeChild(mobileToc);
+                        }
+                        document.getElementById('page').classList.remove("invisible");
+                    })();
+                </script>
+            </div>
+            <div class="clearer"></div>
+
+        </div> <!-- /mainBody -->
+
+        <div class="clearer"></div>
+    </div> <!-- /main -->
+</div> <!-- /page -->
+{% endblock content%}

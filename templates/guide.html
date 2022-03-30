@@ -1,0 +1,549 @@
+{% extends "base.html" %}
+
+{% block title %}{{guide['title']}}{% endblock title%}
+
+{% block specific_css %}
+<link type="text/css" href="../../shared/Shared-i18n_formatting-7XRaMqur0Z-hJvP-W8sS2A.css" rel="stylesheet" as="style">
+<link type="text/css" href="../../shared/new-guide-view-all-Zs-aI_CApaXZ_ssFDlTZ9g.css" rel="stylesheet" as="style">
+<link type="text/css" href="../../shared/release-version-orbcTfqm6_JKsoz-PPnHGA.css" rel="stylesheet" as="style">
+<link type="text/css" href="../../shared/prosemirror-all-_OBJ3KkZRD0uygPKzpMb8Q.css" rel="stylesheet" as="style">
+<link type="text/css" href="../../shared/Shared-cart_banner-33Ctp6kCy0R-IiTsFeV6cw.css" rel="stylesheet" as="style">
+<link type="text/css" href="../../shared/Shared-attachment_link-AoWbgS-g65jo1DYOaHV5XA.css" rel="stylesheet" as="style">
+{% endblock specific_css%}
+
+{% block content %}
+<div id="page" class=" ">
+    <div id="main">
+        <div id="mainBody">
+            <!-- MAIN BODY -->
+            <div id="contentFloat">
+                <div id="content">
+                    <div class="wrapper">
+                        <div id="guide-intro" class="guide-container guide-v2 js-guide-container container">
+                            <div>
+                                <div class="guide-all-metadata">
+                                    <div class="guide-metadata guide-status-container">
+                                        <div class="statuses">
+                                        </div>
+                                    </div>
+                                    <div class="guide-metadata guide-title-container guide-title-metadata">
+                                        <h1 class="guide-intro-title guide-title">{{guide['title']}}</h1>
+
+                                        <div class="guide-author guide-title-subtext">
+                                            {{label['written_by']}} {{guide['author']['username']}}
+                                            <!-- TODO: Retrieve user profiles 
+                        Rédigé par : <a class="guide-title-subtext-strong"
+                            href="https://fr.ifixit.com/User/3366811/Kaylie+Klausing">{{guide['author']['username']}}</a>
+                        -->
+                                            <!-- TODO: Display other contributors
+                             TODO: Retrieve page history
+                            <a href="https://fr.ifixit.com/Tutoriel/historique/intro/131072"
+                            class="guide-other-contributors" rel="ugc">(et 3 autres contributeurs)</a>-->
+                                        </div>
+                                    </div>
+                                    <div class="guide-metadata guide-main-image-container">
+                                        <div class="guide-main-image">
+                                            <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                                            <img class="hasMenu"
+                                                src="../../../cache/images/image_{{guide['image']['guid']}}.standard"
+                                                alt="{{guide['title']}}" sizes="(max-width: 740px) 100vw, 405px"
+                                                width="405" height="290">
+                                        </div>
+
+                                    </div>
+                                    <div class="guide-metadata guide-details-container js-guide-details-container">
+                                        <div class="details-item-container">
+                                            <div class="details-item difficulty row {{guide['difficulty_class']}}">
+                                                <p class="item-title column"><i class="svg-icon"
+                                                        style="display: inline-block; width: 24px; height: 24px;"><svg
+                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round">
+                                                            <circle cx="12" cy="16" r="2"></circle>
+                                                            <line x1="12" y1="9" x2="12" y2="14"></line>
+                                                            <path d="M6,19H2V15a10,10,0,0,1,20,0v4H18"></path>
+                                                        </svg></i>{{label['difficulty']}}</p>
+                                                <p class="item-value column">
+                                                    <span class="difficulty-indicator">
+                                                        <span class="indicator-dot"></span>
+                                                        <span class="indicator-dot"></span>
+                                                        <span class="indicator-dot"></span>
+                                                    </span>{{guide['difficulty']}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="details-item-container">
+                                            <div class="details-item row">
+                                                <p class="item-title column"><i class="svg-icon"
+                                                        style="display: inline-block; width: 24px; height: 24px;"><svg
+                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round">
+                                                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                                                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                                                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                                                            <line x1="3" y1="6" x2="3" y2="6"></line>
+                                                            <line x1="3" y1="12" x2="3" y2="12"></line>
+                                                            <line x1="3" y1="18" x2="3" y2="18"></line>
+                                                        </svg>
+                                                    </i>{{label['steps']}}</p>
+                                                <p class="item-value column">{{guide['steps']|length}}</p>
+                                            </div>
+                                        </div>
+                                        <div id="guide-time-required" class="details-item-container">
+                                            <div class="details-item row">
+                                                <p class="item-title column"><i class="svg-icon"
+                                                        style="display: inline-block; width: 24px; height: 24px;"><svg
+                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round">
+                                                            <circle cx="12" cy="12" r="10"></circle>
+                                                            <polyline points="12 6 12 12 15 15"></polyline>
+                                                        </svg></i>{{label['time_required']}}</p>
+                                                <p class="item-value">{{guide['time_required']}}</p>
+                                            </div>
+                                        </div>
+                                        <!--
+                    TODO: Handle sections display (use 'subject' fields of prereqs guides + 'subject' of guide itself)
+                    <div id="guide-sections" class="details-item-container js-content-dropdown-container">
+                        <div class="details-item row item-row-expandable js-content-dropdown-toggle">
+                            <p class="item-title column"><i class="svg-icon"
+                                    style="display: inline-block; width: 24px; height: 24px;"><svg
+                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M19,21l-7-5L5,21V5A2,2,0,0,1,7,3H17a2,2,0,0,1,2,2Z"></path>
+                                    </svg></i>{{label['sections']}}</p>
+                            <p class="item-value column"><span class="highlight">2</span></p>
+                            <div class="item-expand-button column">
+                                <span class="expand"><i class="svg-icon"
+                                        style="display: inline-block; width: 24px; height: 24px;"><svg
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="17 13 12 18 7 13"></polyline>
+                                            <polyline points="17 7 12 12 7 7"></polyline>
+                                        </svg></i></span>
+                                <span class="collapse"><i class="svg-icon"
+                                        style="display: inline-block; width: 24px; height: 24px;"><svg
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="7 11 12 6 17 11"></polyline>
+                                            <polyline points="7 17 12 12 17 17"></polyline>
+                                        </svg></i></span>
+                            </div>
+                        </div>
+                        <div class="item-contents">
+                            <ul class="sections-list">
+                                <li>
+                                    <a class="section-title column readonly-disabled js-content-dropdown-close"
+                                        href="#s258194">Back Cover</a>
+                                    <span class="section-num-steps column">2 étapes</span>
+                                </li>
+                                <li>
+                                    <a class="section-title column readonly-disabled js-content-dropdown-close"
+                                        href="#s257475">Solid State Drive</a>
+                                    <span class="section-num-steps column">2 étapes</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>-->
+                                        <!--TODO: Handle flags display
+                    <div id="guide-flags" class="details-item-container js-content-dropdown-container">
+                        <div class="details-item row item-row-disabled">
+                            <p class="item-title column"><i class="svg-icon"
+                                    style="display: inline-block; width: 24px; height: 24px;"><svg viewBox="0 0 24 24"
+                                        fill="none" stroke-linejoin="round" stroke-width="2" stroke="currentColor"
+                                        stroke-linecap="round" stroke-miterlimit="10">
+                                        <path
+                                            d="M13.71,3.86,22.18,18a2,2,0,0,1-1.71,3H3.53a2,2,0,0,1-1.71-3L10.29,3.86A2,2,0,0,1,13.71,3.86Z">
+                                        </path>
+                                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                                        <line x1="12" y1="17" x2="12" y2="17"></line>
+                                    </svg></i>{{label['flags']}}</p>
+                            <p class="item-value column"><span class="highlight">0</span></p>
+                            <div class="item-expand-button column">
+                                <span class="expand"><i class="svg-icon"
+                                        style="display: inline-block; width: 24px; height: 24px;"><svg
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="17 13 12 18 7 13"></polyline>
+                                            <polyline points="17 7 12 12 7 7"></polyline>
+                                        </svg></i></span>
+                                <span class="collapse"><i class="svg-icon"
+                                        style="display: inline-block; width: 24px; height: 24px;"><svg
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="7 11 12 6 17 11"></polyline>
+                                            <polyline points="7 17 12 12 17 17"></polyline>
+                                        </svg></i></span>
+                            </div>
+                        </div>
+                        <div class="item-contents">
+                        </div>
+                    </div>-->
+                                    </div>
+
+                                </div>
+                                <!--TODO: Handle flags displayed in full width
+            <div class="full-width-flags">
+            </div>
+            -->
+                                <div class="introduction-container">
+                                    <h2>{{label['introduction']}}</h2>
+                                    <div itemprop="description">
+                                        {{guide['introduction_rendered']|safe}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TODO: Handle tools and parts display
+    <div id="tools-and-parts" class="tools-and-parts">
+        <div class="actionbar-portal"></div>
+        <div>
+            <div class="row item-list-container">
+                <div class="column one-half item-list-tools">
+                    <div class="item-list-header row">
+                        <h3 class="column full-width">Outils</h3>
+                    </div>
+                    <ul class="item-list-featured attachment-link-list no-columns">
+                        <li class="attachment-link">
+                            <div class="row attachment-container" itemprop="tool" itemscope=""
+                                itemtype="http://schema.org/HowToTool">
+                                <a href="https://store.ifixit.fr/products/jis-driver-set">
+                                    <img itemprop="image"
+                                        src="../../saved_pages/Lenovo%20Legion%20Y530-15ICH%20Solid%20State%20Drive%20Replacement%20-%20Tutoriel%20de%20re%CC%81paration%20iFixit_files/dbfkd4hnhSHKmyrN.jpg"
+                                        alt="" width="41" height="41">
+                                </a>
+                                <div class="column">
+                                    <a href="https://store.ifixit.fr/products/jis-driver-set">
+                                        <p itemprop="name" class="title">JIS #1 </p>
+                                    </a>
+                                    <p class="attachment-info"></p>
+                                    <p class="price attachment-subtitle">24,95&nbsp;€</p>
+                                </div>
+                                <a href="https://store.ifixit.fr/products/jis-driver-set"
+                                    class="button button-small button-transparent">Acheter</a>
+
+                                <meta itemprop="requiredQuantity" content="1">
+                                <meta itemprop="url" content="https://store.ifixit.fr/products/jis-driver-set">
+                            </div>
+                        </li>
+                        <li class="attachment-link">
+                            <div class="row attachment-container" itemprop="tool" itemscope=""
+                                itemtype="http://schema.org/HowToTool">
+                                <a href="https://store.ifixit.fr/products/ifixit-opening-picks-set-of-6">
+                                    <img itemprop="image"
+                                        src="../../saved_pages/Lenovo%20Legion%20Y530-15ICH%20Solid%20State%20Drive%20Replacement%20-%20Tutoriel%20de%20re%CC%81paration%20iFixit_files/fDsOubGiL2QUMeOR.jpg"
+                                        alt="" width="41" height="41">
+                                </a>
+                                <div class="column">
+                                    <a href="https://store.ifixit.fr/products/ifixit-opening-picks-set-of-6">
+                                        <p itemprop="name" class="title">iFixit Opening Picks (Set of 6) </p>
+                                    </a>
+                                    <p class="attachment-info"></p>
+                                    <p class="price attachment-subtitle">4,95&nbsp;€</p>
+                                </div>
+                                <a href="https://store.ifixit.fr/products/ifixit-opening-picks-set-of-6"
+                                    class="button button-small button-transparent">Acheter</a>
+
+                                <meta itemprop="requiredQuantity" content="1">
+                                <meta itemprop="url"
+                                    content="https://store.ifixit.fr/products/ifixit-opening-picks-set-of-6">
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="column one-half item-list-parts">
+                    <div class="item-list-header row">
+                        <h3 class="column full-width">Pièces</h3>
+                    </div>
+                    <ul class="item-list-featured attachment-link-list no-columns">
+                    </ul>
+                    <p class="empty-item">Aucune pièce spécifiée.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div itemprop="estimatedCost" itemscope="" itemtype="http://schema.org/MonetaryAmount">
+        <meta itemprop="currency" content="EUR">
+        <meta itemprop="value" content="0.00">
+    </div>
+    -->
+
+                        <ol class="steps-container container">
+
+                            <!-- TODO: Handle sections display (for now we have only one section for simplicity)-->
+                            <section>
+                                {% for step in guide['steps'] %}
+
+                                <li id="s{{step['stepid']}}" class="step step-wrapper js-step">
+                                    <div class="actionbar-portal"></div>
+                                    <div class="step">
+                                        <div class="row">
+                                            <div class="column four-fifths">
+                                                <h2 class="step-title">
+                                                    <a class="fragment-link" itemprop="url" href="#s258194">
+                                                        <strong
+                                                            class="stepValue">{{label['step_no']}}{{loop.index}}</strong>
+                                                        <!-- TODO: Handle step title (title of the step OR if not specified + first step of the section, 'subject' of the section)
+                                    <span class="stepTitleTitle" itemprop="name">
+                                        Back Cover </span>
+                                    -->
+                                                    </a>
+                                                </h2>
+                                            </div>
+                                            <div class="column one-fifth">
+                                            </div>
+                                        </div>
+
+                                        <div class="row step-container">
+                                            <div
+                                                class="column stepMedia step-main-media js-step-main-media stepImage stepImageContainer">
+                                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                                                {% for image in step['media']['data'] %}
+                                                <img id="step{{loop.index}}-stepImage1-{{image['id']}}"
+                                                    alt="{{step['lines'][0]['text_rendered']}}"
+                                                    class="stepImage js-step-main-image hasMenu fluid medium {% if loop.index == 1 %}visible{% else %}lazyloaded{% endif %}"
+                                                    sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
+                                                    src="../../../cache/images/image_{{image['guid']}}.standard"
+                                                    width="575" height="431.75">
+                                                {% endfor %}
+                                            </div>
+                                            <div class="column step-content">
+                                                {% if step['media']['data'] | length > 1 %}
+                                                <div class="row step-thumbnails">
+                                                    <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                                                    {% for image in step['media']['data'] %}
+                                                    <div
+                                                        class="column step-thumbnail js-step-thumbnail-container{% if loop.index == 1 %} active{% endif %}">
+                                                        <div class="step-thumbnail-inner">
+                                                            <img id="step{{loop.index}}-stepImage1-{{image['id']}}"
+                                                                alt=""
+                                                                class="stepImage js-step-main-image js-step-thumbnail fluid {% if loop.index == 1 %}visible {% endif %}medium"
+                                                                sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
+                                                                src="../../../cache/images/image_{{image['guid']}}.standard"
+                                                                width="110" height="83">
+                                                        </div>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                                <div class="row step-lines-container">
+                                                    <ul class="step-lines">
+                                                        {% for line in step['lines'] %}
+                                                        {% if line['bullet'] == 'icon_caution' %}
+                                                        <li class="level-{{line['level']}} bullet-line-icon-caution">
+                                                            <div class="bullet bulletIcon ico-step-icon-caution"></div>
+                                                            {% elif line['bullet'] == 'icon_note' %}
+                                                        <li class="level-{{line['level']}} bullet-line-icon-note">
+                                                            <div class="bullet bulletIcon ico-step-icon-note"></div>
+                                                            {% else %}
+                                                        <li class="level-{{line['level']}}">
+                                                            <div class="fa fa-circle bullet bullet_{{line['bullet']}}">
+                                                            </div>
+                                                            {% endif %}
+                                                            <p>{{line['text_rendered']}}</p>
+                                                            <div class="clearer"></div>
+                                                        </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="js-comment-container">
+                                            <div class="row divider comments-button-container">
+                                                <div class="column four-fifths divider-content"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                {% endfor %}
+
+                            </section>
+
+                        </ol>
+
+                        <div>
+                        </div>
+
+
+                        <div id="conclusion" class="completion-container container">
+                            <div class="actionbar-portal"></div>
+
+
+                            <div>
+                                <div class="row">
+                                    <div class="column">
+
+
+                                        <div class="guide-complete">
+                                            <div id="guideConclusion">
+                                                <!-- TODO : see if we can handle halfway conclusions properly (where is it used?)
+                            <div id="halfwayConclusion" class="hidden">
+                                <div class="finish-line">
+                                    <i class="fa fa-undo "></i> Presque terminé !
+                                </div>
+
+                                <div class="conclusionText">
+                                    <p>Insert your new SSD into the connector. To reassemble your device, follow these
+                                        instructions in reverse order.</p>
+                                </div>
+                            </div>
+                            -->
+                                                <div id="finishedConclusion">
+                                                    <div class="finish-line">
+                                                        <i class="fa fa-flag-checkered "></i> {{label['conclusion']}}
+                                                    </div>
+
+                                                    <div class="conclusionText">
+                                                        {{guide['conclusion_rendered']|safe}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <div id="author-container">
+                            <div class="actionbar-portal"></div>
+                            <div>
+                                <div id="author" class="credit-author-team-container row">
+                                    <div class="author-container">
+                                        <div class="author-heading row">
+                                            <h3 class="column">
+                                                <a class="fragment-link" href="#author">{{label['author']}}</a>
+                                            </h3>
+                                            <!-- TODO: Display other contributors
+                        <p class="contributors-subtitle column">
+                            avec <a href="https://fr.ifixit.com/Tutoriel/historique/intro/131072" rel="ugc">3 autres
+                                contributeurs</a> </p>
+                        -->
+                                        </div>
+
+                                        <div class="author-meta row">
+                                            <div class="author-photo column">
+                                                <!-- TODO: Retrieve user profiles: href="https://fr.ifixit.com/User/3366811/Kaylie+Klausing"-->
+                                                <a>
+                                                    <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                                                    <img alt=""
+                                                        src="../../../cache/images/image_{{guide['author']['image']['guid']}}.standard"
+                                                        width="100" height="100">
+                                                </a>
+                                            </div>
+
+                                            <div class="author-info column">
+                                                <h4>
+                                                    <!-- TODO: Retrieve user profiles: href="https://fr.ifixit.com/User/3366811/Kaylie+Klausing"-->
+                                                    <a>
+                                                        {{guide['author']['username']}} </a>
+                                                </h4>
+
+                                                <p>{{label['member_since']}}{{guide['author']['join_date_rendered']}}
+                                                </p>
+
+                                                <p>{{guide['author']['reputation']}} {{label['reputation']}}</p>
+
+                                                <!-- Retrieve user number of tutorial written 
+                            <p>6 tutoriels rédigés </p>-->
+                                            </div>
+                                            <!-- Retrieve user badges
+                        <div class="author-badges column">
+                            <p class="hidden-mobile">
+                                <a href="https://fr.ifixit.com/User/Graph/3366811/Kaylie+Klausing">
+                                    Badges:
+                                    <span class="num-badges">9</span>
+                                </a>
+                            </p>
+
+                            <ul class="badge-list">
+                                <li>
+                                    <a class="badge-link"
+                                        title="Atteignez la limite de réputation journalière pour les tutoriels de réparation"
+                                        href="https://fr.ifixit.com/Badge/MasterOfManuals">
+                                        <img alt="Master Of Manuals"
+                                            src="../../saved_pages/Lenovo%20Legion%20Y530-15ICH%20Solid%20State%20Drive%20Replacement%20-%20Tutoriel%20de%20re%CC%81paration%20iFixit_files/master-of-manuals.svg"
+                                            width="32" height="32">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="badge-link"
+                                        title="Soyez l'auteur d'un appareil qui obtiendra trois questions"
+                                        href="https://fr.ifixit.com/Badge/Pioneer">
+                                        <img alt="Pioneer"
+                                            src="../../saved_pages/Lenovo%20Legion%20Y530-15ICH%20Solid%20State%20Drive%20Replacement%20-%20Tutoriel%20de%20re%CC%81paration%20iFixit_files/pioneer.svg"
+                                            width="32" height="32">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="badge-link"
+                                        title="Créez cinq tutoriels visualisés au moins cinquante fois"
+                                        href="https://fr.ifixit.com/Badge/Pedagogue">
+                                        <img alt="Sensei"
+                                            src="../../saved_pages/Lenovo%20Legion%20Y530-15ICH%20Solid%20State%20Drive%20Replacement%20-%20Tutoriel%20de%20re%CC%81paration%20iFixit_files/pedagogue.svg"
+                                            width="32" height="32">
+                                    </a>
+                                </li>
+                            </ul>
+                            <p class="num-left">
+                                <a href="https://fr.ifixit.com/User/Graph/3366811/Kaylie+Klausing">
+                                    + 6 badges supplémentaires </a>
+                            </p>
+                        </div>-->
+                                        </div>
+                                    </div>
+
+                                    <!-- Retrieve team info
+                <div class="team-container">
+                    <h3 class="row hidden-mobile-tablet">Équipe</h3>
+                    <div class="team-meta row">
+                        <div class="team-photo column">
+                            <a href="https://fr.ifixit.com/Team/38933/Cal+Poly%2C+Team+S7-G1%2C+Regan+Winter+2020">
+                                <img alt=""
+                                    src="../../saved_pages/Lenovo%20Legion%20Y530-15ICH%20Solid%20State%20Drive%20Replacement%20-%20Tutoriel%20de%20re%CC%81paration%20iFixit_files/cal-poly.png"
+                                    width="100" height="100">
+                            </a>
+                        </div>
+
+                        <div class="team-info column">
+                            <h4>
+                                <a class="hidden-mobile-tablet"
+                                    href="https://fr.ifixit.com/Team/38933/Cal+Poly%2C+Team+S7-G1%2C+Regan+Winter+2020">
+                                    Cal Poly, Team S7-G1, Regan Winter 2020 </a>
+                                <span class="visible-mobile-tablet">
+                                    Membre de l'équipe <a
+                                        href="https://fr.ifixit.com/Team/38933/Cal+Poly%2C+Team+S7-G1%2C+Regan+Winter+2020">Cal
+                                        Poly, Team S7-G1, Regan Winter 2020</a> </span>
+                            </h4>
+                            <p class="team-subtitle">
+                                CPSU-REGAN-W20S7G1 </p>
+                            <p class="team-members">
+                                4 membres </p>
+                            <p class="team-guides">
+                                11 tutoriels rédigés </p>
+                        </div>
+                    </div>
+                </div>-->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="clearer"></div>
+
+        </div> <!-- /mainBody -->
+
+        <div class="clearer"></div>
+    </div> <!-- /main -->
+</div> <!-- /page -->
+{% endblock content%}
