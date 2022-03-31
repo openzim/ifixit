@@ -1,0 +1,23 @@
+<div class="row step-lines-container">
+    <ul class="step-lines">
+        {% for line in step['lines'] %}
+        {% if line['bullet'] == 'icon_caution' %}
+        <li class="level-{{line['level']}} bullet-line-icon-caution">
+            <div class="bullet bulletIcon ico-step-icon-caution"></div>
+            {% elif line['bullet'] == 'icon_note' %}
+        <li class="level-{{line['level']}} bullet-line-icon-note">
+            <div class="bullet bulletIcon ico-step-icon-note"></div>
+            {% elif line['bullet'] == 'icon_reminder' %}
+        <li class="level-{{line['level']}} bullet-line-icon-reminder">
+            <div class="bullet bulletIcon ico-step-icon-reminder"></div>
+            {% else %}
+        <li class="level-{{line['level']}}">
+            <div class="fa fa-circle bullet bullet_{{line['bullet']}}">
+            </div>
+            {% endif %}
+            <p>{{line['text_rendered'] | safe}}</p>
+            <div class="clearer"></div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>

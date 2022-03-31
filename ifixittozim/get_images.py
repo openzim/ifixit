@@ -42,9 +42,13 @@ def list_images_in_guide(work_item):
                     image_guids[guide_content['author']['image']['guid']] = guide_content['author']['image']
             if 'steps' in guide_content and guide_content['steps']:
                 for step in guide_content['steps']:
-                    if step['media']['type'] != 'image':
+                    if step['media']['type'] not in ['image', 'video']:
                         continue
-                    for image in step['media']['data']:
+                    if step['media']['type'] == 'image':
+                        for image in step['media']['data']:
+                            image_guids[image['guid']] = image
+                    elif step['media']['type'] == 'video':
+                        image = step['media']['data']['image']['image']
                         image_guids[image['guid']] = image
         except Exception as e:
             logger.warning('\tFailed to process {}: {}'.format(guide_path, e))
