@@ -2,14 +2,25 @@
 
 {% block title %}{{guide['title']}}{% endblock title%}
 
-{% block specific_css %}
+{% block specific_head %}
 <link type="text/css" href="../../shared/Shared-i18n_formatting-7XRaMqur0Z-hJvP-W8sS2A.css" rel="stylesheet" as="style">
 <link type="text/css" href="../../shared/new-guide-view-all-Zs-aI_CApaXZ_ssFDlTZ9g.css" rel="stylesheet" as="style">
 <link type="text/css" href="../../shared/release-version-orbcTfqm6_JKsoz-PPnHGA.css" rel="stylesheet" as="style">
 <link type="text/css" href="../../shared/prosemirror-all-_OBJ3KkZRD0uygPKzpMb8Q.css" rel="stylesheet" as="style">
 <link type="text/css" href="../../shared/Shared-cart_banner-33Ctp6kCy0R-IiTsFeV6cw.css" rel="stylesheet" as="style">
 <link type="text/css" href="../../shared/Shared-attachment_link-AoWbgS-g65jo1DYOaHV5XA.css" rel="stylesheet" as="style">
-{% endblock specific_css%}
+
+<script>
+    function switchStepImage(element, mainImgId, className, divThubId) {
+        document.getElementById(mainImgId).src = element.src;
+        var myElements = document.getElementsByClassName(className); 
+        for(var counter = 0; counter < myElements.length; counter++){
+            myElements[counter].classList.remove('active');
+        }
+        document.getElementById(divThubId).classList.add('active');
+    }
+</script>
+{% endblock specific_head%}
 
 {% block content %}
 <div id="page" class=" ">
@@ -280,6 +291,7 @@
                             <!-- TODO: Handle sections display (for now we have only one section for simplicity)-->
                             <section>
                                 {% for step in guide['steps'] %}
+                                    {% set steploop = loop %}
 
                                 <li id="s{{step['stepid']}}" class="step step-wrapper js-step">
                                     <div class="actionbar-portal"></div>
@@ -305,29 +317,36 @@
                                             <div
                                                 class="column stepMedia step-main-media js-step-main-media stepImage stepImageContainer">
                                                 <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                                                <img id="step{{steploop.index}}-mainImage"
+                                                    alt="{{step['lines'][0]['text_rendered']}}"
+                                                    class="stepImage js-step-main-image hasMenu fluid medium visible"
+                                                    sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
+                                                    src="../../../cache/images/image_{{step['media']['data'][0]['guid']}}.standard"
+                                                    width="575" height="431.75">
+                                                <!--
                                                 {% for image in step['media']['data'] %}
-                                                <img id="step{{loop.index}}-stepImage1-{{image['id']}}"
+                                                <img id="step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}"
                                                     alt="{{step['lines'][0]['text_rendered']}}"
                                                     class="stepImage js-step-main-image hasMenu fluid medium {% if loop.index == 1 %}visible{% else %}lazyloaded{% endif %}"
                                                     sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
                                                     src="../../../cache/images/image_{{image['guid']}}.standard"
                                                     width="575" height="431.75">
-                                                {% endfor %}
+                                                {% endfor %}-->
                                             </div>
                                             <div class="column step-content">
                                                 {% if step['media']['data'] | length > 1 %}
                                                 <div class="row step-thumbnails">
                                                     <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                                                     {% for image in step['media']['data'] %}
-                                                    <div
-                                                        class="column step-thumbnail js-step-thumbnail-container{% if loop.index == 1 %} active{% endif %}">
+                                                    <div id="step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-divthub"
+                                                        class="column stepImage{{steploop.index}} step-thumbnail js-step-thumbnail-container{% if loop.index == 1 %} active{% endif %}">
                                                         <div class="step-thumbnail-inner">
-                                                            <img id="step{{loop.index}}-stepImage1-{{image['id']}}"
+                                                            <img id="step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-thub"
                                                                 alt=""
                                                                 class="stepImage js-step-main-image js-step-thumbnail fluid {% if loop.index == 1 %}visible {% endif %}medium"
                                                                 sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
                                                                 src="../../../cache/images/image_{{image['guid']}}.standard"
-                                                                width="110" height="83">
+                                                                width="110" height="83" onmouseover="switchStepImage(this, 'step{{steploop.index}}-mainImage', 'stepImage{{steploop.index}}', 'step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-divthub')">
                                                         </div>
                                                     </div>
                                                     {% endfor %}
@@ -350,7 +369,7 @@
                                                             <div class="fa fa-circle bullet bullet_{{line['bullet']}}">
                                                             </div>
                                                             {% endif %}
-                                                            <p>{{line['text_rendered']}}</p>
+                                                            <p>{{line['text_rendered'] | safe}}</p>
                                                             <div class="clearer"></div>
                                                         </li>
                                                         {% endfor %}

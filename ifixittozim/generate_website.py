@@ -117,8 +117,8 @@ def generate_website():
                     guide_path = join(dist_path, 'guides', lang, 'guide_{}.html'.format(guide_content['guideid']))
                     with open(guide_path, "w") as fh:
                         fh.write(guide_rendered)
-                except:
-                    logger.warning('\tFailed to process {}'.format(guide_path))
+                except Exception as ex:
+                    logger.warning('\tFailed to process {}: {}'.format(guide_path, ex))
 
         cur_path = join(cache_path, 'categories', lang)
         content_image_regex = re.compile(r'\"(?P<prefix>https://guide-images\.cdn\.ifixit\.com/igi/)(?P<image_filename>\w*?.\w*?)\"')
