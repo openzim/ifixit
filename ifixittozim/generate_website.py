@@ -81,17 +81,23 @@ def generate_website():
             'repairability': 'Repairability:',
         }
     }
+    guide_regex_full = re.compile(r'href=\"https://\w*\.ifixit\.\w*/Guide/.*/(?P<guide_id>\d*)\"')
+    guide_regex_rel = re.compile(r'href=\"/Guide/.*/(?P<guide_id>\d*).*?\"')
+    content_image_regex = re.compile(r'\"(?P<prefix>https://guide-images\.cdn\.ifixit\.com/igi/)(?P<image_filename>\w*?.\w*?)\"')
+    device_link_regex = re.compile(r'href=\"/Device/(?P<device>.*?)\"')
+
     #for lang in LANGS:
+        
     for lang in ['en']:
         cur_path = join(cache_path, 'guides', lang)
         #for guide_filename in listdir(cur_path):
-        for guide_filename in ['guide_131072.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']:
+        for guide_filename in ['guide_131072.json', 'guide_38783.json', 'guide_125834.json', 'guide_11677.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']:
         #for guide_filename in []:
             guide_path = join(cur_path,guide_filename)
             with open(guide_path, 'r', encoding='utf-8') as guide_file:
                 guide_content = json.load(guide_file)
                 if not guide_content:
-                    continue
+                    continue                    
                 if guide_content['difficulty'] == 'Very easy':
                     guide_content['difficulty_class'] = 'difficulty-1'
                 elif guide_content['difficulty'] == 'Easy':
@@ -104,6 +110,10 @@ def generate_website():
                     raise Exception("Unknown guide difficulty: '{}' in guide {}".format(guide_content['difficulty'],guide_content['guideid']))
                 with setlocale('en_GB'):
                     guide_content['author']['join_date_rendered']=datetime.strftime(datetime.fromtimestamp(guide_content['author']['join_date']),'%x')
+                guide_content['introduction_rendered'] = guide_regex_full.sub('href="./guide_\\g<guide_id>.html"',guide_content['introduction_rendered'])
+                guide_content['introduction_rendered'] = guide_regex_rel.sub('href="./guide_\\g<guide_id>.html"',guide_content['introduction_rendered'])
+                guide_content['conclusion_rendered'] = guide_regex_full.sub('href="./guide_\\g<guide_id>.html"',guide_content['conclusion_rendered'])
+                guide_content['conclusion_rendered'] = guide_regex_rel.sub('href="./guide_\\g<guide_id>.html"',guide_content['conclusion_rendered'])
                 for step in guide_content['steps']:
                     if not step['media']:
                         raise Exception("Missing media attribute in step {} of guide {}".format(step['stepid'],guide_content['guideid']))
@@ -112,6 +122,8 @@ def generate_website():
                     for line in step['lines']:
                         if not line['bullet'] in ['black', 'red', 'orange', 'yellow', 'icon_note', 'icon_caution', 'icon_caution', 'icon_reminder']:
                             raise Exception("Unrecognized bullet '{}' in step {} of guide {}".format(line['bullet'], step['stepid'],guide_content['guideid']))
+                        line['text_rendered'] = guide_regex_full.sub('href="./guide_\\g<guide_id>.html"',line['text_rendered'])
+                        line['text_rendered'] = guide_regex_rel.sub('href="./guide_\\g<guide_id>.html"',line['text_rendered'])
                 try:
                     guide_rendered = guide_template.render(guide=guide_content, label=guide_label[lang])
                     guide_path = join(dist_path, 'guides', lang, 'guide_{}.html'.format(guide_content['guideid']))
@@ -121,8 +133,6 @@ def generate_website():
                     logger.warning('\tFailed to process {}: {}'.format(guide_path, ex))
 
         cur_path = join(cache_path, 'categories', lang)
-        content_image_regex = re.compile(r'\"(?P<prefix>https://guide-images\.cdn\.ifixit\.com/igi/)(?P<image_filename>\w*?.\w*?)\"')
-        device_link_regex = re.compile(r'href=\"/Device/(?P<device>.*?)\"')
         #for category_filename in listdir(cur_path):
         for category_filename in ['wiki_Apple Watch.json','wiki_MacBook Pro 15" Retina Display Mid 2015.json','wiki_Mac.json']:
         #for category_filename in []:
