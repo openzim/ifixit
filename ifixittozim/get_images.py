@@ -11,12 +11,6 @@ from ifixittozim.worker import process_work_items, add_work_item, add_work_kind
 # dictionary used to store details about images to retrieve
 image_guids = dict()
 
-# define the various kind of parallel jobs that are possible
-add_work_kind('download_image', download_image)
-add_work_kind('list_images_in_category', list_images_in_category)
-add_work_kind('list_images_in_guide', list_images_in_guide)
-add_work_kind('check_if_image_needs_download', check_if_image_needs_download)
-
 def download_image(work_item):
     get_file_content(work_item['url'],work_item['path'])
 
@@ -114,3 +108,9 @@ def get_images():
 
     add_work_for_image_check(cache_path)
     process_work_items(100)
+
+# define the various kind of parallel jobs that are possible
+add_work_kind('download_image', download_image)
+add_work_kind('list_images_in_category', list_images_in_category)
+add_work_kind('list_images_in_guide', list_images_in_guide)
+add_work_kind('check_if_image_needs_download', check_if_image_needs_download)

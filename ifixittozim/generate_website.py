@@ -75,6 +75,7 @@ def generate_website():
             'featured_guides': 'Featured Guides',
             'technique_guides': 'Techniques',
             'replacement_guides': 'Replacement Guides',
+            'teardown_guides': 'Teardowns',
             'related_pages': 'Related Pages',
             'in_progress_guides': 'In Progress Guides',
             'repairability': 'Repairability:',
@@ -84,8 +85,8 @@ def generate_website():
     for lang in ['en']:
         cur_path = join(cache_path, 'guides', lang)
         #for guide_filename in listdir(cur_path):
-        #for guide_filename in ['guide_131072.json']:
-        for guide_filename in []:
+        for guide_filename in ['guide_131072.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']:
+        #for guide_filename in []:
             guide_path = join(cur_path,guide_filename)
             with open(guide_path, 'r', encoding='utf-8') as guide_file:
                 guide_content = json.load(guide_file)
@@ -109,7 +110,7 @@ def generate_website():
                     if step['media']['type'] != 'image':
                         raise Exception("Unrecognized media type in step {} of guide {}".format(step['stepid'],guide_content['guideid']))
                     for line in step['lines']:
-                        if not line['bullet'] in ['black', 'red', 'orange', 'yellow', 'icon_note', 'icon_caution', 'icon_caution']:
+                        if not line['bullet'] in ['black', 'red', 'orange', 'yellow', 'icon_note', 'icon_caution', 'icon_caution', 'icon_reminder']:
                             raise Exception("Unrecognized bullet '{}' in step {} of guide {}".format(line['bullet'], step['stepid'],guide_content['guideid']))
                 try:
                     guide_rendered = guide_template.render(guide=guide_content, label=guide_label[lang])
@@ -131,6 +132,12 @@ def generate_website():
                 if not category_content:
                     continue
                 try:
+                    for guide in category_content['featured_guides']:
+                        if guide['type'] not in ['replacement', 'technique', 'teardown']:
+                            raise Exception('Unsupported type of guide: {} for featured_guide {}'.format(guide['type'], guide['guideid']))
+                    for guide in category_content['guides']:
+                        if guide['type'] not in ['replacement', 'technique', 'teardown']:
+                            raise Exception('Unsupported type of guide: {} for guide {}'.format(guide['type'], guide['guideid']))
                     category_content['contents_rendered'] = content_image_regex.sub('../../../cache/images/image_\\g<image_filename>',category_content['contents_rendered'])
                     category_content['contents_rendered'] = device_link_regex.sub('href="./category_\\g<device>.html"',category_content['contents_rendered'])
                     category_content['filename'] = re.sub("\s", "_", category_content['title'])

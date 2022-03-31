@@ -342,6 +342,9 @@
                                                             {% elif line['bullet'] == 'icon_note' %}
                                                         <li class="level-{{line['level']}} bullet-line-icon-note">
                                                             <div class="bullet bulletIcon ico-step-icon-note"></div>
+                                                            {% elif line['bullet'] == 'icon_reminder' %}
+                                                        <li class="level-{{line['level']}} bullet-line-icon-reminder">
+                                                            <div class="bullet bulletIcon ico-step-icon-reminder"></div>
                                                             {% else %}
                                                         <li class="level-{{line['level']}}">
                                                             <div class="fa fa-circle bullet bullet_{{line['bullet']}}">

@@ -10,7 +10,7 @@
 {% block content %}
 <div id="page" class=" invisible">
 
-
+    <!-- TODO : generate sidebar appropriately 
     <div id="page-sidebar">
         <div id="sidebar-wiki-toc" class="sticky js-dynamic-toc">
             <div class="toc-title"><a href="#main">Mac Repair</a></div>
@@ -25,7 +25,7 @@
                 </ul>
             </div>
         </div>
-    </div>
+    </div>-->
 
     <div id="main">
         <div id="mainBody">
@@ -187,6 +187,30 @@
                                     height="100" alt="{{guide['subject']}}" class="thumb" />
                                 <div class='title-text'>
                                     <p>{{guide['subject']}}</p>
+                                </div>
+                            </a>
+
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- TODO: Check if display order on a category with both technique and replacement guides -->
+                {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'teardown') | list | length > 0 %}
+                <div class="blurbListWide" data-type="replacement">
+                    <h3 id="Section_Replacement" class="blurbListTitle js-dynamic-toc-section">
+                        <a href="#Section_Replacement" style="text-decoration: none;">
+                            {{label['teardown_guides']}}</a>
+                    </h3>
+                    <div class="grid">
+                        {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'teardown') %}
+                        <div class="cell">
+                            <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                <img src="{{guide | get_guide_image_path }}" width="133"
+                                    height="100" alt="{{guide['title']}}" class="thumb" />
+                                <div class='title-text'>
+                                    <p>{{guide['title']}}</p>
                                 </div>
                             </a>
 
