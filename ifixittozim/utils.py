@@ -63,12 +63,17 @@ def get_cache_path():
                     mkdir(subCachePath)
     return cachePath
 
+def get_assets_path():
+    cwd = getcwd()
+    assetPath = join(cwd, 'assets')
+    return assetPath
+
 def get_dist_path():
     cwd = getcwd()
     dist_path = join(cwd, 'dist');
     while not exists(dist_path):
         mkdir(dist_path)
-    for asset_kind in ['categories', 'guides', 'images']:
+    for asset_kind in ['categories', 'guides', 'images', 'home']:
         subCachePath = join(cwd, 'dist', asset_kind)
         while not exists(subCachePath):
             mkdir(subCachePath)

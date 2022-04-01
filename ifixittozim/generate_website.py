@@ -4,11 +4,12 @@ from datetime import datetime
 import json
 import re
 import traceback
+import shutil
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from ifixittozim import logger, LANGS
-from ifixittozim.utils import get_dist_path, get_cache_path, setlocale
+from ifixittozim.utils import get_dist_path, get_cache_path, get_assets_path, setlocale
 
 def guides_in_progress(guides, in_progress=True):
     if in_progress:
@@ -19,9 +20,9 @@ def guides_in_progress(guides, in_progress=True):
 # TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?)                                         
 def get_guide_image_path(guide):
     if guide['image'] and guide['image']['guid']:
-        return '../../../cache/images/image_{}.standard'.format(guide['image']['guid'])
+        return '../../images/image_{}.standard'.format(guide['image']['guid'])
     else:
-        return '../../shared/GuideNoImage_300x225.jpg'
+        return '../../assets/GuideNoImage_300x225.jpg'
 
 
 def generate_website():
@@ -37,6 +38,7 @@ def generate_website():
     
     guide_template = env.get_template("guide.html")
     category_template = env.get_template("category.html")
+    home_template = env.get_template("home.html")
 
     guide_label={
         'en': {
@@ -92,12 +94,25 @@ def generate_website():
     content_image_regex = re.compile(r'\"(?P<prefix>https://guide-images\.cdn\.ifixit\.com/igi/)(?P<image_filename>\w*?.\w*?)\"')
     device_link_regex = re.compile(r'href=\"/Device/(?P<device>.*?)\"')
         
-    num_guide = 1
     for lang in ['en']:
+        try:                
+            dist_assets_path = join(dist_path, 'assets')
+            shutil.rmtree(dist_assets_path)
+            shutil.copytree(get_assets_path(), dist_assets_path)
+
+            home_rendered = home_template.render()
+            home_path = join(dist_path, 'home', lang, 'home.html')
+            with open(home_path, "w") as fh:
+                fh.write(home_rendered)
+        except Exception as ex:
+            logger.warning('\tFailed to process home.html')
+            traceback.print_exc()
+
+        num_guide = 1
         cur_path = join(cache_path, 'guides', lang)
         #files_to_process = listdir(cur_path)
-        files_to_process = ['guide_26254.json', 'guide_437.json', 'guide_122924.json', 'guide_101194.json', 'guide_131963.json', 'guide_61205.json', 'guide_131072.json', 'guide_38783.json', 'guide_125834.json', 'guide_11677.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']
-        #files_to_process = []
+        #files_to_process = ['guide_26254.json', 'guide_437.json', 'guide_122924.json', 'guide_101194.json', 'guide_131963.json', 'guide_61205.json', 'guide_131072.json', 'guide_38783.json', 'guide_125834.json', 'guide_11677.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']
+        files_to_process = []
         for guide_filename in files_to_process:
             guide_path = join(cur_path,guide_filename)
             with open(guide_path, 'r', encoding='utf-8') as guide_file:
@@ -179,7 +194,7 @@ def generate_website():
                     for guide in category_content['guides']:
                         if guide['type'] not in ['replacement', 'technique', 'teardown', 'disassembly']:
                             raise Exception('Unsupported type of guide: {} for guide {}'.format(guide['type'], guide['guideid']))
-                    category_content['contents_rendered'] = content_image_regex.sub('../../../cache/images/image_\\g<image_filename>',category_content['contents_rendered'])
+                    category_content['contents_rendered'] = content_image_regex.sub('../../images/image_\\g<image_filename>',category_content['contents_rendered'])
                     category_content['contents_rendered'] = device_link_regex.sub('href="./category_\\g<device>.html"',category_content['contents_rendered'])
                     category_content['filename'] = re.sub("\s", "_", category_content['title'])
                     for idx, child in enumerate(category_content['children']):
