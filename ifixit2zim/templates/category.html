@@ -3,8 +3,8 @@
 {% block title %}{{category['display_title']}}{% endblock title%}
 
 {% block specific_head %}
-<link type="text/css" href="../../assets/Wiki-topic-r_spN9srKqcGQAC8emdeTA.css" rel="stylesheet" as="style">
-<link type="text/css" href="../../assets/Wiki-common-Zf5O-KLmFhhZ0w9cRZYZoQ.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/Wiki-topic-r_spN9srKqcGQAC8emdeTA.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/Wiki-common-Zf5O-KLmFhhZ0w9cRZYZoQ.css" rel="stylesheet" as="style">
 {% endblock specific_head%}
 
 {% block content %}
@@ -20,13 +20,13 @@
                     <div id="banner-wrap-bg-container">
                         <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                         <img id="banner-wrap-bg"
-                            src="../../images/image_{{category['image']['guid']}}.standard">
+                            src="../images/image_{{category['image']['guid']}}.standard">
                     </div>
                     <div class="banner-content">
                         <div class="banner-bucket">
                             <div class="banner-small-photo">
                                 <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                <img src="../../images/image_{{category['image']['guid']}}.standard"
+                                <img src="../images/image_{{category['image']['guid']}}.standard"
                                     width="252" height="189" alt="{{category['image']['display_title']}}">
                                 {% if category['repairability_score'] %}
                                 <!-- TODO: Retrieve the href of the teardown
@@ -78,7 +78,7 @@
                         <div class="categoryListCell">
                             <a href="./category_{{child['filename']}}.html" class="categoryAnchor">
                                 <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                <img src="../../images/image_{{child['image']['guid']}}.standard" width="179"
+                                <img src="../images/image_{{child['image']['guid']}}.standard" width="179"
                                     height="143" alt="{{child['display_title']}}" class="category-image" />
                                 <h5 class="title">
                                     {{child['display_title']}}</h5>
@@ -95,7 +95,7 @@
                         {{label['featured_guides']}}</h2>
                     <div class="entry-container">
                         {% for guide in category['featured_guides'] %}
-                        {% if loop.index < 3 %} <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html"
+                        {% if loop.index < 3 %} <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html"
                             class="entry">
                             <div class="thumbnail">
                                 <span class="featured-icon"><i class="svg-icon" alt="Featured" title="Featured"
@@ -131,7 +131,7 @@
                     <div class="grid">
                         {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'technique') %}
                         <div class="cell">
-                            <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                            <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
                                 <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                                 <img src="{{guide | get_guide_image_path }}" width="133"
                                     height="100" alt="{{guide['title']}}" class="thumb" />
@@ -156,7 +156,7 @@
                     <div class="grid">
                         {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'replacement') %}
                         <div class="cell">
-                            <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                            <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
                                 <img src="{{guide | get_guide_image_path }}" width="133"
                                     height="100" alt="{{guide['subject']}}" class="thumb" />
                                 <div class='title-text'>
@@ -180,7 +180,7 @@
                     <div class="grid">
                         {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'disassembly') %}
                         <div class="cell">
-                            <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                            <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
                                 <img src="{{guide | get_guide_image_path }}" width="133"
                                     height="100" alt="{{guide['title']}}" class="thumb" />
                                 <div class='title-text'>
@@ -204,7 +204,7 @@
                     <div class="grid">
                         {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'teardown') %}
                         <div class="cell">
-                            <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                            <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
                                 <img src="{{guide | get_guide_image_path }}" width="133"
                                     height="100" alt="{{guide['title']}}" class="thumb" />
                                 <div class='title-text'>
@@ -226,9 +226,9 @@
                     <div class="grid">
                         {% for wiki in category['related_wikis'] %}
                         <div class="categoryListCell">
-                            <a href="../../wikis/{{lang}}/wiki_{{wiki['wikiid']}}.html" class="categoryAnchor">
+                            <a href="../wikis/{{lang}}/wiki_{{wiki['wikiid']}}.html" class="categoryAnchor">
                                 <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                <img src="../../images/image_{{wiki['image']['guid']}}.standard" width="179"
+                                <img src="../images/image_{{wiki['image']['guid']}}.standard" width="179"
                                     height="143" alt="{{wiki['display_title']}}" class="category-image" />
                                 <h5 class="title">{{wiki['display_title']}}</h5>
                             </a>
@@ -251,7 +251,7 @@
                             <div class="grid">
                                 {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'replacement') %}
                                 <div class="cell">
-                                    <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                    <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
                                         <img src="{{guide | get_guide_image_path }}" width="133"
                                             height="100" alt="{{guide['subject']}}" class="thumb" />
                                         <div class='title-text'>
@@ -262,7 +262,7 @@
                                 {% endfor %}
                                 {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'teardown') %}
                                 <div class="cell">
-                                    <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                    <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
                                         <img src="{{guide | get_guide_image_path }}" width="133"
                                             height="100" alt="{{guide['title']}}" class="thumb" />
                                         <div class='title-text'>
@@ -273,7 +273,7 @@
                                 {% endfor %}
                                 {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'technique') %}
                                 <div class="cell">
-                                    <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                    <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
                                         <img src="{{guide | get_guide_image_path }}" width="133"
                                             height="100" alt="{{guide['title']}}" class="thumb" />
                                         <div class='title-text'>
@@ -284,7 +284,7 @@
                                 {% endfor %}
                                 {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'disassembly') %}
                                 <div class="cell">
-                                    <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                    <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
                                         <img src="{{guide | get_guide_image_path }}" width="133"
                                             height="100" alt="{{guide['title']}}" class="thumb" />
                                         <div class='title-text'>

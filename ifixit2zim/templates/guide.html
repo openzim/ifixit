@@ -3,12 +3,12 @@
 {% block title %}{{guide['title']}}{% endblock title%}
 
 {% block specific_head %}
-<link type="text/css" href="../../assets/Shared-i18n_formatting-7XRaMqur0Z-hJvP-W8sS2A.css" rel="stylesheet" as="style">
-<link type="text/css" href="../../assets/new-guide-view-all-Zs-aI_CApaXZ_ssFDlTZ9g.css" rel="stylesheet" as="style">
-<link type="text/css" href="../../assets/release-version-orbcTfqm6_JKsoz-PPnHGA.css" rel="stylesheet" as="style">
-<link type="text/css" href="../../assets/prosemirror-all-_OBJ3KkZRD0uygPKzpMb8Q.css" rel="stylesheet" as="style">
-<link type="text/css" href="../../assets/Shared-cart_banner-33Ctp6kCy0R-IiTsFeV6cw.css" rel="stylesheet" as="style">
-<link type="text/css" href="../../assets/Shared-attachment_link-AoWbgS-g65jo1DYOaHV5XA.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/Shared-i18n_formatting-7XRaMqur0Z-hJvP-W8sS2A.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/new-guide-view-all-Zs-aI_CApaXZ_ssFDlTZ9g.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/release-version-orbcTfqm6_JKsoz-PPnHGA.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/prosemirror-all-_OBJ3KkZRD0uygPKzpMb8Q.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/Shared-cart_banner-33Ctp6kCy0R-IiTsFeV6cw.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/Shared-attachment_link-AoWbgS-g65jo1DYOaHV5XA.css" rel="stylesheet" as="style">
 
 <script>
     function switchStepImage(element, mainImgId, className, divThubId) {
@@ -76,7 +76,7 @@
                                         <div class="guide-main-image">
                                             <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                                             <img class="hasMenu"
-                                                src="../../images/image_{{guide['image']['guid']}}.standard"
+                                                src="../images/image_{{guide['image']['guid']}}.standard"
                                                 alt="{{guide['title']}}" sizes="(max-width: 740px) 100vw, 405px"
                                                 width="405" height="290">
                                         </div>
@@ -200,7 +200,7 @@
                                                 alt="{{step['lines'][0]['text_rendered']}}"
                                                 class="stepImage js-step-main-image hasMenu fluid medium visible"
                                                 sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
-                                                src="../../images/image_{{step['media']['data']['image']['image']['guid']}}.standard"
+                                                src="../images/image_{{step['media']['data']['image']['image']['guid']}}.standard"
                                                 width="575" height="431.75">
                                             </div>
                                             <div class="column step-content">   
@@ -228,7 +228,7 @@
                                                     alt="{{step['media']['data'][0]['guid']}}"
                                                     class="stepImage js-step-main-image hasMenu fluid medium visible"
                                                     sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
-                                                    src="../../images/image_{{step['media']['data'][0]['guid']}}.standard"
+                                                    src="../images/image_{{step['media']['data'][0]['guid']}}.standard"
                                                     width="575" height="431.75">
                                             </div>
                                             <div class="column step-content">
@@ -243,7 +243,7 @@
                                                                 alt="{{image['guid']}}"
                                                                 class="stepImage js-step-main-image js-step-thumbnail fluid {% if loop.index == 1 %}visible {% endif %}medium"
                                                                 sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
-                                                                src="../../images/image_{{image['guid']}}.standard"
+                                                                src="../images/image_{{image['guid']}}.standard"
                                                                 width="110" height="83" onmouseover="switchStepImage(this, 'step{{steploop.index}}-mainImage', 'stepImage{{steploop.index}}', 'step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-divthub')">
                                                         </div>
                                                     </div>
@@ -317,7 +317,7 @@
                                                 <a>
                                                     <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                                                     <img alt=""
-                                                        src="../../images/image_{{guide['author']['image']['guid']}}.standard"
+                                                        src="../images/image_{{guide['author']['image']['guid']}}.standard"
                                                         width="100" height="100">
                                                 </a>
                                             </div>

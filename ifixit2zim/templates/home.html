@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Des tutoriels pour tout réparer - iFixit{% endblock title%}
+
+{% block specific_head %}
+<link type="text/css" href="../assets/Shared-i18n_formatting-7XRaMqur0Z-hJvP-W8sS2A.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/area_index-BDTBciD-Y7NVVjoPQBUyhA.css" rel="stylesheet" as="style">
+{% endblock specific_head%}
+
+{% block content %}
+
+<div id="page" class="hide-until-css-loaded ">
+    <div id="main">
+       <div id="mainBody">
+          <!-- MAIN BODY -->
+          
+          <div id="contentFloat">
+             <div id="content">
+
+                <div class="page-title-container">
+                   <h1 class="page-title">
+                      <span class="page-title-text">{{home_content['page_title']}}</span>
+                   </h1>
+                   <div class="clearer"></div>
+                </div>
+
+                <div class="page-callout hidden-mobile-tablet">
+                   <div class="page-callout-inner">
+                      <img src="../{{home_content['callout']['img_path']}}" role="presentation" width="998"
+                         height="211">
+                      {{home_content['callout']['content'] | safe}}
+                   </div>
+                </div>
+
+                <div class="page-content">
+                   <div class="section-divider primary-divider">
+                      <p>{{home_content['primary_title']}}</p>
+                   </div>
+
+                   <div class="featured-categories">
+                     {%for category in home_content['featured_categories']%}
+                      <a class="featured-category-item" href="../categories/category_{{category['name']}}.html"
+                         title="{{category['title']}}">
+                         <div class="shadow-overlay"></div>
+                         <p class="featured-category-title">{{category['text']}}</p>
+                         <img src="../{{category['img_path']}}" role="presentation" width="280" height="210">
+                      </a>
+                      {%endfor%}
+                   </div>
+
+                   <div class="section-divider secondary-divider">
+                      <p>{{home_content['secondary_title']}}</p>
+                   </div>
+                   <div class="sub-categories">
+                     {%for category in home_content['sub_categories']%}
+                      <a class="sub-category" href="../categories/category_{{category['name']}}.html">
+                         <p class="sub-category-title">
+                            <span class="overflow-slide-in"
+                               title="{{category['title']}}"><i
+                                  class="fa fa-list-ul "></i> {{category['count']}}</span>
+                            <span class="sub-category-title-text">{{category['text']}}</span>
+                         </p>
+                      </a>
+                      {%endfor%}
+                   </div>
+                </div>
+             </div>
+          </div>
+          <div class="clearer"></div>
+
+       </div> <!-- /mainBody -->
+
+       <div class="clearer"></div>
+    </div> <!-- /main -->
+ </div> <!-- /page -->
+{% endblock content%}

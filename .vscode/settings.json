@@ -3,5 +3,6 @@
         "cache": true,
         "dist": true,
         "venv": true
-    }
+    },
+    "editor.rulers": [80]
 }

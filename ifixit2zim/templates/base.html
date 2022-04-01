@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--[if IE 8 ]>   <html class="lt-ie10 lt-ie9 ie8" lang="fr" xmlns:fb="http://ogp.me/ns/fb#"><![endif]-->
+<!--[if IE 9 ]>   <html class="lt-ie10 ie9" lang="fr" xmlns:fb="http://ogp.me/ns/fb#"><![endif]-->
+<!--[if (gte IE 10)|!(IE)]><!-->
+<html dir="ltr" xmlns:fb="http://ogp.me/ns/fb#" slick-uniqueid="3" class="csspositionsticky"
+    style="--chakra-ui-color-mode: light;" data-theme="light" lang="fr">
+<!--<![endif]-->
+
+<head>
+    <title>{% block title %}{% endblock %}</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- TODO : decide what to do with these meta ...
+        <meta name="description" content="How to replace or upgrade the SSD in your Lenovo Legion Y530-15ICH.">
+    <meta name="title" content="{{ self.title() }} - Tutoriel de réparation iFixit">
+    <meta name="keywords"
+        content="{{ self.title() }}, Lenovo Legion Y530-15ICH, Parts, Tools, Free Repair Guides, Manual, Teardowns">
+
+    <meta name="robots" content="noindex, nofollow, nosnippet, noarchive, noimageindex">
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" media="print" href="../assets/Shared-print-ej-m-RsicBzcpqbxdfzumQ.css">
+
+
+    <link type="text/css" href="../assets/css2.css" rel="stylesheet" as="style">
+    <link type="text/css" href="../assets/guide-all-evkgScrziDY3Uq33ElIkNA.css" rel="stylesheet" as="style">
+    <link type="text/css" href="../assets/font-awesome-HTdabjFBu1PkVsVncBZulw.css" rel="stylesheet" as="style">
+    <link type="text/css" href="../assets/module-all-a4ubLUywxaL0H1WJD5LLgQ.css" rel="stylesheet" as="style">
+    <link type="text/css" href="../assets/core-ETWCjfemWxBbJHaoXafxFg.css" rel="stylesheet" as="style">
+    <link type="text/css" href="../assets/core-primitives-F5WnAWhrwpl7oCtqtgogQQ.css" rel="stylesheet" as="style">
+
+    {% block specific_head %}{% endblock %}
+</head>
+<body class="page-background-gradient fr responsive fullWidth user-guide chakra-ui-light">
+    <div id="background">
+        {% block content %}{% endblock %}
+        <div class="clearer"></div>
+    </div> <!-- /background -->
+    <div class="clearer"></div>
+
+
+
+    <footer class="">
+        <div class="footer-container">
+
+            <!-- Site Stats -->
+            <div class="footer-row footer-stats footer-container-width">
+                {%for stat in metadata['footer_stats']%}
+                <div class="footer-col-4">
+                    <p class="footer-stat">{{stat['value']}}</p>
+                    <p>{{stat['text']}}</p>
+                </div>
+                {%endfor%}
+            </div>
+
+            <!-- Ifixit Org Blog & Copyright -->
+            {{metadata['footer_copyright'] | safe}}
+
+        </div>
+
+    </footer>
+
+</body>
+
+</html>
