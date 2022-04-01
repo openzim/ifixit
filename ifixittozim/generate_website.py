@@ -52,6 +52,8 @@ def generate_website():
             'author': 'Author',
             'reputation': 'Reputation',
             'member_since': 'Member since: ',
+            'published': 'Published: ',
+            'teardown': 'Teardown',
         },
         'fr': {
             'written_by': 'Rédigé par :',
@@ -66,6 +68,8 @@ def generate_website():
             'author': 'Auteur',
             'reputation': 'Réputation',
             'member_since': 'Membre depuis le ',
+            'published': 'QQQ: ',
+            'teardown': 'Vue éclatée',
         }
     }
 
@@ -101,21 +105,25 @@ def generate_website():
                 if not guide_content:
                     continue   
                 try:                
-                    if guide_content['difficulty'] == 'Very easy':
-                        guide_content['difficulty_class'] = 'difficulty-1'
-                    elif guide_content['difficulty'] == 'Easy':
-                        guide_content['difficulty_class'] = 'difficulty-2'
-                    elif guide_content['difficulty'] == 'Moderate':
-                        guide_content['difficulty_class'] = 'difficulty-3'
-                    elif guide_content['difficulty'] == 'Difficult':
-                        guide_content['difficulty_class'] = 'difficulty-4'
-                    elif guide_content['difficulty'] == 'Very difficult':
-                        guide_content['difficulty_class'] = 'difficulty-5'
-                    else:
-                        raise Exception("Unknown guide difficulty: '{}' in guide {}".format(guide_content['difficulty'],guide_content['guideid']))
+                    if guide_content['type'] != 'teardown':
+                        if guide_content['difficulty'] == 'Very easy':
+                            guide_content['difficulty_class'] = 'difficulty-1'
+                        elif guide_content['difficulty'] == 'Easy':
+                            guide_content['difficulty_class'] = 'difficulty-2'
+                        elif guide_content['difficulty'] == 'Moderate':
+                            guide_content['difficulty_class'] = 'difficulty-3'
+                        elif guide_content['difficulty'] == 'Difficult':
+                            guide_content['difficulty_class'] = 'difficulty-4'
+                        elif guide_content['difficulty'] == 'Very difficult':
+                            guide_content['difficulty_class'] = 'difficulty-5'
+                        else:
+                            raise Exception("Unknown guide difficulty: '{}' in guide {}".format(guide_content['difficulty'],guide_content['guideid']))
                     with setlocale('en_GB'):
                         if guide_content['author']['join_date']:
                             guide_content['author']['join_date_rendered']=datetime.strftime(datetime.fromtimestamp(guide_content['author']['join_date']),'%x')
+                        # TODO: format published date as June 10, 2014 instead of 11/06/2014
+                        if guide_content['published_date']:
+                            guide_content['published_date_rendered']=datetime.strftime(datetime.fromtimestamp(guide_content['published_date']),'%x')
                     guide_content['introduction_rendered'] = guide_regex_full.sub('href="./guide_\\g<guide_id>.html"',guide_content['introduction_rendered'])
                     guide_content['introduction_rendered'] = guide_regex_rel.sub('href="./guide_\\g<guide_id>.html"',guide_content['introduction_rendered'])
                     guide_content['conclusion_rendered'] = guide_regex_full.sub('href="./guide_\\g<guide_id>.html"',guide_content['conclusion_rendered'])

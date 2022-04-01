@@ -29,7 +29,7 @@
             <!-- MAIN BODY -->
             <div id="contentFloat">
                 <div id="content">
-                    <div class="wrapper">
+                    <div class="wrapper {% if guide['type'] == 'teardown' %}is-teardown{% endif %}">
                         <div id="guide-intro" class="guide-container guide-v2 js-guide-container container">
                             <div>
                                 <div class="guide-all-metadata">
@@ -46,8 +46,33 @@
                                                        Display other contributors
                                                        Retrieve page history -->
                                         </div>
+                                        {% if guide['type'] == 'teardown' %}
+                                        <div class="guide-published-date guide-title-subtext">
+                                            {{label['published']}}{{guide['published_date_rendered']}} </div>
+                                        {% endif %}
                                     </div>
                                     <div class="guide-metadata guide-main-image-container">
+                                        {% if guide['type'] == 'teardown' %}
+                                        <div class="guide-main-image hidden-mobile"
+                                            style="background-image: url('../../../cache/images/image_{{guide['image']['guid']}}.standard')">
+                                            <div class="teardown-image-overlay">
+                                                <div class="guide-metadata guide-title-container guide-title-image">
+                                                    <h1 class="guide-intro-title guide-title">{{guide['title']}}</h1>
+                                                    <div class="guide-published-date guide-title-subtext">
+                                                        {{label['published']}}{{guide['published_date_rendered']}} </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="guide-main-image-banner hidden-mobile">
+                                            <p><i class="svg-icon" style="display: inline-block; width: 24px; height: 24px;"><svg
+                                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                                        <polyline points="2 17 12 22 22 17"></polyline>
+                                                        <polyline points="2 12 12 17 22 12"></polyline>
+                                                    </svg></i> {{label['teardown']}}</p>
+                                        </div>
+                                        {% else %}
                                         <div class="guide-main-image">
                                             <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                                             <img class="hasMenu"
@@ -55,8 +80,10 @@
                                                 alt="{{guide['title']}}" sizes="(max-width: 740px) 100vw, 405px"
                                                 width="405" height="290">
                                         </div>
+                                        {% endif %}
 
                                     </div>
+                                    {% if guide['type'] != 'teardown' %}
                                     <div class="guide-metadata guide-details-container js-guide-details-container">
                                         <div class="details-item-container">
                                             <div class="details-item difficulty row {{guide['difficulty_class']}}">
@@ -115,6 +142,7 @@
                                         <!--TODO: Handle flags display -->
 
                                     </div>
+                                    {% endif %}
 
                                 </div>
                                 <!--TODO: Handle flags displayed in full width  -->
@@ -243,6 +271,7 @@
                         <div>
                         </div>
 
+                        {% if guide['conclusion_rendered'] %}
                         <div id="conclusion" class="completion-container container">
                             <div class="actionbar-portal"></div>
                             <div>
@@ -268,6 +297,7 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
 
                         <div id="author-container">
                             <div class="actionbar-portal"></div>
