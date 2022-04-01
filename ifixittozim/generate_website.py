@@ -89,9 +89,9 @@ def generate_website():
     num_guide = 1
     for lang in ['en']:
         cur_path = join(cache_path, 'guides', lang)
-        for guide_filename in listdir(cur_path):
+        #for guide_filename in listdir(cur_path):
         #for guide_filename in ['guide_122924.json', 'guide_101194.json', 'guide_131963.json', 'guide_61205.json', 'guide_131072.json', 'guide_38783.json', 'guide_125834.json', 'guide_11677.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']:
-        #for guide_filename in []:
+        for guide_filename in []:
             guide_path = join(cur_path,guide_filename)
             with open(guide_path, 'r', encoding='utf-8') as guide_file:
                 guide_content = json.load(guide_file)
@@ -150,8 +150,8 @@ def generate_website():
                 logger.info("{} guides rendered".format(num_guide))
 
         cur_path = join(cache_path, 'categories', lang)
-        #for category_filename in listdir(cur_path):
-        for category_filename in ['wiki_Apple Watch.json','wiki_MacBook Pro 15" Retina Display Mid 2015.json','wiki_Mac.json']:
+        for category_filename in listdir(cur_path):
+        #for category_filename in ['wiki_Apple Watch.json','wiki_MacBook Pro 15" Retina Display Mid 2015.json','wiki_Mac.json']:
         #for category_filename in []:
             category_path = join(cur_path,category_filename)
             with open(category_path, 'r', encoding='utf-8') as category_file:
