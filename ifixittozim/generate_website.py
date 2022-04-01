@@ -90,7 +90,7 @@ def generate_website():
     for lang in ['en']:
         cur_path = join(cache_path, 'guides', lang)
         for guide_filename in listdir(cur_path):
-        #for guide_filename in ['guide_131963.json', 'guide_61205.json', 'guide_131072.json', 'guide_38783.json', 'guide_125834.json', 'guide_11677.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']:
+        #for guide_filename in ['guide_122924.json', 'guide_101194.json', 'guide_131963.json', 'guide_61205.json', 'guide_131072.json', 'guide_38783.json', 'guide_125834.json', 'guide_11677.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']:
         #for guide_filename in []:
             guide_path = join(cur_path,guide_filename)
             with open(guide_path, 'r', encoding='utf-8') as guide_file:
@@ -120,8 +120,20 @@ def generate_website():
                     for step in guide_content['steps']:
                         if not step['media']:
                             raise Exception("Missing media attribute in step {} of guide {}".format(step['stepid'],guide_content['guideid']))
-                        if step['media']['type'] not in ['image', 'video']:
+                        if step['media']['type'] not in ['image', 'video', 'embed']:
                             raise Exception("Unrecognized media type in step {} of guide {}".format(step['stepid'],guide_content['guideid']))
+                        if step['media']['type'] == 'video':
+                            if 'data' not in step['media'] or not step['media']['data']:
+                                raise Exception("Missing 'data' in step {} of guide {}".format(step['stepid'],guide_content['guideid']))
+                            if 'image' not in step['media']['data'] or not step['media']['data']['image']:
+                                raise Exception("Missing outer 'image' in step {} of guide {}".format(step['stepid'],guide_content['guideid']))
+                            if 'image' not in step['media']['data']['image'] or not step['media']['data']['image']['image']:
+                                raise Exception("Missing inner 'image' in step {} of guide {}".format(step['stepid'],guide_content['guideid']))
+                        if step['media']['type'] == 'embed':
+                            if 'data' not in step['media'] or not step['media']['data']:
+                                raise Exception("Missing 'data' in step {} of guide {}".format(step['stepid'],guide_content['guideid']))
+                            if 'html' not in step['media']['data'] or not step['media']['data']['html']:
+                                raise Exception("Missing 'html' in step {} of guide {}".format(step['stepid'],guide_content['guideid']))
                         for line in step['lines']:
                             if not line['bullet'] in ['black', 'red', 'orange', 'yellow', 'green', 'blue', 'light_blue', 'violet', 'icon_note', 'icon_caution', 'icon_caution', 'icon_reminder']:
                                 raise Exception("Unrecognized bullet '{}' in step {} of guide {}".format(line['bullet'], step['stepid'],guide_content['guideid']))

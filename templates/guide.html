@@ -335,6 +335,17 @@
                                                 {% include 'guide-step-lines-container.html' %}
                                             </div>
                                         </div>
+                                        {% elif step['media']['type'] == 'embed' %}
+                                        <div class="row step-container">
+                                            <div class="column stepMedia step-main-media js-step-main-media stepObject stepImageContainer">
+                                                <div id="stepEmbed-{{step['stepid']}}" class="oembedContainer ">
+                                                    {{step['media']['data']['html'] | safe}}
+                                                </div>
+                                            </div>
+                                            <div class="column step-content">   
+                                                {% include 'guide-step-lines-container.html' %}
+                                            </div>
+                                        </div>
 
                                         {% else %}
                                         <div class="row step-container">
