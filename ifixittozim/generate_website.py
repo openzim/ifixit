@@ -3,6 +3,7 @@ from os import listdir
 from datetime import datetime
 import json
 import re
+import traceback
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -78,6 +79,7 @@ def generate_website():
             'teardown_guides': 'Teardowns',
             'related_pages': 'Related Pages',
             'in_progress_guides': 'In Progress Guides',
+            'disassembly_guides': 'Disassembly Guides',
             'repairability': 'Repairability:',
         }
     }
@@ -89,9 +91,10 @@ def generate_website():
     num_guide = 1
     for lang in ['en']:
         cur_path = join(cache_path, 'guides', lang)
-        #for guide_filename in listdir(cur_path):
-        #for guide_filename in ['guide_122924.json', 'guide_101194.json', 'guide_131963.json', 'guide_61205.json', 'guide_131072.json', 'guide_38783.json', 'guide_125834.json', 'guide_11677.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']:
-        for guide_filename in []:
+        #files_to_process = listdir(cur_path)
+        files_to_process = ['guide_26254.json', 'guide_437.json', 'guide_122924.json', 'guide_101194.json', 'guide_131963.json', 'guide_61205.json', 'guide_131072.json', 'guide_38783.json', 'guide_125834.json', 'guide_11677.json', 'guide_41080.json', 'guide_41084.json', 'guide_41082.json', 'guide_41083.json']
+        #files_to_process = []
+        for guide_filename in files_to_process:
             guide_path = join(cur_path,guide_filename)
             with open(guide_path, 'r', encoding='utf-8') as guide_file:
                 guide_content = json.load(guide_file)
@@ -145,14 +148,17 @@ def generate_website():
                         fh.write(guide_rendered)
                 except Exception as ex:
                     logger.warning('\tFailed to process {}: {}'.format(guide_path, ex))
+                    traceback.print_exc()
             num_guide += 1
             if (num_guide % 100 == 0):
-                logger.info("{} guides rendered".format(num_guide))
+                logger.info("{} guides rendered out of {}".format(num_guide, len(files_to_process)))
 
+        num_category = 1
         cur_path = join(cache_path, 'categories', lang)
-        for category_filename in listdir(cur_path):
-        #for category_filename in ['wiki_Apple Watch.json','wiki_MacBook Pro 15" Retina Display Mid 2015.json','wiki_Mac.json']:
-        #for category_filename in []:
+        #files_to_process = listdir(cur_path)
+        #files_to_process = ['wiki_Coolpad 3300A.json','wiki_Western Digital External Storage.json','wiki_Apple Watch.json','wiki_MacBook Pro 15" Retina Display Mid 2015.json','wiki_Mac.json']
+        files_to_process = []
+        for category_filename in files_to_process:
             category_path = join(cur_path,category_filename)
             with open(category_path, 'r', encoding='utf-8') as category_file:
                 category_content = json.load(category_file)
@@ -160,10 +166,10 @@ def generate_website():
                     continue
                 try:
                     for guide in category_content['featured_guides']:
-                        if guide['type'] not in ['replacement', 'technique', 'teardown']:
+                        if guide['type'] not in ['replacement', 'technique', 'teardown', 'disassembly']:
                             raise Exception('Unsupported type of guide: {} for featured_guide {}'.format(guide['type'], guide['guideid']))
                     for guide in category_content['guides']:
-                        if guide['type'] not in ['replacement', 'technique', 'teardown']:
+                        if guide['type'] not in ['replacement', 'technique', 'teardown', 'disassembly']:
                             raise Exception('Unsupported type of guide: {} for guide {}'.format(guide['type'], guide['guideid']))
                     category_content['contents_rendered'] = content_image_regex.sub('../../../cache/images/image_\\g<image_filename>',category_content['contents_rendered'])
                     category_content['contents_rendered'] = device_link_regex.sub('href="./category_\\g<device>.html"',category_content['contents_rendered'])
@@ -176,6 +182,9 @@ def generate_website():
                         fh.write(category_rendered)
                 except Exception as e:
                     logger.warning('\tFailed to process {}:\n{}'.format(category_path, e))
+            num_category += 1
+            if (num_category % 100 == 0):
+                logger.info("{} categories rendered out of {}".format(num_category, len(files_to_process)))
 
     
     

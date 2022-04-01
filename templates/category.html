@@ -8,7 +8,7 @@
 {% endblock specific_head%}
 
 {% block content %}
-<div id="page" class=" invisible">
+<div id="page" class="">
 
     <!-- TODO : generate sidebar appropriately -->
 
@@ -171,6 +171,30 @@
                 {% endif %}
 
                 <!-- TODO: Check if display order on a category with both technique and replacement guides -->
+                {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'disassembly') | list | length > 0 %}
+                <div class="blurbListWide" data-type="replacement">
+                    <h3 id="Section_Disassembly" class="blurbListTitle js-dynamic-toc-section">
+                        <a href="#Section_Disassembly" style="text-decoration: none;">
+                            {{label['disassembly_guides']}}</a>
+                    </h3>
+                    <div class="grid">
+                        {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'disassembly') %}
+                        <div class="cell">
+                            <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                <img src="{{guide | get_guide_image_path }}" width="133"
+                                    height="100" alt="{{guide['title']}}" class="thumb" />
+                                <div class='title-text'>
+                                    <p>{{guide['title']}}</p>
+                                </div>
+                            </a>
+
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- TODO: Check if display order on a category with both technique and replacement guides -->
                 {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'teardown') | list | length > 0 %}
                 <div class="blurbListWide" data-type="replacement">
                     <h3 id="Section_Replacement" class="blurbListTitle js-dynamic-toc-section">
@@ -248,6 +272,17 @@
                                 </div>
                                 {% endfor %}
                                 {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'technique') %}
+                                <div class="cell">
+                                    <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
+                                        <img src="{{guide | get_guide_image_path }}" width="133"
+                                            height="100" alt="{{guide['title']}}" class="thumb" />
+                                        <div class='title-text'>
+                                            <p>{{guide['title']}}</p>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endfor %}
+                                {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'disassembly') %}
                                 <div class="cell">
                                     <a href="../../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
                                         <img src="{{guide | get_guide_image_path }}" width="133"

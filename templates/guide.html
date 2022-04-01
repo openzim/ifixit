@@ -197,7 +197,7 @@
                                                 class="column stepMedia step-main-media js-step-main-media stepImage stepImageContainer">
                                                 <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                                                 <img id="step{{steploop.index}}-mainImage"
-                                                    alt="{{step['lines'][0]['text_rendered']}}"
+                                                    alt="{{step['media']['data'][0]['guid']}}"
                                                     class="stepImage js-step-main-image hasMenu fluid medium visible"
                                                     sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
                                                     src="../../../cache/images/image_{{step['media']['data'][0]['guid']}}.standard"
@@ -212,7 +212,7 @@
                                                         class="column stepImage{{steploop.index}} step-thumbnail js-step-thumbnail-container{% if loop.index == 1 %} active{% endif %}">
                                                         <div class="step-thumbnail-inner">
                                                             <img id="step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-thub"
-                                                                alt=""
+                                                                alt="{{image['guid']}}"
                                                                 class="stepImage js-step-main-image js-step-thumbnail fluid {% if loop.index == 1 %}visible {% endif %}medium"
                                                                 sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
                                                                 src="../../../cache/images/image_{{image['guid']}}.standard"
