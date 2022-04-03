@@ -2,8 +2,8 @@
 
 `ifixit2zim` is an [openZIM](https://openzim.org) scraper to create offline versions of [iFixit](https://www.ifixit.com/) website, in all its supported languages.
 
-[![CodeFactor](https://www.codefactor.io/repository/github/openzim/ifixit/badge)](https://www.codefactor.io/repository/github/openzim/ifitxt)
-[![Docker](https://img.shields.io/docker/v/openzim/ifitxt?label=docker&sort=semver)](https://hub.docker.com/r/openzim/ifixot)
+[![CodeFactor](https://www.codefactor.io/repository/github/openzim/ifixit/badge)](https://www.codefactor.io/repository/github/openzim/ifixit)
+[![Docker](https://img.shields.io/docker/v/openzim/ifixit?label=docker&sort=semver)](https://hub.docker.com/r/openzim/ifixit)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/ifixit2zim.svg)](https://pypi.org/project/ifixit2zim/)
 
