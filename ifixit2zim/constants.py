@@ -20,13 +20,171 @@ with open(ROOT_DIR.joinpath("VERSION"), "r") as fh:
 
 SCRAPER = f"{NAME} {VERSION}"
 
-# LANGS = ["fr", "en", "de", "it", "es", "pt", "tr", "jp", "nl", "ru", "zh", "ko"]
-# LANGS = ["en"]
 IMAGES_ENCODER_VERSION = 1
 # VIDEOS_ENCODER_VERSION = 1
 URLS = {
     "en": "https://www.ifixit.com",
+    "pt": "https://pt.ifixit.com",
 }
+
+DEFAULT_GUIDE_IMAGE_URL = (
+    "https://assets.cdn.ifixit.com/static/images/"
+    "default_images/GuideNoImage_300x225.jpg"
+)
+
+DIFFICULTY_VERY_EASY = [
+    "Very easy",
+    "Muito fácil",
+    "Très facile",
+    "Sehr einfach",
+    "Muy fácil",
+    "Molto facile",
+    "Çok kolay",
+    "とても簡単",
+    "Zeer eenvoudig",
+    "Очень просто",
+    "아주 쉬움",
+    "非常容易",
+]  # guide 219
+DIFFICULTY_EASY = [
+    "Easy",
+    "Fácil",
+    "Facile",
+    "Einfach",
+    "Fácil",
+    "Facile",
+    "Kolay",
+    "簡単",
+    "Eenvoudig",
+    "Просто",
+    "쉬움",
+    "简单",
+]  # guide 220
+DIFFICULTY_MODERATE = [
+    "Moderate",
+    "Moderado",
+    "Modérée",
+    "Mittel",
+    "Moderado",
+    "Moderato",
+    "Orta",
+    "普通",
+    "Gemiddeld",
+    "Средняя",
+    "보통",
+    "中等",
+]  # guide 202
+DIFFICULTY_HARD = [
+    "Difficult",
+    "Difícil",
+    "Difficile",
+    "Schwierig",
+    "Difícil",
+    "Difficile",
+    "Zor",
+    "難しい",
+    "Moeilijk",
+    "Сложно",
+    "어려움",
+    "困难",
+]  # guide 206
+DIFFICULTY_VERY_HARD = [
+    "Very difficult",
+    "Muito difícil",
+    "Très difficile",
+    "Sehr schwierig",
+    "Muy difícil",
+    "Molto difficile",
+    "Çok zor",
+    "とても難しい",
+    "Zeer moeilijk",
+    "Очень сложно",
+    "매우 어려움",
+    "非常困难",
+]  # guide 46465
+CATEGORY_LABELS = {
+    "en": {
+        "author": "Author: ",
+        "categories": " Categories",
+        "featured_guides": "Featured Guides",
+        "technique_guides": "Techniques",
+        "replacement_guides": "Replacement Guides",
+        "teardown_guides": "Teardowns",
+        "related_pages": "Related Pages",
+        "in_progress_guides": "In Progress Guides",
+        "disassembly_guides": "Disassembly Guides",
+        "repairability": "Repairability:",
+    },
+    "pt": {
+        "author": "Autor: ",
+        "categories": " categorias",
+        "featured_guides": "Guia em destaque",
+        "technique_guides": "Técnicas",
+        "replacement_guides": "Guias de reposição",
+        "teardown_guides": "Teardowns",
+        "related_pages": "Páginas relacionadas",
+        "in_progress_guides": "Guias em andamento",
+        "disassembly_guides": "Guias de Desmontagem",
+        "repairability": "Reparabilidade:",
+    },
+}
+# https://pt.ifixit.com/Device/Mac
+# https://pt.ifixit.com/Device/Apple_Watch
+# https://pt.ifixit.com/Device/Logitech__G502_Hero
+# https://pt.ifixit.com/Guide/MacBook+Air+11-Inch+Late+2010+Battery+Replacement/4384
+
+GUIDE_LABELS = {
+    "en": {
+        "written_by": "Written By:",
+        "difficulty": "Difficulty",
+        "steps": "Steps",
+        "time_required": " Time Required",
+        "sections": "Sections",
+        "flags": "Flags",
+        "introduction": "Introduction",
+        "step_no": "Step ",
+        "conclusion": "Conclusion",
+        "author": "Author",
+        "reputation": "Reputation",
+        "member_since": "Member since: ",
+        "published": "Published: ",
+        "teardown": "Teardown",
+    },
+    "fr": {
+        "written_by": "Rédigé par :",
+        "difficulty": "Difficulté",
+        "steps": "Étapes",
+        "time_required": "Temps nécessaire",
+        "sections": "Sections",
+        "flags": "Drapeaux",
+        "introduction": "Introduction",
+        "step_no": "Étape ",
+        "conclusion": "Conclusion",
+        "author": "Auteur",
+        "reputation": "Réputation",
+        "member_since": "Membre depuis le ",
+        "published": "Publication : ",
+        "teardown": "Vue éclatée",
+    },
+    "pt": {
+        "written_by": "Escrito Por:",
+        "difficulty": "Dificuldade",
+        "steps": "Passos",
+        "time_required": "Tempo necessário",
+        "sections": "Partes",
+        "flags": "Sinalizadores",
+        "introduction": "Introdução",
+        "step_no": "Passo ",
+        "conclusion": "Conclusão",
+        "author": "Autor(a)",
+        "reputation": "Reputação",
+        "member_since": "Membro desde: ",
+        "published": "Publicado em: ",
+        "teardown": "Teardown",
+    },
+}
+
+# https://pt.ifixit.com/Teardown/Apple+Watch+Teardown/40655
 
 API_PREFIX = "/api/2.0"
 

@@ -54,7 +54,7 @@
                                     <div class="guide-metadata guide-main-image-container">
                                         {% if guide['type'] == 'teardown' %}
                                         <div class="guide-main-image hidden-mobile"
-                                            style="background-image: url('../../images/image_{{guide['image']['guid']}}.standard')">
+                                            style="background-image: url('{{guide | get_image_url(True) | get_image_path }}')">
                                             <div class="teardown-image-overlay">
                                                 <div class="guide-metadata guide-title-container guide-title-image">
                                                     <h1 class="guide-intro-title guide-title">{{guide['title']}}</h1>
@@ -74,9 +74,8 @@
                                         </div>
                                         {% else %}
                                         <div class="guide-main-image">
-                                            <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                                             <img class="hasMenu"
-                                                src="../images/image_{{guide['image']['guid']}}.standard"
+                                                src="{{guide | get_image_url(True) | get_image_path }}"
                                                 alt="{{guide['title']}}" sizes="(max-width: 740px) 100vw, 405px"
                                                 width="405" height="290">
                                         </div>
@@ -200,7 +199,7 @@
                                                 alt="{{step['lines'][0]['text_rendered']}}"
                                                 class="stepImage js-step-main-image hasMenu fluid medium visible"
                                                 sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
-                                                src="../images/image_{{step['media']['data']['image']['image']['guid']}}.standard"
+                                                src="{{step['media']['data']['image'] | get_image_url | get_image_path }}"
                                                 width="575" height="431.75">
                                             </div>
                                             <div class="column step-content">   
@@ -228,7 +227,7 @@
                                                     alt="{{step['media']['data'][0]['guid']}}"
                                                     class="stepImage js-step-main-image hasMenu fluid medium visible"
                                                     sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
-                                                    src="../images/image_{{step['media']['data'][0]['guid']}}.standard"
+                                                    src="{{step['media']['data'][0] | get_image_url | get_image_path }}"
                                                     width="575" height="431.75">
                                             </div>
                                             <div class="column step-content">
@@ -243,7 +242,7 @@
                                                                 alt="{{image['guid']}}"
                                                                 class="stepImage js-step-main-image js-step-thumbnail fluid {% if loop.index == 1 %}visible {% endif %}medium"
                                                                 sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
-                                                                src="../images/image_{{image['guid']}}.standard"
+                                                                src="{{image | get_image_url | get_image_path }}"
                                                                 width="110" height="83" onmouseover="switchStepImage(this, 'step{{steploop.index}}-mainImage', 'stepImage{{steploop.index}}', 'step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-divthub')">
                                                         </div>
                                                     </div>
@@ -317,7 +316,7 @@
                                                 <a>
                                                     <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                                                     <img alt=""
-                                                        src="../images/image_{{guide['author']['image']['guid']}}.standard"
+                                                        src="{{guide['author'] | get_image_url | get_image_path }}"
                                                         width="100" height="100">
                                                 </a>
                                             </div>

@@ -4,5 +4,5 @@
         "dist": true,
         "venv": true
     },
-    "editor.rulers": [80]
+    "editor.rulers": [88]
 }

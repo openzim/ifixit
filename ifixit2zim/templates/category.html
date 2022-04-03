@@ -18,15 +18,13 @@
             <div id="banner">
                 <div id="banner-wrap">
                     <div id="banner-wrap-bg-container">
-                        <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
                         <img id="banner-wrap-bg"
-                            src="../images/image_{{category['image']['guid']}}.standard">
+                            src="{{category | get_image_url | get_image_path}}">
                     </div>
                     <div class="banner-content">
                         <div class="banner-bucket">
                             <div class="banner-small-photo">
-                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                <img src="../images/image_{{category['image']['guid']}}.standard"
+                                <img src="{{category | get_image_url | get_image_path}}"
                                     width="252" height="189" alt="{{category['image']['display_title']}}">
                                 {% if category['repairability_score'] %}
                                 <!-- TODO: Retrieve the href of the teardown
@@ -59,7 +57,7 @@
                         <style>
                             #mobile-skeleton-toc {
                                 background: white;
-                                box-shadow: 0px 1px 4px rgba(16, 22, 26, 0.1), 0px 1px 2px rgba(16, 22, 26, 0.1);
+                                box-shadow: 0 1px 4px rgba(16, 22, 26, 0.1), 0 1px 2px rgba(16, 22, 26, 0.1);
                                 height: 83px;
                             }
                         </style>
@@ -77,12 +75,15 @@
                         {% for child in category['children'] %}
                         <div class="categoryListCell">
                             <a href="./category_{{child['filename']}}.html" class="categoryAnchor">
-                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                <img src="../images/image_{{child['image']['guid']}}.standard" width="179"
+                                <img src="{{child | get_image_url | get_image_path}}" width="179"
                                     height="143" alt="{{child['display_title']}}" class="category-image" />
                                 <h5 class="title">
                                     {{child['display_title']}}</h5>
                             </a>
+                            <!-- TODO: retrieve child locale, not available in current API 
+                            {% if child['locale'] != lang %}
+                            <span class="lang">{{child['locale']}}</span>
+                            {% endif %}-->
                         </div>
                         {% endfor %}
                     </div>
@@ -95,7 +96,7 @@
                         {{label['featured_guides']}}</h2>
                     <div class="entry-container">
                         {% for guide in category['featured_guides'] %}
-                        {% if loop.index < 3 %} <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html"
+                        {% if loop.index < 3 %} <a href="../guides/guide_{{guide['guideid']}}.html"
                             class="entry">
                             <div class="thumbnail">
                                 <span class="featured-icon"><i class="svg-icon" alt="Featured" title="Featured"
@@ -106,7 +107,7 @@
                                             <circle cx="12" cy="8" r="7" />
                                             <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
                                         </svg></i></span>
-                                <img src="{{guide | get_guide_image_path }}"
+                                <img src="{{guide | get_image_url(True) | get_image_path }}"
                                     alt="{{guide['title']}}" width="176" height="131" />
                             </div>
                             <div class="entry-text">
@@ -120,103 +121,38 @@
                 </div>
                 {% endif %}
 
-                <!-- TODO: Check if display is appropriate for a category without featured
-                  guides (do we need to have another <h2> title ?)-->
-                {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'technique') | list | length > 0 %}
-                <div class="blurbListWide" data-type="technique">
-                    <h3 id='Section_Technique' class="blurbListTitle js-dynamic-toc-section">
-                        <a href='#Section_Technique' style="text-decoration: none;">
-                            {{label['technique_guides']}}</a>
+                <!-- TODO: Check if display order on a category with all guide types if OK -->
+                {% for guide_type in ['technique', 'replacement', 'disassembly', 'teardown'] %}
+                    {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', guide_type) | list | length > 0 %}
+                        {% if guide_type in ['replacement'] %}
+                            {% set guide_text = 'subject' %}
+                        {% else %}
+                            {% set guide_text = 'title' %}
+                        {% endif %}
+                <div class="blurbListWide" data-type="{{guide_type}}">
+                    <h3 id="Section_{{guide_type}}" class="blurbListTitle js-dynamic-toc-section">
+                        <a href="#Section_{{guide_type}}" style="text-decoration: none;">
+                            {{label[guide_type + '_guides']}}</a>
                     </h3>
                     <div class="grid">
-                        {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'technique') %}
+                        {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', guide_type) %}
                         <div class="cell">
-                            <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
-                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                <img src="{{guide | get_guide_image_path }}" width="133"
-                                    height="100" alt="{{guide['title']}}" class="thumb" />
+                            <a href="../guides/guide_{{guide['guideid']}}.html" class="title">
+                                <img src="{{guide | get_image_url(True) | get_image_path }}" width="133"
+                                    height="100" alt="{{guide[guide_text]}}" class="thumb" />
                                 <div class='title-text'>
-                                    <p>{{guide['title']}}</p>
+                                    <p>{{guide[guide_text]}}</p>
                                 </div>
                             </a>
-
+                            {% if guide['locale'] != lang %}
+                            <span class="lang">{{guide['locale']}}</span>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
                 </div>
-                {% endif %}
-
-                <!-- TODO: Check if display order on a category with both technique and replacement guides -->
-                {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'replacement') | list | length > 0 %}
-                <div class="blurbListWide" data-type="replacement">
-                    <h3 id="Section_Replacement" class="blurbListTitle js-dynamic-toc-section">
-                        <a href="#Section_Replacement" style="text-decoration: none;">
-                            {{label['replacement_guides']}}</a>
-                    </h3>
-                    <div class="grid">
-                        {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'replacement') %}
-                        <div class="cell">
-                            <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
-                                <img src="{{guide | get_guide_image_path }}" width="133"
-                                    height="100" alt="{{guide['subject']}}" class="thumb" />
-                                <div class='title-text'>
-                                    <p>{{guide['subject']}}</p>
-                                </div>
-                            </a>
-
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- TODO: Check if display order on a category with both technique and replacement guides -->
-                {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'disassembly') | list | length > 0 %}
-                <div class="blurbListWide" data-type="replacement">
-                    <h3 id="Section_Disassembly" class="blurbListTitle js-dynamic-toc-section">
-                        <a href="#Section_Disassembly" style="text-decoration: none;">
-                            {{label['disassembly_guides']}}</a>
-                    </h3>
-                    <div class="grid">
-                        {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'disassembly') %}
-                        <div class="cell">
-                            <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
-                                <img src="{{guide | get_guide_image_path }}" width="133"
-                                    height="100" alt="{{guide['title']}}" class="thumb" />
-                                <div class='title-text'>
-                                    <p>{{guide['title']}}</p>
-                                </div>
-                            </a>
-
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- TODO: Check if display order on a category with both technique and replacement guides -->
-                {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'teardown') | list | length > 0 %}
-                <div class="blurbListWide" data-type="replacement">
-                    <h3 id="Section_Replacement" class="blurbListTitle js-dynamic-toc-section">
-                        <a href="#Section_Replacement" style="text-decoration: none;">
-                            {{label['teardown_guides']}}</a>
-                    </h3>
-                    <div class="grid">
-                        {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', 'teardown') %}
-                        <div class="cell">
-                            <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
-                                <img src="{{guide | get_guide_image_path }}" width="133"
-                                    height="100" alt="{{guide['title']}}" class="thumb" />
-                                <div class='title-text'>
-                                    <p>{{guide['title']}}</p>
-                                </div>
-                            </a>
-
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+                    {% endif %}
+                {% endfor %}
 
                 {% if category['related_wikis'] | length > 0 %}
                 <div class="subcategorySection">
@@ -226,12 +162,15 @@
                     <div class="grid">
                         {% for wiki in category['related_wikis'] %}
                         <div class="categoryListCell">
-                            <a href="../wikis/{{lang}}/wiki_{{wiki['wikiid']}}.html" class="categoryAnchor">
+                            <a href="../wikis/wiki_{{wiki['wikiid']}}.html" class="categoryAnchor">
                                 <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                <img src="../images/image_{{wiki['image']['guid']}}.standard" width="179"
+                                <img src="{{wiki | get_image_url | get_image_path}}" width="179"
                                     height="143" alt="{{wiki['display_title']}}" class="category-image" />
                                 <h5 class="title">{{wiki['display_title']}}</h5>
                             </a>
+                            {% if wiki['locale'] != lang %}
+                            <span class="lang">{{wiki['locale']}}</span>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -249,48 +188,24 @@
                                     {{label['in_progress_guides']}}</a>
                             </h3>
                             <div class="grid">
-                                {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'replacement') %}
+
+                                {% for guide in category['guides'] | guides_in_progress %}
+                                {% if guide['type'] in ['replacement'] %}
+                                    {% set guide_text = 'subject' %}
+                                {% else %}
+                                    {% set guide_text = 'title' %}
+                                {% endif %}
                                 <div class="cell">
-                                    <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
-                                        <img src="{{guide | get_guide_image_path }}" width="133"
-                                            height="100" alt="{{guide['subject']}}" class="thumb" />
+                                    <a href="../guides/guide_{{guide['guideid']}}.html" class="title">
+                                        <img src="{{guide | get_image_url(True) | get_image_path}}" width="133"
+                                            height="100" alt="{{guide[guide_text]}}" class="thumb" />
                                         <div class='title-text'>
                                             <p>{{guide['subject']}}</p>
                                         </div>
                                     </a>
-                                </div>
-                                {% endfor %}
-                                {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'teardown') %}
-                                <div class="cell">
-                                    <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
-                                        <img src="{{guide | get_guide_image_path }}" width="133"
-                                            height="100" alt="{{guide['title']}}" class="thumb" />
-                                        <div class='title-text'>
-                                            <p>{{guide['title']}}</p>
-                                        </div>
-                                    </a>
-                                </div>
-                                {% endfor %}
-                                {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'technique') %}
-                                <div class="cell">
-                                    <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
-                                        <img src="{{guide | get_guide_image_path }}" width="133"
-                                            height="100" alt="{{guide['title']}}" class="thumb" />
-                                        <div class='title-text'>
-                                            <p>{{guide['title']}}</p>
-                                        </div>
-                                    </a>
-                                </div>
-                                {% endfor %}
-                                {% for guide in category['guides'] | guides_in_progress | selectattr('type', '==', 'disassembly') %}
-                                <div class="cell">
-                                    <a href="../guides/{{lang}}/guide_{{guide['guideid']}}.html" class="title">
-                                        <img src="{{guide | get_guide_image_path }}" width="133"
-                                            height="100" alt="{{guide['title']}}" class="thumb" />
-                                        <div class='title-text'>
-                                            <p>{{guide['title']}}</p>
-                                        </div>
-                                    </a>
+                                    {% if guide['locale'] != lang %}
+                                    <span class="lang">{{guide['locale']}}</span>
+                                    {% endif %}
                                 </div>
                                 {% endfor %}
                             </div>

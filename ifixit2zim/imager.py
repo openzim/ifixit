@@ -95,7 +95,7 @@ class Imager:
         path = self.get_path_for(url) if path is None else path
 
         if digest in self.handled:
-            logger.debug(f"URL `{url.geturl()}` already processed.")
+            # logger.debug(f"URL `{url.geturl()}` already processed.")
             return path
 
         # record that we are processing this one

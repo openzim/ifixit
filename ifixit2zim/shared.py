@@ -27,11 +27,12 @@ class Global:
     metadata = {}
 
     creator = None
-    # imager = None
+    imager = None
     # rewriter = None
     lock = threading.Lock()
 
-    expected_categories = list()
+    expected_categories = set()
+    expected_guides = dict()
     # exclusion_articles = set()
     # exclusion_categories = set()
     # inclusion_list = set()
@@ -122,6 +123,10 @@ class GlobalMixin:
     @property
     def expected_categories(self):
         return Global.expected_categories
+
+    @property
+    def expected_guides(self):
+        return Global.expected_guides
 
     @property
     def imager(self):

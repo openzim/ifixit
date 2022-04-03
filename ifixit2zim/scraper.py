@@ -1,19 +1,42 @@
 # -*- coding: utf-8 -*-
 
-import datetime
 import json
 import pathlib
 import re
 import shutil
+from datetime import datetime
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from .constants import DEFAULT_HOMEPAGE, ROOT_DIR, Conf
+from .constants import (
+    CATEGORY_LABELS,
+    DEFAULT_HOMEPAGE,
+    DIFFICULTY_EASY,
+    DIFFICULTY_HARD,
+    DIFFICULTY_MODERATE,
+    DIFFICULTY_VERY_EASY,
+    DIFFICULTY_VERY_HARD,
+    GUIDE_LABELS,
+    ROOT_DIR,
+    Conf,
+)
 from .shared import Global, GlobalMixin, logger
-from .utils import get_api_content, get_soup, setup_s3_and_check_credentials
+from .utils import (
+    get_api_content,
+    get_image_path,
+    get_image_url,
+    get_soup,
+    guides_in_progress,
+    setlocale,
+    setup_s3_and_check_credentials,
+)
 
 
 class CategoryHomePageContentError(Exception):
+    pass
+
+
+class UnexpectedDataKindException(Exception):
     pass
 
 
@@ -31,9 +54,16 @@ class ifixit2zim(GlobalMixin):
             autoescape=select_autoescape(),
         )
         # self.env.filters["digest"] = get_digest
+        self.env.filters["guides_in_progress"] = guides_in_progress
+        self.env.filters["get_image_path"] = get_image_path
+        self.env.filters["get_image_url"] = get_image_url
 
         # jinja context that we'll pass to all templates
         self.env_context = {"conf": Global.conf}
+
+        self.category_template = self.env.get_template("category.html")
+        self.guide_template = self.env.get_template("guide.html")
+
         # used to prevent twice processing the resources of CSS
         # that we are going to download as they link to each other
         # Source HTML references a dynamic CSS that is built using a varietyof
@@ -58,7 +88,7 @@ class ifixit2zim(GlobalMixin):
 
     def get_online_metadata(self):
         """metadata from online website, looking at homepage source code"""
-        logger.debug("Fecthing website metdata")
+        logger.info("Fetching website metadata")
 
         soup, _ = get_soup("/")
 
@@ -81,7 +111,7 @@ class ifixit2zim(GlobalMixin):
                 selection="selection" if self.conf.categories else "all",
             )
 
-        period = datetime.datetime.now().strftime("%Y-%m")
+        period = datetime.now().strftime("%Y-%m")
         if self.conf.fname:
             # make sure we were given a filename and not a path
             self.conf.fname = pathlib.Path(self.conf.fname.format(period=period))
@@ -138,7 +168,7 @@ class ifixit2zim(GlobalMixin):
 
     def _process_categories(self, categories):
         for category in categories:
-            self.expected_categories.append(category)
+            self.expected_categories.add(category)
             self._process_categories(categories[category])
 
     def build_expected_categories(self):
@@ -155,14 +185,16 @@ class ifixit2zim(GlobalMixin):
         r"(?P<prefix>https://guide-images\.cdn\.ifixit\.com/igi/)"
         r"(?P<image_filename>\w*)\.\w*"
     )
-    device_link_regex = re.compile(r"/Device/(?P<device>.*)")
+    image_regex = re.compile(r"<img(?P<before>.*?)src=\"(?P<url>.*?)\"")
+    device_link_regex_without_href = re.compile(r"/Device/(?P<device>.*)")
+    device_link_regex_with_href = re.compile(r"href=\"/Device/(?P<device>.*)\"")
 
     def _get_image_guid_from_src(self, src):
         # return src
         return self.content_image_regex.sub("\\g<image_filename>", src)
 
     def _get_category_from_href(self, href):
-        return self.device_link_regex.sub('\\g<device>"', href)
+        return self.device_link_regex_without_href.sub('\\g<device>"', href)
 
     def _extract_page_title_from_page(self, soup):
         page_title_selector = "h1.page-title span"
@@ -328,7 +360,7 @@ class ifixit2zim(GlobalMixin):
         href = fc.attrs.get("href")
         if len(href) == 0:
             raise CategoryHomePageContentError("Empty href found in featured category")
-        name = self.device_link_regex.sub("\\g<device>", href)
+        name = self.device_link_regex_without_href.sub("\\g<device>", href)
         if name == href:
             raise CategoryHomePageContentError(
                 f"Extracting name from featured category failed ; href:'{href}'"
@@ -384,7 +416,7 @@ class ifixit2zim(GlobalMixin):
         href = sc.attrs.get("href")
         if len(href) == 0:
             raise CategoryHomePageContentError("Empty href found in sub-category")
-        name = self.device_link_regex.sub("\\g<device>", href)
+        name = self.device_link_regex_without_href.sub("\\g<device>", href)
         if name == href:
             raise CategoryHomePageContentError(
                 f"Extracting name from sub-category failed ; href:'{href}'"
@@ -521,11 +553,13 @@ class ifixit2zim(GlobalMixin):
 
         return f"{main_footer_copyright}"
 
-    def add_homepage(self):
+    def scrape_homepage(self):
 
-        logger.info("Building homepage")
+        logger.info("Scraping homepage")
 
         soup, _ = get_soup("/Guide")
+
+        logger.debug("Processing homepage")
 
         # extract and clean main content
         home_content = {
@@ -566,6 +600,266 @@ class ifixit2zim(GlobalMixin):
             self.creator.add_redirect(
                 path=DEFAULT_HOMEPAGE, target_path="home/home.html"
             )
+
+    def scrape_one_category(self, category):
+        category_content = get_api_content(
+            f"/wikis/CATEGORY/{category}", langid=self.conf.lang_code
+        )
+
+        logger.debug(f"Processing category {category}")
+
+        for guide in category_content["featured_guides"]:
+            if guide["type"] not in [
+                "replacement",
+                "technique",
+                "teardown",
+                "disassembly",
+            ]:
+                raise UnexpectedDataKindException(
+                    "Unsupported type of guide: {} for featured_guide {}".format(
+                        guide["type"], guide["guideid"]
+                    )
+                )
+            else:
+                self.expected_guides[guide["guideid"]] = {
+                    "guideid": guide["guideid"],
+                    "locale": guide["locale"],
+                }
+        for guide in category_content["guides"]:
+            if guide["type"] not in [
+                "replacement",
+                "technique",
+                "teardown",
+                "disassembly",
+            ]:
+                raise UnexpectedDataKindException(
+                    "Unsupported type of guide: {} for guide {}".format(
+                        guide["type"], guide["guideid"]
+                    )
+                )
+            else:
+                self.expected_guides[guide["guideid"]] = {
+                    "guideid": guide["guideid"],
+                    "locale": guide["locale"],
+                }
+
+        def _replace_image(m):
+            orig_url = m.group("url")
+            new_url = get_image_path(orig_url)
+            return f"<img{m.group('before')}src=\"{new_url}\""
+
+        category_content["contents_rendered"] = re.sub(
+            self.image_regex, _replace_image, category_content["contents_rendered"]
+        )
+        category_content["contents_rendered"] = self.device_link_regex_with_href.sub(
+            'href="./category_\\g<device>.html"',
+            category_content["contents_rendered"],
+        )
+        category_content["filename"] = re.sub(r"\s", "_", category_content["title"])
+        for idx, child in enumerate(category_content["children"]):
+            category_content["children"][idx]["filename"] = re.sub(
+                r"\s",
+                "_",
+                category_content["children"][idx]["title"],
+            )
+        category_rendered = self.category_template.render(
+            category=category_content,
+            label=CATEGORY_LABELS[self.conf.lang_code],
+            metadata=self.metadata,
+            lang=self.conf.lang_code,
+        )
+        with self.lock:
+            self.creator.add_item_for(
+                path=f"categories/category_{category_content['filename']}.html",
+                title=category_content["display_title"],
+                content=category_rendered,
+                mimetype="text/html",
+                is_front=True,
+            )
+
+    def scrape_categories(self):
+
+        logger.info(f"Scraping {len(self.expected_categories)} categories")
+
+        num_category = 1
+        for category in self.expected_categories:
+            # if category not in ["Mac", "Tablet", "Apple Pro Speakers M8756"]:
+            #     continue
+            logger.info(
+                f"Scraping category {category} ({num_category}/"
+                "{len(self.expected_categories)})"
+            )
+            self.scrape_one_category(category)
+            num_category += 1
+
+    def scrape_one_guide(self, guide):
+        guide_content = get_api_content(
+            f"/guides/{guide['guideid']}", langid=guide["locale"]
+        )
+
+        logger.debug(f"Processing guide {guide['guideid']}")
+
+        if guide_content["type"] != "teardown":
+            if guide_content["difficulty"] in DIFFICULTY_VERY_EASY:
+                guide_content["difficulty_class"] = "difficulty-1"
+            elif guide_content["difficulty"] in DIFFICULTY_EASY:
+                guide_content["difficulty_class"] = "difficulty-2"
+            elif guide_content["difficulty"] in DIFFICULTY_MODERATE:
+                guide_content["difficulty_class"] = "difficulty-3"
+            elif guide_content["difficulty"] in DIFFICULTY_HARD:
+                guide_content["difficulty_class"] = "difficulty-4"
+            elif guide_content["difficulty"] in DIFFICULTY_VERY_HARD:
+                guide_content["difficulty_class"] = "difficulty-5"
+            else:
+                raise UnexpectedDataKindException(
+                    "Unknown guide difficulty: '{}' in guide {}".format(
+                        guide_content["difficulty"],
+                        guide_content["guideid"],
+                    )
+                )
+        with setlocale("en_GB"):
+            if guide_content["author"]["join_date"]:
+                guide_content["author"]["join_date_rendered"] = datetime.strftime(
+                    datetime.fromtimestamp(guide_content["author"]["join_date"]),
+                    "%x",
+                )
+            # TODO: format published date as June 10, 2014 instead of 11/06/2014
+            if guide_content["published_date"]:
+                guide_content["published_date_rendered"] = datetime.strftime(
+                    datetime.fromtimestamp(guide_content["published_date"]),
+                    "%x",
+                )
+        guide_content["introduction_rendered"] = self.guide_regex_full.sub(
+            'href="./guide_\\g<guide_id>.html"',
+            guide_content["introduction_rendered"],
+        )
+        guide_content["introduction_rendered"] = self.guide_regex_rel.sub(
+            'href="./guide_\\g<guide_id>.html"',
+            guide_content["introduction_rendered"],
+        )
+        guide_content["conclusion_rendered"] = self.guide_regex_full.sub(
+            'href="./guide_\\g<guide_id>.html"',
+            guide_content["conclusion_rendered"],
+        )
+        guide_content["conclusion_rendered"] = self.guide_regex_rel.sub(
+            'href="./guide_\\g<guide_id>.html"',
+            guide_content["conclusion_rendered"],
+        )
+        for step in guide_content["steps"]:
+            if not step["media"]:
+                raise UnexpectedDataKindException(
+                    "Missing media attribute in step {} of guide {}".format(
+                        step["stepid"], guide_content["guideid"]
+                    )
+                )
+            if step["media"]["type"] not in [
+                "image",
+                "video",
+                "embed",
+            ]:
+                raise UnexpectedDataKindException(
+                    "Unrecognized media type in step {} of guide {}".format(
+                        step["stepid"], guide_content["guideid"]
+                    )
+                )
+            if step["media"]["type"] == "video":
+                if "data" not in step["media"] or not step["media"]["data"]:
+                    raise UnexpectedDataKindException(
+                        "Missing 'data' in step {} of guide {}".format(
+                            step["stepid"], guide_content["guideid"]
+                        )
+                    )
+                if (
+                    "image" not in step["media"]["data"]
+                    or not step["media"]["data"]["image"]
+                ):
+                    raise UnexpectedDataKindException(
+                        "Missing outer 'image' in step {} of guide {}".format(
+                            step["stepid"], guide_content["guideid"]
+                        )
+                    )
+                if (
+                    "image" not in step["media"]["data"]["image"]
+                    or not step["media"]["data"]["image"]["image"]
+                ):
+                    raise UnexpectedDataKindException(
+                        "Missing inner 'image' in step {} of guide {}".format(
+                            step["stepid"], guide_content["guideid"]
+                        )
+                    )
+            if step["media"]["type"] == "embed":
+                if "data" not in step["media"] or not step["media"]["data"]:
+                    raise UnexpectedDataKindException(
+                        "Missing 'data' in step {} of guide {}".format(
+                            step["stepid"], guide_content["guideid"]
+                        )
+                    )
+                if (
+                    "html" not in step["media"]["data"]
+                    or not step["media"]["data"]["html"]
+                ):
+                    raise UnexpectedDataKindException(
+                        "Missing 'html' in step {} of guide {}".format(
+                            step["stepid"], guide_content["guideid"]
+                        )
+                    )
+            for line in step["lines"]:
+                if not line["bullet"] in [
+                    "black",
+                    "red",
+                    "orange",
+                    "yellow",
+                    "green",
+                    "blue",
+                    "light_blue",
+                    "violet",
+                    "icon_note",
+                    "icon_caution",
+                    "icon_caution",
+                    "icon_reminder",
+                ]:
+                    raise UnexpectedDataKindException(
+                        "Unrecognized bullet '{}' in step {} of guide {}".format(
+                            line["bullet"],
+                            step["stepid"],
+                            guide_content["guideid"],
+                        )
+                    )
+                line["text_rendered"] = self.guide_regex_full.sub(
+                    'href="./guide_\\g<guide_id>.html"',
+                    line["text_rendered"],
+                )
+                line["text_rendered"] = self.guide_regex_rel.sub(
+                    'href="./guide_\\g<guide_id>.html"',
+                    line["text_rendered"],
+                )
+        guide_rendered = self.guide_template.render(
+            guide=guide_content,
+            label=GUIDE_LABELS[self.conf.lang_code],
+            metadata=self.metadata,
+        )
+        with self.lock:
+            self.creator.add_item_for(
+                path=f"guides/guide_{guide_content['guideid']}.html",
+                title=guide_content["title"],
+                content=guide_rendered,
+                mimetype="text/html",
+                is_front=True,
+            )
+
+    def scrape_guides(self):
+
+        logger.info(f"Scraping {len(self.expected_guides)} guides")
+
+        num_guide = 1
+        for guideid, guide in self.expected_guides.items():
+            # if guideid not in [132168, 120579]:
+            #     continue
+            logger.info(
+                f"Scraping guide {guideid} ({num_guide}/{len(self.expected_guides)})"
+            )
+            self.scrape_one_guide(guide)
+            num_guide += 1
 
     def run(self):
         s3_storage = (
@@ -609,7 +903,9 @@ class ifixit2zim(GlobalMixin):
             self.build_expected_categories()
 
             self.add_assets()
-            self.add_homepage()
+            self.scrape_homepage()
+            self.scrape_categories()
+            self.scrape_guides()
 
             logger.info("Awaiting images")
             Global.img_executor.shutdown()

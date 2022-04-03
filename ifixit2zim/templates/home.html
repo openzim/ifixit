@@ -26,7 +26,7 @@
 
                 <div class="page-callout hidden-mobile-tablet">
                    <div class="page-callout-inner">
-                      <img src="../{{home_content['callout']['img_path']}}" role="presentation" width="998"
+                      <img src="{{home_content['callout']['img_url'] | get_image_path}}" role="presentation" width="998"
                          height="211">
                       {{home_content['callout']['content'] | safe}}
                    </div>
@@ -43,7 +43,7 @@
                          title="{{category['title']}}">
                          <div class="shadow-overlay"></div>
                          <p class="featured-category-title">{{category['text']}}</p>
-                         <img src="../{{category['img_path']}}" role="presentation" width="280" height="210">
+                         <img src="{{category['img_url'] | get_image_path}}" role="presentation" width="280" height="210">
                       </a>
                       {%endfor%}
                    </div>

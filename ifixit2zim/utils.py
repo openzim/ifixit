@@ -4,9 +4,12 @@
 
 # import collections
 import io
+import locale
 import re
+import threading
 import urllib.parse
 import zlib
+from contextlib import contextmanager
 from typing import Union  # , Iterable, List, Tuple
 
 import backoff
@@ -20,10 +23,16 @@ from pif import get_public_ip
 # from tld import get_fld
 from zimscraperlib.download import _get_retry_adapter, stream_file
 
-from .constants import API_PREFIX
+from .constants import API_PREFIX, DEFAULT_GUIDE_IMAGE_URL
 from .shared import Global, logger
 
 # nlink = collections.namedtuple("Link", ("path", "name", "title"))
+
+LOCALE_LOCK = threading.Lock()
+
+
+class ImageUrlNotFound(Exception):
+    pass
 
 
 def to_path(url: str) -> str:
@@ -360,9 +369,6 @@ def setup_s3_and_check_credentials(s3_url_with_credentials):
 # import requests
 # import urllib.request
 
-# from contextlib import contextmanager
-# import locale
-# import threading
 # import backoff
 
 # from os.path import exists, join
@@ -370,16 +376,15 @@ def setup_s3_and_check_credentials(s3_url_with_credentials):
 
 # from ifixittozim import logger, LANGS
 
-# LOCALE_LOCK = threading.Lock()
 
-# @contextmanager
-# def setlocale(name):
-#     with LOCALE_LOCK:
-#         saved = locale.setlocale(locale.LC_ALL)
-#         try:
-#             yield locale.setlocale(locale.LC_ALL, name)
-#         finally:
-#             locale.setlocale(locale.LC_ALL, saved)
+@contextmanager
+def setlocale(name):
+    with LOCALE_LOCK:
+        saved = locale.setlocale(locale.LC_ALL)
+        try:
+            yield locale.setlocale(locale.LC_ALL, name)
+        finally:
+            locale.setlocale(locale.LC_ALL, saved)
 
 
 def backoff_hdlr(details):
@@ -447,3 +452,36 @@ def get_api_content(path, **params):
 #                 while not exists(subCachePath):
 #                     mkdir(subCachePath)
 #     return dist_path
+
+
+def guides_in_progress(guides, in_progress=True):
+    if in_progress:
+        return [guide for guide in guides if "GUIDE_IN_PROGRESS" in guide["flags"]]
+    else:
+        return [guide for guide in guides if "GUIDE_IN_PROGRESS" not in guide["flags"]]
+
+
+def get_image_path(image_url):
+    return f"../{Global.imager.defer(url=image_url)}"
+
+
+def _get_image_url_search(obj, for_guide=False):
+    if "standard" in obj:
+        return obj["standard"]
+    elif "medium" in obj:
+        return obj["medium"]
+    elif "large" in obj:
+        return obj["large"]
+    elif "original" in obj:
+        return obj["original"]
+    elif for_guide:
+        return DEFAULT_GUIDE_IMAGE_URL
+    else:
+        raise ImageUrlNotFound(f"Unable to find image URL in object {obj}")
+
+
+def get_image_url(obj, for_guide=False):
+    if "image" in obj and obj["image"]:
+        return _get_image_url_search(obj["image"], for_guide)
+    else:
+        return _get_image_url_search(obj, for_guide)
