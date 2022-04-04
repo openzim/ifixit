@@ -13,6 +13,7 @@ def read(*names, **kwargs):
     with open(root_dir.joinpath(*names), "r") as fh:
         return fh.read()
 
+
 setup(
     name="ifixit2zim",
     version=read("ifixit2zim", "VERSION").strip(),
