@@ -23,7 +23,12 @@ from pif import get_public_ip
 # from tld import get_fld
 from zimscraperlib.download import _get_retry_adapter, stream_file
 
-from .constants import API_PREFIX, DEFAULT_GUIDE_IMAGE_URL
+from .constants import (
+    API_PREFIX,
+    DEFAULT_DEVICE_IMAGE_URL,
+    DEFAULT_GUIDE_IMAGE_URL,
+    DEFAULT_WIKI_IMAGE_URL,
+)
 from .shared import Global, logger
 
 # nlink = collections.namedtuple("Link", ("path", "name", "title"))
@@ -465,7 +470,7 @@ def get_image_path(image_url):
     return f"../{Global.imager.defer(url=image_url)}"
 
 
-def _get_image_url_search(obj, for_guide=False):
+def _get_image_url_search(obj, for_guide, for_device, for_wiki):
     if "standard" in obj:
         return obj["standard"]
     elif "medium" in obj:
@@ -476,12 +481,16 @@ def _get_image_url_search(obj, for_guide=False):
         return obj["original"]
     elif for_guide:
         return DEFAULT_GUIDE_IMAGE_URL
+    elif for_device:
+        return DEFAULT_DEVICE_IMAGE_URL
+    elif for_wiki:
+        return DEFAULT_WIKI_IMAGE_URL
     else:
         raise ImageUrlNotFound(f"Unable to find image URL in object {obj}")
 
 
-def get_image_url(obj, for_guide=False):
+def get_image_url(obj, for_guide=False, for_device=False, for_wiki=False):
     if "image" in obj and obj["image"]:
-        return _get_image_url_search(obj["image"], for_guide)
+        return _get_image_url_search(obj["image"], for_guide, for_device, for_wiki)
     else:
-        return _get_image_url_search(obj, for_guide)
+        return _get_image_url_search(obj, for_guide, for_device, for_wiki)

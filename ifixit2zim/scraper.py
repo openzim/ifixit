@@ -683,11 +683,16 @@ class ifixit2zim(GlobalMixin):
 
         num_category = 1
         for category in self.expected_categories:
-            # if category not in ["Mac", "Tablet", "Apple Pro Speakers M8756"]:
+            # if category not in [
+            #     "Mac",
+            #     "Tablet",
+            #     "Apple Pro Speakers M8756",
+            #     "HP Pavilion 550",
+            # ]:
             #     continue
             logger.info(
                 f"Scraping category {category} ({num_category}/"
-                "{len(self.expected_categories)})"
+                f"{len(self.expected_categories)})"
             )
             self.scrape_one_category(category)
             num_category += 1

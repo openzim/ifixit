@@ -32,6 +32,16 @@ DEFAULT_GUIDE_IMAGE_URL = (
     "default_images/GuideNoImage_300x225.jpg"
 )
 
+DEFAULT_DEVICE_IMAGE_URL = (
+    "https://assets.cdn.ifixit.com/static/images/"
+    "default_images/DeviceNoImage_300x225.jpg"
+)
+
+DEFAULT_WIKI_IMAGE_URL = (
+    "https://assets.cdn.ifixit.com/static/images/"
+    "default_images/WikiNoImage_300x225.jpg"
+)
+
 DIFFICULTY_VERY_EASY = [
     "Very easy",
     "Muito fácil",

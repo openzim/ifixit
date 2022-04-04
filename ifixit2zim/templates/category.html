@@ -19,12 +19,12 @@
                 <div id="banner-wrap">
                     <div id="banner-wrap-bg-container">
                         <img id="banner-wrap-bg"
-                            src="{{category | get_image_url | get_image_path}}">
+                            src="{{category | get_image_url(for_device=True) | get_image_path}}">
                     </div>
                     <div class="banner-content">
                         <div class="banner-bucket">
                             <div class="banner-small-photo">
-                                <img src="{{category | get_image_url | get_image_path}}"
+                                <img src="{{category | get_image_url(for_device=True) | get_image_path}}"
                                     width="252" height="189" alt="{{category['image']['display_title']}}">
                                 {% if category['repairability_score'] %}
                                 <!-- TODO: Retrieve the href of the teardown
@@ -75,7 +75,7 @@
                         {% for child in category['children'] %}
                         <div class="categoryListCell">
                             <a href="./category_{{child['filename']}}.html" class="categoryAnchor">
-                                <img src="{{child | get_image_url | get_image_path}}" width="179"
+                                <img src="{{child | get_image_url(for_device=True) | get_image_path}}" width="179"
                                     height="143" alt="{{child['display_title']}}" class="category-image" />
                                 <h5 class="title">
                                     {{child['display_title']}}</h5>
@@ -107,7 +107,7 @@
                                             <circle cx="12" cy="8" r="7" />
                                             <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
                                         </svg></i></span>
-                                <img src="{{guide | get_image_url(True) | get_image_path }}"
+                                <img src="{{guide | get_image_url(for_guide=True) | get_image_path }}"
                                     alt="{{guide['title']}}" width="176" height="131" />
                             </div>
                             <div class="entry-text">
@@ -138,7 +138,7 @@
                         {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', guide_type) %}
                         <div class="cell">
                             <a href="../guides/guide_{{guide['guideid']}}.html" class="title">
-                                <img src="{{guide | get_image_url(True) | get_image_path }}" width="133"
+                                <img src="{{guide | get_image_url(for_guide=True) | get_image_path }}" width="133"
                                     height="100" alt="{{guide[guide_text]}}" class="thumb" />
                                 <div class='title-text'>
                                     <p>{{guide[guide_text]}}</p>
@@ -164,7 +164,7 @@
                         <div class="categoryListCell">
                             <a href="../wikis/wiki_{{wiki['wikiid']}}.html" class="categoryAnchor">
                                 <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                <img src="{{wiki | get_image_url | get_image_path}}" width="179"
+                                <img src="{{wiki | get_image_url(for_wiki=True) | get_image_path}}" width="179"
                                     height="143" alt="{{wiki['display_title']}}" class="category-image" />
                                 <h5 class="title">{{wiki['display_title']}}</h5>
                             </a>
@@ -197,7 +197,7 @@
                                 {% endif %}
                                 <div class="cell">
                                     <a href="../guides/guide_{{guide['guideid']}}.html" class="title">
-                                        <img src="{{guide | get_image_url(True) | get_image_path}}" width="133"
+                                        <img src="{{guide | get_image_url(for_guide=True) | get_image_path}}" width="133"
                                             height="100" alt="{{guide[guide_text]}}" class="thumb" />
                                         <div class='title-text'>
                                             <p>{{guide['subject']}}</p>

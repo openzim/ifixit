@@ -54,7 +54,7 @@
                                     <div class="guide-metadata guide-main-image-container">
                                         {% if guide['type'] == 'teardown' %}
                                         <div class="guide-main-image hidden-mobile"
-                                            style="background-image: url('{{guide | get_image_url(True) | get_image_path }}')">
+                                            style="background-image: url('{{guide | get_image_url(for_guide=True) | get_image_path }}')">
                                             <div class="teardown-image-overlay">
                                                 <div class="guide-metadata guide-title-container guide-title-image">
                                                     <h1 class="guide-intro-title guide-title">{{guide['title']}}</h1>
@@ -75,7 +75,7 @@
                                         {% else %}
                                         <div class="guide-main-image">
                                             <img class="hasMenu"
-                                                src="{{guide | get_image_url(True) | get_image_path }}"
+                                                src="{{guide | get_image_url(for_guide=True) | get_image_path }}"
                                                 alt="{{guide['title']}}" sizes="(max-width: 740px) 100vw, 405px"
                                                 width="405" height="290">
                                         </div>
