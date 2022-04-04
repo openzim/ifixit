@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import pathlib
-import subprocess
-import sys
 
 from setuptools import setup
 
