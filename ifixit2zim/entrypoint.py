@@ -11,7 +11,7 @@ from .shared import Global, logger
 def main():
     parser = argparse.ArgumentParser(
         prog=NAME,
-        description="Scraper to create ZIM files wikihow articles",
+        description="Scraper to create ZIM files ifixit articles",
     )
 
     parser.add_argument(
