@@ -369,6 +369,10 @@ def setup_s3_and_check_credentials(s3_url_with_credentials):
     return s3_storage
 
 
+def convert_category_title_to_filename(title):
+    return re.sub(r"\s", "_", title)
+
+
 # #!/usr/bin/env python
 
 # import requests

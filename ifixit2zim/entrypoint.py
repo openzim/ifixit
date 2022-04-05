@@ -78,16 +78,6 @@ def main():
     )
 
     parser.add_argument(
-        "--category",
-        help="Only scrape this category (can be specified multiple times). "
-        "Use URL-ID of the Category "
-        "(after the colon `:` in the URL). "
-        "Add a slash after Category to request it without recursion",
-        dest="categories",
-        action="append",
-    )
-
-    parser.add_argument(
         "--optimization-cache",
         help="URL with credentials to S3 for using as optimization cache",
         dest="s3_url_with_credentials",
@@ -164,6 +154,56 @@ def main():
         help="Display scraper version and exit",
         action="version",
         version=SCRAPER,
+    )
+
+    parser.add_argument(
+        "--max-missing-guides",
+        help="Amount of missing guides which will force the scraper to stop",
+        default=100,
+        type=int,
+        dest="max_missing_guides",
+    )
+
+    parser.add_argument(
+        "--max-missing-categories",
+        help="Amount of missing categories which will force the scraper to stop",
+        default=100,
+        type=int,
+        dest="max_missing_categories",
+    )
+
+    parser.add_argument(
+        "--max-error-guides",
+        help="Amount of guides with failed processing which will force the scraper to "
+        "stop",
+        default=100,
+        type=int,
+        dest="max_error_guides",
+    )
+
+    parser.add_argument(
+        "--max-error-categories",
+        help="Amount of categories with failed processing which will force the scraper "
+        "to stop",
+        default=100,
+        type=int,
+        dest="max_error_categories",
+    )
+
+    parser.add_argument(
+        "--category",
+        help="Only scrape this category (can be specified multiple times). "
+        "Specify the category name",
+        dest="categories",
+        action="append",
+    )
+
+    parser.add_argument(
+        "--guide",
+        help="Only scrape this guide (can be specified multiple times). "
+        "Specify the guide ID (number)",
+        dest="guides",
+        action="append",
     )
 
     args = parser.parse_args()

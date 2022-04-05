@@ -222,6 +222,7 @@ class Conf:
     # customization
     icon: Optional[str] = ""
     categories: Set[str] = field(default_factory=set)
+    guides: Set[int] = field(default_factory=set)
 
     # filesystem
     _output_dir: Optional[str] = "."
@@ -232,6 +233,12 @@ class Conf:
     # performances
     nb_threads: Optional[int] = -1
     s3_url_with_credentials: Optional[str] = ""
+
+    # error handling
+    max_missing_guides: Optional[int] = 0
+    max_missing_categories: Optional[int] = 0
+    max_error_guides: Optional[int] = 0
+    max_error_categories: Optional[int] = 0
 
     #     # quality
     #     without_videos: Optional[bool] = False

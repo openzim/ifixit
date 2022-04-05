@@ -4,8 +4,10 @@ import json
 import pathlib
 import re
 import shutil
+import traceback
 from datetime import datetime
 
+import requests
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .constants import (
@@ -22,6 +24,7 @@ from .constants import (
 )
 from .shared import Global, GlobalMixin, logger
 from .utils import (
+    convert_category_title_to_filename,
     get_api_content,
     get_image_path,
     get_image_url,
@@ -37,6 +40,10 @@ class CategoryHomePageContentError(Exception):
 
 
 class UnexpectedDataKindException(Exception):
+    pass
+
+
+class FinalScrapingFailure(Exception):
     pass
 
 
@@ -64,17 +71,14 @@ class ifixit2zim(GlobalMixin):
         self.category_template = self.env.get_template("category.html")
         self.guide_template = self.env.get_template("guide.html")
 
-        # used to prevent twice processing the resources of CSS
-        # that we are going to download as they link to each other
-        # Source HTML references a dynamic CSS that is built using a varietyof
-        # features so it's very common different CSS urls references the same
-        # resources (imgs)
-        self.resources_digests = set()
-        # List of URLs which returned HTTP 404.
-        # There are legit scenarios for 404 on wikiHow: login pages
-        # we need to track them for later use
-        self.missing_articles = set()
+        # List of categories / guides which returned request errors, even after backoff.
+        # We track them for reporting.
+        self.missing_guides = set()
         self.missing_categories = set()
+        # List of categories / guides which returned other errors.
+        # We track them for reporting
+        self.error_guides = set()
+        self.error_categories = set()
 
     @property
     def build_dir(self):
@@ -655,7 +659,9 @@ class ifixit2zim(GlobalMixin):
             'href="./category_\\g<device>.html"',
             category_content["contents_rendered"],
         )
-        category_content["filename"] = re.sub(r"\s", "_", category_content["title"])
+        category_content["filename"] = convert_category_title_to_filename(
+            category_content["title"]
+        )
         for idx, child in enumerate(category_content["children"]):
             category_content["children"][idx]["filename"] = re.sub(
                 r"\s",
@@ -683,19 +689,48 @@ class ifixit2zim(GlobalMixin):
 
         num_category = 1
         for category in self.expected_categories:
-            # if category not in [
-            #     "Mac",
-            #     "Tablet",
-            #     "Apple Pro Speakers M8756",
-            #     "HP Pavilion 550",
-            # ]:
-            #     continue
-            logger.info(
-                f"Scraping category {category} ({num_category}/"
-                f"{len(self.expected_categories)})"
-            )
-            self.scrape_one_category(category)
-            num_category += 1
+            try:
+                if (
+                    self.conf.categories
+                    and len(self.conf.categories) > 0
+                    and category not in self.conf.categories
+                    and convert_category_title_to_filename(category)
+                    not in self.conf.categories
+                ):
+                    continue
+
+                # if category not in [
+                # #     "Mac",
+                #     "Tablet",
+                # #     "Apple Pro Speakers M8756",
+                # #     "HP Pavilion 550",
+                # ]:
+                #     continue
+                logger.info(
+                    f"Scraping category {category} ({num_category}/"
+                    f"{len(self.expected_categories)})"
+                )
+                self.scrape_one_category(category)
+            except requests.exceptions.RequestException as ex:
+                self.missing_categories.add(category)
+                logger.warning(f"Missing category '{category}': {ex}")
+                traceback.print_exc()
+            except Exception as ex:
+                self.error_categories.add(category)
+                logger.warning(f"Error while processing category '{category}': {ex}")
+                traceback.print_exc()
+            finally:
+                if len(self.missing_categories) > self.conf.max_missing_categories:
+                    raise FinalScrapingFailure(
+                        "Too many categories found missing: "
+                        f"{len(self.missing_categories)}"
+                    )
+                if len(self.error_categories) > self.conf.max_error_categories:
+                    raise FinalScrapingFailure(
+                        "Too many categories failed to be processed: "
+                        f"{len(self.error_categories)}"
+                    )
+                num_category += 1
 
     def scrape_one_guide(self, guide):
         guide_content = get_api_content(
@@ -858,13 +893,39 @@ class ifixit2zim(GlobalMixin):
 
         num_guide = 1
         for guideid, guide in self.expected_guides.items():
-            # if guideid not in [132168, 120579]:
-            #     continue
-            logger.info(
-                f"Scraping guide {guideid} ({num_guide}/{len(self.expected_guides)})"
-            )
-            self.scrape_one_guide(guide)
-            num_guide += 1
+            try:
+                if (
+                    self.conf.guides
+                    and len(self.conf.guides) > 0
+                    and guideid not in self.conf.guides
+                ):
+                    continue
+                # if guideid not in [132168, 120579]:
+                #     continue
+                logger.info(
+                    f"Scraping guide {guideid} "
+                    f"({num_guide}/{len(self.expected_guides)})"
+                )
+                self.scrape_one_guide(guide)
+            except requests.exceptions.RequestException as ex:
+                self.missing_guides.add(guideid)
+                logger.warning(f"Missing guide {guideid}: {ex}")
+                traceback.print_exc()
+            except Exception as ex:
+                self.error_guides.add(guideid)
+                logger.warning(f"Error while processing guide {guideid}: {ex}")
+                traceback.print_exc()
+            finally:
+                if len(self.missing_guides) > self.conf.max_missing_guides:
+                    raise FinalScrapingFailure(
+                        "Too many guides found missing: " f"{len(self.missing_guides)}"
+                    )
+                if len(self.error_guides) > self.conf.max_error_guides:
+                    raise FinalScrapingFailure(
+                        "Too many guides failed to be processed: "
+                        f"{len(self.error_guides)}"
+                    )
+                num_guide += 1
 
     def run(self):
         s3_storage = (
@@ -914,6 +975,16 @@ class ifixit2zim(GlobalMixin):
 
             logger.info("Awaiting images")
             Global.img_executor.shutdown()
+
+            logger.info(
+                f"Stats: {len(self.expected_categories)} categories, "
+                f"{len(self.expected_guides)} guides, "
+                f"{len(self.missing_categories)} missing categories, "
+                f"{len(self.missing_guides)} missing guides, "
+                f"{len(self.error_categories)} categories in error, "
+                f"{len(self.error_guides)} guides in error, "
+                f"{self.imager.nb_requested} images"
+            )
 
         except Exception as exc:
             # request Creator not to create a ZIM file on finish
