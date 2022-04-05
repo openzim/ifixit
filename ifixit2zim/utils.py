@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 
-# import collections
 import io
 import locale
 import re
@@ -10,17 +9,13 @@ import threading
 import urllib.parse
 import zlib
 from contextlib import contextmanager
-from typing import Union  # , Iterable, List, Tuple
+from typing import Union
 
 import backoff
 import bs4
-
-# import cssbeautifier
 import requests
 from kiwixstorage import KiwixStorage
 from pif import get_public_ip
-
-# from tld import get_fld
 from zimscraperlib.download import _get_retry_adapter, stream_file
 
 from .constants import (
@@ -30,8 +25,6 @@ from .constants import (
     DEFAULT_WIKI_IMAGE_URL,
 )
 from .shared import Global, logger
-
-# nlink = collections.namedtuple("Link", ("path", "name", "title"))
 
 LOCALE_LOCK = threading.Lock()
 
@@ -114,67 +107,10 @@ def get_soup_of(text: str, unwrap: bool = False):
     return soup
 
 
-# def get_footer_crumbs_from(soup: bs4.element.Tag) -> List[Tuple[str, str, str]]:
-#     """List of (url, name and title) of footer breadcrumbs"""
-
-#     crumbs = []
-#     for link in soup.select("#footer_crumbs ul li a[href]"):
-#         if not link.attrs.get("href"):
-#             continue
-#         # might or might not be a Category link
-#         try:
-#             cat_ident = cat_ident_for(link.attrs["href"])
-#         except Exception:
-#             cat_ident = None
-#         if cat_ident is None or cat_ident in Global.expected_categories:
-#             crumbs.append(
-#                 nlink(link.attrs["href"][1:], link.string, link.attrs.get("title"))
-#             )
-#     return crumbs
-
-
-# def get_footer_links_from(soup: bs4.element.Tag) -> List[Tuple[str, str, str]]:
-#     """list of namedtuple(path, name, title) of footer links"""
-#     links = []
-
-#     fld = get_fld(Global.conf.main_url.geturl())
-
-#     # Skip some links with no offline value
-#     for link in soup.select("#footer_links ul li a"):
-#         if link.attrs.get("href") in (
-#             "#",
-#             "https://blog.wikihow.com/",
-#             "/wikiHow:Jobs",
-#             "https://www.wikihow.com/wikiHow:Contribute",
-#         ):
-#             continue
-
-#         path = None
-#         if link.attrs.get("href"):
-#             url = urllib.parse.urlparse(to_url(link.attrs["href"]))
-
-#             # skip external URLs (if any)
-#             if get_fld(url.geturl()) != fld:
-#                 continue
-#             path = normalize_ident(url.path)[1:]
-
-#         links.append(nlink(path, link.string, link.attrs.get("title")))
-#     return links
-
-
 def get_soup(path: str, **params) -> bs4.BeautifulSoup:
     """an lxml soup of a path on source website"""
     content, paths = fetch(path, **params)
     return get_soup_of(content), paths
-
-
-# def soup_link_finder(elem: bs4.element.Tag) -> bool:
-#     """bs4's find_all-friendly selector for linked styles in wikiHow"""
-#     return (
-#         elem.name == "link"
-#         and elem.attrs.get("href")
-#         and (elem.attrs.get("as") == "style" or elem.attrs.get("rel") == "stylesheet")
-#     )
 
 
 def get_digest(url: str) -> str:
@@ -182,151 +118,9 @@ def get_digest(url: str) -> str:
     return str(zlib.adler32(url.encode("UTF-8")))
 
 
-# def cat_ident_for(href: str) -> str:
-#     """decoded name of a category from a link target"""
-#     return normalize_ident(href).split(":", 1)[1]
-
-
-# def fix_pagination_links(soup: bs4.element.Tag):
-#     """Replace ?pg= to _pg= in pagination links"""
-#     for a in soup.select("#large_pagination a[href]"):
-#         a["href"] = a["href"].replace("?pg=", "_pg=")
-
-
-# def get_categorylisting_url():
-#     return normalize_ident(
-#         urllib.parse.urlparse(requests.get(to_url("/Special:CategoryListing")).url).path
-#     )[1:]
-
-
-# def get_youtube_id_from(url: str) -> str:
-#     """Youtube video Id from a youtube URL"""
-#     uri = urllib.parse.urlparse(url)
-#     if uri.path.startswith("/embed/"):
-#         m = re.match(r"^/embed/(?P<id>[^/]+)", uri.path)
-#         if m:
-#             return m.groupdict().get("id")
-#     if uri.path.startswith("/watch"):
-#         return urllib.parse.parse_qs(uri.query).get("v", [None]).pop()
-
-
-# def normalize_youtube_url(url: str) -> str:
-#     """harmonize youtube-URL to use a single (public viewing) format
-
-#     format: https://www.youtube.com/watch?v=C1vI8k-JEsQ"""
-
-#     yid = get_youtube_id_from(url)
-#     if yid:
-#         return f"https://www.youtube.com/watch?v={yid}"
-#     return url
-
-
 def normalize_ident(ident: str) -> str:
     """URL-decoded category identifier"""
     return urllib.parse.unquote(ident)
-
-
-# def article_ident_for(href: str) -> str:
-#     """decoded name of an article from a link target"""
-#     return normalize_ident(to_rel(href))[1:]
-
-
-# def parse_css(style: str) -> Tuple[str, List[Tuple[str, str]]]:
-#     """(css, resources) of transformed CSS string and resources list
-
-#     reads a CSS string and returns it transformed
-#     with url() replaced by offlinable path.
-
-#     resources list is list of tuples, each containing the URL to get data from
-#     and the path to store it at.
-#     ex: ("http://goto.img/hello.png", "img/hello.png")"""
-
-#     output = ""
-#     resources = []
-
-#     def write(line):
-#         nonlocal output
-#         output += line + "\n"
-
-#     pattern = "url("
-#     for line in cssbeautifier.beautify(style).split("\n"):
-#         if pattern not in line:
-#             write(line)
-#             continue
-
-#         start = line.index(pattern) + len(pattern)
-#         end = line.index(")")
-
-#         # check whether it's quoted or not
-#         if line[start + 1] in ("'", '"'):
-#             start += 1
-#             end -= 1
-
-#         url = line[start:end]
-
-#         if url.startswith("data:"):
-#             write(line)
-#             continue
-
-#         path = f"assets/{get_digest(url)}"
-#         resources.append((url, path))
-#         # resources are added on same level (assets/xxx) as css itself
-#         write(line[0:start] + "../" + path + line[end:])
-
-#     return output, resources
-
-
-# def first(*args: Iterable[object]) -> object:
-#     """first non-None value from *args ; fallback to empty string"""
-#     return next((item for item in args if item is not None), "")
-
-
-# def rebuild_uri(
-#     uri: urllib.parse.ParseResult,
-#     scheme: str = None,
-#     username: str = None,
-#     password: str = None,
-#     hostname: str = None,
-#     port: Union[str, int] = None,
-#     path: str = None,
-#     params: str = None,
-#     query: str = None,
-#     fragment: str = None,
-#     failsafe: bool = False,
-# ) -> urllib.parse.ParseResult:
-#     """new named tuple from uri with requested part updated"""
-#     try:
-#         username = first(username, uri.username, "")
-#         password = first(password, uri.password, "")
-#         hostname = first(hostname, uri.hostname, "")
-#         port = first(port, uri.port, "")
-#         netloc = (
-#             f"{username}{':' if password else ''}{password}"
-#             f"{'@' if username or password else ''}{hostname}"
-#             f"{':' if port else ''}{port}"
-#         )
-#         return urllib.parse.urlparse(
-#             urllib.parse.urlunparse(
-#                 (
-#                     first(scheme, uri.scheme),
-#                     netloc,
-#                     first(path, uri.path),
-#                     first(params, uri.params),
-#                     first(query, uri.query),
-#                     first(fragment, uri.fragment),
-#                 )
-#             )
-#         )
-#     except Exception as exc:
-#         if failsafe:
-#             logger.error(
-#                 f"Failed to rebuild "  # lgtm [py/clear-text-logging-sensitive-data]
-#                 f"URI {uri} with {scheme=} {username=} {password=} "
-#                 f"{hostname=} {port=} {path=} "
-#                 f"{params=} {query=} {fragment=} - {exc}"
-#             )
-#             return uri
-#         raise exc
 
 
 def get_version_ident_for(url: str) -> str:
@@ -373,19 +167,6 @@ def convert_category_title_to_filename(title):
     return re.sub(r"\s", "_", title)
 
 
-# #!/usr/bin/env python
-
-# import requests
-# import urllib.request
-
-# import backoff
-
-# from os.path import exists, join
-# from os import getcwd, mkdir
-
-# from ifixittozim import logger, LANGS
-
-
 @contextmanager
 def setlocale(name):
     with LOCALE_LOCK:
@@ -416,51 +197,6 @@ def get_api_content(path, **params):
     response = requests.get(full_path)
     json_data = response.json() if response and response.status_code == 200 else None
     return json_data
-
-
-# @backoff.on_exception(backoff.expo,
-#                       urllib.error.URLError,
-#                       max_time=16,
-#                       on_backoff=backoff_hdlr)
-# def get_file_content(url, filename):
-#     urllib.request.urlretrieve(url, filename)
-
-# def get_cache_path():
-#     cwd = getcwd()
-#     cachePath = join(cwd, 'cache');
-#     while not exists(cachePath):
-#         mkdir(cachePath)
-#     for asset_kind in ['categories', 'guides', 'images']:
-#         subCachePath = join(cwd, 'cache', asset_kind)
-#         while not exists(subCachePath):
-#             mkdir(subCachePath)
-#         if asset_kind not in ['images']:
-#             for lang in LANGS:
-#                 subCachePath = join(cwd, 'cache', asset_kind, lang);
-#                 while not exists(subCachePath):
-#                     mkdir(subCachePath)
-#     return cachePath
-
-# def get_assets_path():
-#     cwd = getcwd()
-#     assetPath = join(cwd, 'assets')
-#     return assetPath
-
-# def get_dist_path():
-#     cwd = getcwd()
-#     dist_path = join(cwd, 'dist');
-#     while not exists(dist_path):
-#         mkdir(dist_path)
-#     for asset_kind in ['categories', 'guides', 'images', 'home']:
-#         subCachePath = join(cwd, 'dist', asset_kind)
-#         while not exists(subCachePath):
-#             mkdir(subCachePath)
-#         if asset_kind not in ['images']:
-#             for lang in LANGS:
-#                 subCachePath = join(cwd, 'dist', asset_kind, lang);
-#                 while not exists(subCachePath):
-#                     mkdir(subCachePath)
-#     return dist_path
 
 
 def guides_in_progress(guides, in_progress=True):

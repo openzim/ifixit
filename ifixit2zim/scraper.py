@@ -699,13 +699,6 @@ class ifixit2zim(GlobalMixin):
                 ):
                     continue
 
-                # if category not in [
-                # #     "Mac",
-                #     "Tablet",
-                # #     "Apple Pro Speakers M8756",
-                # #     "HP Pavilion 550",
-                # ]:
-                #     continue
                 logger.info(
                     f"Scraping category {category} ({num_category}/"
                     f"{len(self.expected_categories)})"
@@ -900,8 +893,6 @@ class ifixit2zim(GlobalMixin):
                     and guideid not in self.conf.guides
                 ):
                     continue
-                # if guideid not in [132168, 120579]:
-                #     continue
                 logger.info(
                     f"Scraping guide {guideid} "
                     f"({num_guide}/{len(self.expected_guides)})"

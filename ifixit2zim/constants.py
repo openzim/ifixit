@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import pathlib
-
-# import re
 import tempfile
 import urllib.parse
 from dataclasses import dataclass, field
@@ -13,7 +11,6 @@ from zimscraperlib.i18n import get_language_details
 ROOT_DIR = pathlib.Path(__file__).parent
 NAME = ROOT_DIR.name
 DEFAULT_HOMEPAGE = "Main-Page"
-# MAX_HTTP_404_THRESHOLD = 200
 
 with open(ROOT_DIR.joinpath("VERSION"), "r") as fh:
     VERSION = fh.read().strip()
@@ -21,7 +18,6 @@ with open(ROOT_DIR.joinpath("VERSION"), "r") as fh:
 SCRAPER = f"{NAME} {VERSION}"
 
 IMAGES_ENCODER_VERSION = 1
-# VIDEOS_ENCODER_VERSION = 1
 URLS = {
     "en": "https://www.ifixit.com",
     "pt": "https://pt.ifixit.com",
@@ -42,6 +38,8 @@ DEFAULT_WIKI_IMAGE_URL = (
     "default_images/WikiNoImage_300x225.jpg"
 )
 
+# Open this URL in the various languages to retrieve labels below
+# https://www.ifixit.com/api/2.0/guides?guideids=219,220,202,206,46465
 DIFFICULTY_VERY_EASY = [
     "Very easy",
     "Muito fácil",
@@ -112,6 +110,14 @@ DIFFICULTY_VERY_HARD = [
     "매우 어려움",
     "非常困难",
 ]  # guide 46465
+
+# Browse these pages in the various languages to retrieve category + guide labels
+# https://www.ifixit.com/Device/Mac
+# https://www.ifixit.com/Device/Apple_Watch
+# https://www.ifixit.com/Device/Logitech__G502_Hero
+# https://www.ifixit.com/Guide/MacBook+Air+11-Inch+Late+2010+Battery+Replacement/4384
+# https://www.ifixit.com/Teardown/Apple+Watch+Teardown/40655
+
 CATEGORY_LABELS = {
     "en": {
         "author": "Author: ",
@@ -138,10 +144,6 @@ CATEGORY_LABELS = {
         "repairability": "Reparabilidade:",
     },
 }
-# https://pt.ifixit.com/Device/Mac
-# https://pt.ifixit.com/Device/Apple_Watch
-# https://pt.ifixit.com/Device/Logitech__G502_Hero
-# https://pt.ifixit.com/Guide/MacBook+Air+11-Inch+Late+2010+Battery+Replacement/4384
 
 GUIDE_LABELS = {
     "en": {
@@ -194,7 +196,6 @@ GUIDE_LABELS = {
     },
 }
 
-# https://pt.ifixit.com/Teardown/Apple+Watch+Teardown/40655
 
 API_PREFIX = "/api/2.0"
 
@@ -240,14 +241,6 @@ class Conf:
     max_error_guides: Optional[int] = 0
     max_error_categories: Optional[int] = 0
 
-    #     # quality
-    #     without_videos: Optional[bool] = False
-    #     without_external_links: Optional[bool] = False
-    #     exclude: Optional[str] = ""
-    #     only: Optional[str] = ""
-    #     low_quality: Optional[bool] = False
-    #     video_format: Optional[str] = "webm"
-
     # debug/devel
     build_dir_is_tmp_dir: Optional[bool] = False
     keep_build_dir: Optional[bool] = False
@@ -257,10 +250,6 @@ class Conf:
     cdn_delay: Optional[float] = 0
     stats_filename: Optional[str] = None
     skip_checks: Optional[bool] = False
-    #     skip_footer_links: Optional[bool] = False
-    #     single_article: Optional[str] = ""
-    #     full_mode: Optional[bool] = False
-    #     single_category: Optional[str] = None
 
     @staticmethod
     def get_url(lang_code: str) -> urllib.parse.ParseResult:
@@ -292,7 +281,6 @@ class Conf:
             self.build_dir = pathlib.Path(
                 tempfile.mkdtemp(prefix=f"ifixit_{self.lang_code}_", dir=self.tmp_dir)
             )
-        # self.build_dir.joinpath("videos").mkdir(parents=True, exist_ok=True)
 
         if self.stats_filename:
             self.stats_filename = pathlib.Path(self.stats_filename).expanduser()
@@ -306,13 +294,3 @@ class Conf:
                     self.tag.remove(tag)
 
         self.categories = set() if self.categories is None else self.categories
-
-
-#         # the solely requested category or None
-#         self.single_category = (
-#             re.sub(r"/$", "", list(self.categories)[0])
-#             if len(self.categories) == 1
-#             else None
-#         )
-#         # whether requesting a _full mode_ (complete wiki)
-#         self.full_mode = not self.categories and not self.only and not self.exclude

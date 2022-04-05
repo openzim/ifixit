@@ -22,23 +22,16 @@ class Global:
         level=logging.INFO,
         log_format="[%(threadName)s::%(asctime)s] %(levelname)s:%(message)s",
     )
-    # conf = None
+    conf = None
 
     metadata = {}
 
     creator = None
     imager = None
-    # rewriter = None
     lock = threading.Lock()
 
     expected_categories = set()
     expected_guides = dict()
-    # exclusion_articles = set()
-    # exclusion_categories = set()
-    # inclusion_list = set()
-
-    # expected_articles = set()
-    # expected_categories = set()
 
     @staticmethod
     def set_debug(value):
@@ -64,29 +57,9 @@ class Global:
             prefix="IMG-T-",
         )
 
-        #     # without_videos means without Youtube videos but there are still plenty
-        #     # of regular videos for animations.
-        #     # We use a single video worker for videos if Youtube is enabled to prevent
-        #     # blacklisting of the host IP by Youtube
-        #     # this should be smarter in processing non-youtube videos in parallel and
-        #     # limit youtube ones to a single worker in every cases
-        #     Global.video_executor = Executor(
-        #         queue_size=20,
-        #         nb_workers=10 if Global.conf.without_videos else 1,
-        #         prefix="VID-T-",
-        #     )
-
         from .imager import Imager
 
         Global.imager = Imager()
-
-        #     from .videos import VideoGrabber
-
-        #     Global.vidgrabber = VideoGrabber()
-
-        #     from .rewriter import Rewriter
-
-        #     Global.rewriter = Rewriter()
 
         Global.creator = Creator(
             filename=Global.conf.output_dir.joinpath(Global.conf.fname),
@@ -132,37 +105,9 @@ class GlobalMixin:
     def imager(self):
         return Global.imager
 
-    #     @property
-    #     def vidgrabber(self):
-    #         return Global.vidgrabber
-
     @property
     def executor(self):
         return Global.executor
 
-
-#     @property
-#     def rewriter(self):
-#         return Global.rewriter
-
-#     @property
-#     def inclusion_list(self):
-#         return Global.inclusion_list
-
-#     @property
-#     def exclusion_articles(self):
-#         return Global.exclusion_articles
-
-#     @property
-#     def exclusion_categories(self):
-#         return Global.exclusion_categories
-
-#     @property
-#     def expected_articles(self):
-#         return Global.expected_articles
-
-#     @property
-#     def expected_categories(self):
-#         return Global.expected_categories
 
 logger = Global.logger
