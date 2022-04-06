@@ -14,7 +14,9 @@ RUN apt-get update -y \
 # setup timezone and locale
 ENV TZ "UTC"
 RUN echo "UTC" >  /etc/timezone \
-    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && sed -i '/en_GB ISO-8859-1/s/^# //g' /etc/locale.gen \
+    && locale-gen
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
