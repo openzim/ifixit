@@ -170,10 +170,19 @@ class ifixit2zim(GlobalMixin):
             with self.lock:
                 self.creator.add_item_for(path=path, fpath=fpath)
 
-    def _process_categories(self, categories):
+    def _process_categories(self, categories, include_sub_category=False):
         for category in categories:
+            if (
+                self.conf.categories
+                and len(self.conf.categories) > 0
+                and not include_sub_category
+                and category not in self.conf.categories
+                and convert_category_title_to_filename(category)
+                not in self.conf.categories
+            ):
+                continue
             self.expected_categories.add(category)
-            self._process_categories(categories[category])
+            self._process_categories(categories[category], True)
 
     def build_expected_categories(self):
         logger.info("Downloading categories")
@@ -690,15 +699,6 @@ class ifixit2zim(GlobalMixin):
         num_category = 1
         for category in self.expected_categories:
             try:
-                if (
-                    self.conf.categories
-                    and len(self.conf.categories) > 0
-                    and category not in self.conf.categories
-                    and convert_category_title_to_filename(category)
-                    not in self.conf.categories
-                ):
-                    continue
-
                 logger.info(
                     f"Scraping category {category} ({num_category}/"
                     f"{len(self.expected_categories)})"
