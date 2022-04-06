@@ -1,358 +1,491 @@
-{% extends "base.html" %}
-
-{% block title %}{{guide['title']}}{% endblock title%}
-
+{% extends "base.html" %} {% block title %}{{guide['title']}}{% endblock title%}
 {% block specific_head %}
-<link type="text/css" href="../assets/Shared-i18n_formatting-7XRaMqur0Z-hJvP-W8sS2A.css" rel="stylesheet" as="style">
-<link type="text/css" href="../assets/new-guide-view-all-Zs-aI_CApaXZ_ssFDlTZ9g.css" rel="stylesheet" as="style">
-<link type="text/css" href="../assets/release-version-orbcTfqm6_JKsoz-PPnHGA.css" rel="stylesheet" as="style">
-<link type="text/css" href="../assets/prosemirror-all-_OBJ3KkZRD0uygPKzpMb8Q.css" rel="stylesheet" as="style">
-<link type="text/css" href="../assets/Shared-cart_banner-33Ctp6kCy0R-IiTsFeV6cw.css" rel="stylesheet" as="style">
-<link type="text/css" href="../assets/Shared-attachment_link-AoWbgS-g65jo1DYOaHV5XA.css" rel="stylesheet" as="style">
+<link
+  type="text/css"
+  href="../assets/Shared-i18n_formatting-7XRaMqur0Z-hJvP-W8sS2A.css"
+  rel="stylesheet"
+  as="style"
+/>
+<link
+  type="text/css"
+  href="../assets/new-guide-view-all-Zs-aI_CApaXZ_ssFDlTZ9g.css"
+  rel="stylesheet"
+  as="style"
+/>
+<link
+  type="text/css"
+  href="../assets/release-version-orbcTfqm6_JKsoz-PPnHGA.css"
+  rel="stylesheet"
+  as="style"
+/>
+<link
+  type="text/css"
+  href="../assets/prosemirror-all-_OBJ3KkZRD0uygPKzpMb8Q.css"
+  rel="stylesheet"
+  as="style"
+/>
+<link
+  type="text/css"
+  href="../assets/Shared-cart_banner-33Ctp6kCy0R-IiTsFeV6cw.css"
+  rel="stylesheet"
+  as="style"
+/>
+<link
+  type="text/css"
+  href="../assets/Shared-attachment_link-AoWbgS-g65jo1DYOaHV5XA.css"
+  rel="stylesheet"
+  as="style"
+/>
 
-<script>
-    function switchStepImage(element, mainImgId, className, divThubId) {
-        document.getElementById(mainImgId).src = element.src;
-        var myElements = document.getElementsByClassName(className); 
-        for(var counter = 0; counter < myElements.length; counter++){
-            myElements[counter].classList.remove('active');
-        }
-        document.getElementById(divThubId).classList.add('active');
-    }
-</script>
-{% endblock specific_head%}
-
-{% block content %}
+{% endblock specific_head%} {% block content %}
 <div id="page" class=" ">
-    <div id="main">
-        <div id="mainBody">
-            <!-- MAIN BODY -->
-            <div id="contentFloat">
-                <div id="content">
-                    <div class="wrapper {% if guide['type'] == 'teardown' %}is-teardown{% endif %}">
-                        <div id="guide-intro" class="guide-container guide-v2 js-guide-container container">
-                            <div>
-                                <div class="guide-all-metadata">
-                                    <div class="guide-metadata guide-status-container">
-                                        <div class="statuses">
-                                        </div>
-                                    </div>
-                                    <div class="guide-metadata guide-title-container guide-title-metadata">
-                                        <h1 class="guide-intro-title guide-title">{{guide['title']}}</h1>
+  <div id="main">
+    <div id="mainBody">
+      <!-- MAIN BODY -->
+      <div id="contentFloat">
+        <div id="content">
+          <div
+            class="wrapper {% if guide['type'] == 'teardown' %}is-teardown{% endif %}"
+          >
+            <div
+              id="guide-intro"
+              class="guide-container guide-v2 js-guide-container container"
+            >
+              <div>
+                <div class="guide-all-metadata">
+                  <div class="guide-metadata guide-status-container">
+                    <div class="statuses"></div>
+                  </div>
+                  <div
+                    class="guide-metadata guide-title-container guide-title-metadata"
+                  >
+                    <h1 class="guide-intro-title guide-title">
+                      {{guide['title']}}
+                    </h1>
 
-                                        <div class="guide-author guide-title-subtext">
-                                            {{label['written_by']}} {{guide['author']['username']}}
-                                            <!-- TODO: Retrieve user profiles
+                    <div class="guide-author guide-title-subtext">
+                      {{label['written_by']}} {{guide['author']['username']}}
+                      <!-- TODO: Retrieve user profiles
                                                        Display other contributors
                                                        Retrieve page history -->
-                                        </div>
-                                        {% if guide['type'] == 'teardown' %}
-                                        <div class="guide-published-date guide-title-subtext">
-                                            {{label['published']}}{{guide['published_date_rendered']}} </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="guide-metadata guide-main-image-container">
-                                        {% if guide['type'] == 'teardown' %}
-                                        <div class="guide-main-image hidden-mobile"
-                                            style="background-image: url('{{guide | get_image_url(for_guide=True) | get_image_path }}')">
-                                            <div class="teardown-image-overlay">
-                                                <div class="guide-metadata guide-title-container guide-title-image">
-                                                    <h1 class="guide-intro-title guide-title">{{guide['title']}}</h1>
-                                                    <div class="guide-published-date guide-title-subtext">
-                                                        {{label['published']}}{{guide['published_date_rendered']}} </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="guide-main-image-banner hidden-mobile">
-                                            <p><i class="svg-icon" style="display: inline-block; width: 24px; height: 24px;"><svg
-                                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                                                        <polyline points="2 17 12 22 22 17"></polyline>
-                                                        <polyline points="2 12 12 17 22 12"></polyline>
-                                                    </svg></i> {{label['teardown']}}</p>
-                                        </div>
-                                        {% else %}
-                                        <div class="guide-main-image">
-                                            <img class="hasMenu"
-                                                src="{{guide | get_image_url(for_guide=True) | get_image_path }}"
-                                                alt="{{guide['title']}}" sizes="(max-width: 740px) 100vw, 405px"
-                                                width="405" height="290">
-                                        </div>
-                                        {% endif %}
-
-                                    </div>
-                                    {% if guide['type'] != 'teardown' %}
-                                    <div class="guide-metadata guide-details-container js-guide-details-container">
-                                        <div class="details-item-container">
-                                            <div class="details-item difficulty row {{guide['difficulty_class']}}">
-                                                <p class="item-title column"><i class="svg-icon"
-                                                        style="display: inline-block; width: 24px; height: 24px;"><svg
-                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                            fill="none" stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <circle cx="12" cy="16" r="2"></circle>
-                                                            <line x1="12" y1="9" x2="12" y2="14"></line>
-                                                            <path d="M6,19H2V15a10,10,0,0,1,20,0v4H18"></path>
-                                                        </svg></i>{{label['difficulty']}}</p>
-                                                <p class="item-value column">
-                                                    <span class="difficulty-indicator">
-                                                        <span class="indicator-dot"></span>
-                                                        <span class="indicator-dot"></span>
-                                                        <span class="indicator-dot"></span>
-                                                    </span>{{guide['difficulty']}}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="details-item-container">
-                                            <div class="details-item row">
-                                                <p class="item-title column"><i class="svg-icon"
-                                                        style="display: inline-block; width: 24px; height: 24px;"><svg
-                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                            fill="none" stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <line x1="8" y1="6" x2="21" y2="6"></line>
-                                                            <line x1="8" y1="12" x2="21" y2="12"></line>
-                                                            <line x1="8" y1="18" x2="21" y2="18"></line>
-                                                            <line x1="3" y1="6" x2="3" y2="6"></line>
-                                                            <line x1="3" y1="12" x2="3" y2="12"></line>
-                                                            <line x1="3" y1="18" x2="3" y2="18"></line>
-                                                        </svg>
-                                                    </i>{{label['steps']}}</p>
-                                                <p class="item-value column">{{guide['steps']|length}}</p>
-                                            </div>
-                                        </div>
-                                        <div id="guide-time-required" class="details-item-container">
-                                            <div class="details-item row">
-                                                <p class="item-title column"><i class="svg-icon"
-                                                        style="display: inline-block; width: 24px; height: 24px;"><svg
-                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                            fill="none" stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <circle cx="12" cy="12" r="10"></circle>
-                                                            <polyline points="12 6 12 12 15 15"></polyline>
-                                                        </svg></i>{{label['time_required']}}</p>
-                                                <p class="item-value">{{guide['time_required']}}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- TODO: Handle sections display (use 'subject' fields of prereqs guides + 'subject' of guide itself) -->
-
-                                        <!--TODO: Handle flags display -->
-
-                                    </div>
-                                    {% endif %}
-
-                                </div>
-                                <!--TODO: Handle flags displayed in full width  -->
-
-                                <div class="introduction-container">
-                                    <h2>{{label['introduction']}}</h2>
-                                    <div itemprop="description">
-                                        {{guide['introduction_rendered']|safe}}
-                                    </div>
-                                </div>
-                            </div>
+                    </div>
+                    {% if guide['type'] == 'teardown' %}
+                    <div class="guide-published-date guide-title-subtext">
+                      {{label['published']}}{{guide['published_date_rendered']}}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="guide-metadata guide-main-image-container">
+                    {% if guide['type'] == 'teardown' %}
+                    <div
+                      class="guide-main-image hidden-mobile"
+                      style="background-image: url('{{guide | get_image_url(for_guide=True) | get_image_path }}')"
+                    >
+                      <div class="teardown-image-overlay">
+                        <div
+                          class="guide-metadata guide-title-container guide-title-image"
+                        >
+                          <h1 class="guide-intro-title guide-title">
+                            {{guide['title']}}
+                          </h1>
+                          <div class="guide-published-date guide-title-subtext">
+                            {{label['published']}}{{guide['published_date_rendered']}}
+                          </div>
                         </div>
+                      </div>
+                    </div>
+                    <div class="guide-main-image-banner hidden-mobile">
+                      <p>
+                        <i
+                          class="svg-icon"
+                          style="
+                            display: inline-block;
+                            width: 24px;
+                            height: 24px;
+                          "
+                          ><svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <polygon
+                              points="12 2 2 7 12 12 22 7 12 2"
+                            ></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline></svg
+                        ></i>
+                        {{label['teardown']}}
+                      </p>
+                    </div>
+                    {% else %}
+                    <div class="guide-main-image">
+                      <img
+                        class="hasMenu"
+                        src="{{guide | get_image_url(for_guide=True) | get_image_path }}"
+                        alt="{{guide['title']}}"
+                        sizes="(max-width: 740px) 100vw, 405px"
+                        width="405"
+                        height="290"
+                      />
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% if guide['type'] != 'teardown' %}
+                  <div
+                    class="guide-metadata guide-details-container js-guide-details-container"
+                  >
+                    <div class="details-item-container">
+                      <div
+                        class="details-item difficulty row {{guide['difficulty_class']}}"
+                      >
+                        <p class="item-title column">
+                          <i
+                            class="svg-icon"
+                            style="
+                              display: inline-block;
+                              width: 24px;
+                              height: 24px;
+                            "
+                            ><svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <circle cx="12" cy="16" r="2"></circle>
+                              <line x1="12" y1="9" x2="12" y2="14"></line>
+                              <path
+                                d="M6,19H2V15a10,10,0,0,1,20,0v4H18"
+                              ></path></svg></i
+                          >{{label['difficulty']}}
+                        </p>
+                        <p class="item-value column">
+                          <span class="difficulty-indicator">
+                            <span class="indicator-dot"></span>
+                            <span class="indicator-dot"></span>
+                            <span class="indicator-dot"></span> </span
+                          >{{guide['difficulty']}}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="details-item-container">
+                      <div class="details-item row">
+                        <p class="item-title column">
+                          <i
+                            class="svg-icon"
+                            style="
+                              display: inline-block;
+                              width: 24px;
+                              height: 24px;
+                            "
+                            ><svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <line x1="8" y1="6" x2="21" y2="6"></line>
+                              <line x1="8" y1="12" x2="21" y2="12"></line>
+                              <line x1="8" y1="18" x2="21" y2="18"></line>
+                              <line x1="3" y1="6" x2="3" y2="6"></line>
+                              <line x1="3" y1="12" x2="3" y2="12"></line>
+                              <line x1="3" y1="18" x2="3" y2="18"></line>
+                            </svg> </i
+                          >{{label['steps']}}
+                        </p>
+                        <p class="item-value column">
+                          {{guide['steps']|length}}
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      id="guide-time-required"
+                      class="details-item-container"
+                    >
+                      <div class="details-item row">
+                        <p class="item-title column">
+                          <i
+                            class="svg-icon"
+                            style="
+                              display: inline-block;
+                              width: 24px;
+                              height: 24px;
+                            "
+                            ><svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <polyline
+                                points="12 6 12 12 15 15"
+                              ></polyline></svg></i
+                          >{{label['time_required']}}
+                        </p>
+                        <p class="item-value">{{guide['time_required']}}</p>
+                      </div>
+                    </div>
 
-                        <!-- TODO: Handle tools and parts display  -->
+                    <!-- TODO: Handle sections display (use 'subject' fields of prereqs guides + 'subject' of guide itself) -->
 
-                        <ol class="steps-container container">
+                    <!--TODO: Handle flags display -->
+                  </div>
+                  {% endif %}
+                </div>
+                <!--TODO: Handle flags displayed in full width  -->
 
-                            <!-- TODO: Handle sections display (for now we have only one section for simplicity)-->
-                            <section>
-                                {% for step in guide['steps'] %}
-                                    {% set steploop = loop %}
+                <div class="introduction-container">
+                  <h2>{{label['introduction']}}</h2>
+                  <div itemprop="description">
+                    {{guide['introduction_rendered']|safe}}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                                <li id="s{{step['stepid']}}" class="step step-wrapper js-step">
-                                    <div class="actionbar-portal"></div>
-                                    <div class="step">
-                                        <div class="row">
-                                            <div class="column four-fifths">
-                                                <h2 class="step-title">
-                                                    <a class="fragment-link" itemprop="url" href="#s258194">
-                                                        <strong
-                                                            class="stepValue">{{label['step_no']}}{{loop.index}}</strong>
-                                                        <!-- TODO: Handle step title (title of the step OR if not specified + first step of the section, 'subject' of the section)
+            <!-- TODO: Handle tools and parts display  -->
+
+            <ol class="steps-container container">
+              <!-- TODO: Handle sections display (for now we have only one section for simplicity)-->
+              <section>
+                {% for step in guide['steps'] %} {% set steploop = loop %}
+
+                <li id="s{{step['stepid']}}" class="step step-wrapper js-step">
+                  <div class="actionbar-portal"></div>
+                  <div class="step">
+                    <div class="row">
+                      <div class="column four-fifths">
+                        <h2 class="step-title">
+                          <a
+                            class="fragment-link"
+                            itemprop="url"
+                            href="#s258194"
+                          >
+                            <strong class="stepValue"
+                              >{{label['step_no']}}{{loop.index}}</strong
+                            >
+                            <!-- TODO: Handle step title (title of the step OR if not specified + first step of the section, 'subject' of the section)
                                     <span class="stepTitleTitle" itemprop="name">
                                         Back Cover </span>
                                     -->
-                                                    </a>
-                                                </h2>
-                                            </div>
-                                            <div class="column one-fifth">
-                                            </div>
-                                        </div>
+                          </a>
+                        </h2>
+                      </div>
+                      <div class="column one-fifth"></div>
+                    </div>
 
-                                        {% if step['media']['data'] | length == 0 %}
-                                        <div class="row step-container">
-                                            <div class="column stepMedia step-main-media js-step-main-media stepNone stepImageContainer">
-                                            </div>
-                                            <div class="column step-content text-only">
-                                                {% include 'guide-step-lines-container.html' %}
-                                            </div>
-                                        </div>
-                                        {% elif step['media']['type'] == 'video' %}
-                                        <div class="row step-container">
-                                            <div class="column stepMedia step-main-media js-step-main-media stepObject stepImageContainer">
-                                                <img id="step{{steploop.index}}-mainImage"
-                                                alt="{{step['lines'][0]['text_rendered']}}"
-                                                class="stepImage js-step-main-image hasMenu fluid medium visible"
-                                                sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
-                                                src="{{step['media']['data']['image'] | get_image_url | get_image_path }}"
-                                                width="575" height="431.75">
-                                            </div>
-                                            <div class="column step-content">   
-                                                {% include 'guide-step-lines-container.html' %}
-                                            </div>
-                                        </div>
-                                        {% elif step['media']['type'] == 'embed' %}
-                                        <div class="row step-container">
-                                            <div class="column stepMedia step-main-media js-step-main-media stepObject stepImageContainer">
-                                                <div id="stepEmbed-{{step['stepid']}}" class="oembedContainer ">
-                                                    {{step['media']['data']['html'] | safe}}
-                                                </div>
-                                            </div>
-                                            <div class="column step-content">   
-                                                {% include 'guide-step-lines-container.html' %}
-                                            </div>
-                                        </div>
-
-                                        {% else %}
-                                        <div class="row step-container">
-                                            <div
-                                                class="column stepMedia step-main-media js-step-main-media stepImage stepImageContainer">
-                                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                                <img id="step{{steploop.index}}-mainImage"
-                                                    alt="{{step['media']['data'][0]['guid']}}"
-                                                    class="stepImage js-step-main-image hasMenu fluid medium visible"
-                                                    sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
-                                                    src="{{step['media']['data'][0] | get_image_url | get_image_path }}"
-                                                    width="575" height="431.75">
-                                            </div>
-                                            <div class="column step-content">
-                                                {% if step['media']['data'] | length > 1 %}
-                                                <div class="row step-thumbnails">
-                                                    <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                                    {% for image in step['media']['data'] %}
-                                                    <div id="step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-divthub"
-                                                        class="column stepImage{{steploop.index}} step-thumbnail js-step-thumbnail-container{% if loop.index == 1 %} active{% endif %}">
-                                                        <div class="step-thumbnail-inner">
-                                                            <img id="step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-thub"
-                                                                alt="{{image['guid']}}"
-                                                                class="stepImage js-step-main-image js-step-thumbnail fluid {% if loop.index == 1 %}visible {% endif %}medium"
-                                                                sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
-                                                                src="{{image | get_image_url | get_image_path }}"
-                                                                width="110" height="83" onmouseover="switchStepImage(this, 'step{{steploop.index}}-mainImage', 'stepImage{{steploop.index}}', 'step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-divthub')">
-                                                        </div>
-                                                    </div>
-                                                    {% endfor %}
-                                                </div>
-                                                {% endif %}
-                                                {% include 'guide-step-lines-container.html' %}
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                        <div class="js-comment-container">
-                                            <div class="row divider comments-button-container">
-                                                <div class="column four-fifths divider-content"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-
-                                {% endfor %}
-
-                            </section>
-
-                        </ol>
-
-                        <div>
+                    {% if step['media']['data'] | length == 0 %}
+                    <div class="row step-container">
+                      <div
+                        class="column stepMedia step-main-media js-step-main-media stepNone stepImageContainer"
+                      ></div>
+                      <div class="column step-content text-only">
+                        {% include 'guide-step-lines-container.html' %}
+                      </div>
+                    </div>
+                    {% elif step['media']['type'] == 'video' %}
+                    <div class="row step-container">
+                      <div
+                        class="column stepMedia step-main-media js-step-main-media stepObject stepImageContainer"
+                      >
+                        <img
+                          id="step{{steploop.index}}-mainImage"
+                          alt="{{step['lines'][0]['text_rendered']}}"
+                          class="stepImage js-step-main-image hasMenu fluid medium visible"
+                          sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
+                          src="{{step['media']['data']['image'] | get_image_url | get_image_path }}"
+                          width="575"
+                          height="431.75"
+                        />
+                      </div>
+                      <div class="column step-content">
+                        {% include 'guide-step-lines-container.html' %}
+                      </div>
+                    </div>
+                    {% elif step['media']['type'] == 'embed' %}
+                    <div class="row step-container">
+                      <div
+                        class="column stepMedia step-main-media js-step-main-media stepObject stepImageContainer"
+                      >
+                        <div
+                          id="stepEmbed-{{step['stepid']}}"
+                          class="oembedContainer"
+                        >
+                          {{step['media']['data']['html'] | safe}}
                         </div>
+                      </div>
+                      <div class="column step-content">
+                        {% include 'guide-step-lines-container.html' %}
+                      </div>
+                    </div>
 
-                        {% if guide['conclusion_rendered'] %}
-                        <div id="conclusion" class="completion-container container">
-                            <div class="actionbar-portal"></div>
-                            <div>
-                                <div class="row">
-                                    <div class="column">
-                                        <div class="guide-complete">
-                                            <div id="guideConclusion">
-                                                
-                                                <!-- TODO : see if we can handle halfway conclusions properly (where is it used?) -->
-                                                
-                                                <div id="finishedConclusion">
-                                                    <div class="finish-line">
-                                                        <i class="fa fa-flag-checkered "></i> {{label['conclusion']}}
-                                                    </div>
-
-                                                    <div class="conclusionText">
-                                                        {{guide['conclusion_rendered']|safe}}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                    {% else %}
+                    <div class="row step-container">
+                      <div
+                        class="column stepMedia step-main-media js-step-main-media stepImage stepImageContainer"
+                      >
+                        <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                        <img
+                          id="step{{steploop.index}}-mainImage"
+                          alt="{{step['media']['data'][0]['guid']}}"
+                          class="stepImage js-step-main-image hasMenu fluid medium visible"
+                          sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
+                          src="{{step['media']['data'][0] | get_image_url | get_image_path }}"
+                          width="575"
+                          height="431.75"
+                        />
+                      </div>
+                      <div class="column step-content">
+                        {% if step['media']['data'] | length > 1 %}
+                        <div class="row step-thumbnails">
+                          <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                          {% for image in step['media']['data'] %}
+                          <div
+                            id="step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-divthub"
+                            class="column stepImage{{steploop.index}} step-thumbnail js-step-thumbnail-container{% if loop.index == 1 %} active{% endif %}"
+                          >
+                            <div class="step-thumbnail-inner">
+                              <img
+                                id="step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-thub"
+                                alt="{{image['guid']}}"
+                                class="stepImage js-step-main-image js-step-thumbnail fluid {% if loop.index == 1 %}visible {% endif %}medium"
+                                sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
+                                src="{{image | get_image_url | get_image_path }}"
+                                width="110"
+                                height="83"
+                                onmouseover="switchStepImage(this, 'step{{steploop.index}}-mainImage', 'stepImage{{steploop.index}}', 'step{{steploop.index}}-stepImage{{loop.index}}-{{image['id']}}-divthub')"
+                              />
                             </div>
+                          </div>
+                          {% endfor %}
                         </div>
+                        {% endif %} {% include 'guide-step-lines-container.html'
+                        %}
+                      </div>
+                    </div>
+                    {% endif %}
+                    <div class="js-comment-container">
+                      <div class="row divider comments-button-container">
+                        <div class="column four-fifths divider-content"></div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+
+                {% endfor %}
+              </section>
+            </ol>
+
+            <div></div>
+
+            {% if guide['conclusion_rendered'] %}
+            <div id="conclusion" class="completion-container container">
+              <div class="actionbar-portal"></div>
+              <div>
+                <div class="row">
+                  <div class="column">
+                    <div class="guide-complete">
+                      <div id="guideConclusion">
+                        <!-- TODO : see if we can handle halfway conclusions properly (where is it used?) -->
+
+                        <div id="finishedConclusion">
+                          <div class="finish-line">
+                            <i class="fa fa-flag-checkered"></i>
+                            {{label['conclusion']}}
+                          </div>
+
+                          <div class="conclusionText">
+                            {{guide['conclusion_rendered']|safe}}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            <div id="author-container">
+              <div class="actionbar-portal"></div>
+              <div>
+                <div id="author" class="credit-author-team-container row">
+                  <div class="author-container">
+                    <div class="author-heading row">
+                      <h3 class="column">
+                        <a class="fragment-link" href="#author"
+                          >{{label['author']}}</a
+                        >
+                      </h3>
+                      <!-- TODO: Display other contributors -->
+                    </div>
+
+                    <div class="author-meta row">
+                      <div class="author-photo column">
+                        <!-- TODO: Retrieve user profiles: href="https://fr.ifixit.com/User/3366811/Kaylie+Klausing"-->
+                        <a>
+                          <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                          <img
+                            alt=""
+                            src="{{guide['author'] | get_image_url | get_image_path }}"
+                            width="100"
+                            height="100"
+                          />
+                        </a>
+                      </div>
+
+                      <div class="author-info column">
+                        <h4>
+                          <!-- TODO: Retrieve user profiles: href="https://fr.ifixit.com/User/3366811/Kaylie+Klausing"-->
+                          <a> {{guide['author']['username']}} </a>
+                        </h4>
+
+                        {% if guide['author']['join_date_rendered'] %}
+                        <p>
+                          {{label['member_since']}}{{guide['author']['join_date_rendered']}}
+                        </p>
                         {% endif %}
 
-                        <div id="author-container">
-                            <div class="actionbar-portal"></div>
-                            <div>
-                                <div id="author" class="credit-author-team-container row">
-                                    <div class="author-container">
-                                        <div class="author-heading row">
-                                            <h3 class="column">
-                                                <a class="fragment-link" href="#author">{{label['author']}}</a>
-                                            </h3>
-                                            <!-- TODO: Display other contributors -->
-                                        </div>
+                        <p>
+                          {{guide['author']['reputation']}}
+                          {{label['reputation']}}
+                        </p>
 
-                                        <div class="author-meta row">
-                                            <div class="author-photo column">
-                                                <!-- TODO: Retrieve user profiles: href="https://fr.ifixit.com/User/3366811/Kaylie+Klausing"-->
-                                                <a>
-                                                    <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                                    <img alt=""
-                                                        src="{{guide['author'] | get_image_url | get_image_path }}"
-                                                        width="100" height="100">
-                                                </a>
-                                            </div>
-
-                                            <div class="author-info column">
-                                                <h4>
-                                                    <!-- TODO: Retrieve user profiles: href="https://fr.ifixit.com/User/3366811/Kaylie+Klausing"-->
-                                                    <a>
-                                                        {{guide['author']['username']}} </a>
-                                                </h4>
-                                                
-                                                {% if guide['author']['join_date_rendered'] %}
-                                                <p>{{label['member_since']}}{{guide['author']['join_date_rendered']}}
-                                                </p>
-                                                {% endif %}
-
-                                                <p>{{guide['author']['reputation']}} {{label['reputation']}}</p>
-
-                                                <!-- TODO: Retrieve user number of tutorial written -->
-                                            </div>
-                                            <!-- Retrieve user badges -->
-                                        </div>
-                                    </div>
-
-                                    <!-- Retrieve team info -->
-                                </div>
-                            </div>
-                        </div>
+                        <!-- TODO: Retrieve user number of tutorial written -->
+                      </div>
+                      <!-- Retrieve user badges -->
                     </div>
+                  </div>
+
+                  <!-- Retrieve team info -->
                 </div>
+              </div>
             </div>
-            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+      <script type="text/javascript" src="../assets/switchImages.js"></script>
+    </div>
+    <!-- /mainBody -->
 
-        </div> <!-- /mainBody -->
-
-        <div class="clearer"></div>
-    </div> <!-- /main -->
-</div> <!-- /page -->
+    <div class="clearer"></div>
+  </div>
+  <!-- /main -->
+</div>
+<!-- /page -->
 {% endblock content%}
