@@ -20,6 +20,7 @@ SCRAPER = f"{NAME} {VERSION}"
 IMAGES_ENCODER_VERSION = 1
 URLS = {
     "en": "https://www.ifixit.com",
+    "fr": "https://fr.ifixit.com",
     "pt": "https://pt.ifixit.com",
 }
 
@@ -130,6 +131,18 @@ CATEGORY_LABELS = {
         "in_progress_guides": "In Progress Guides",
         "disassembly_guides": "Disassembly Guides",
         "repairability": "Repairability:",
+    },
+    "fr": {
+        "author": "Auteur: ",
+        "categories": " catégories",
+        "featured_guides": "Tutoriels vedettes",
+        "technique_guides": "Techniques",
+        "replacement_guides": "Tutoriels de remplacement",
+        "teardown_guides": "Vues éclatées",
+        "related_pages": "Pages connexes",
+        "in_progress_guides": "Tutoriels en cours",
+        "disassembly_guides": "Tutoriels de démontage",
+        "repairability": "Réparabilité:",
     },
     "pt": {
         "author": "Autor: ",
