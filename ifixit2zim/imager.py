@@ -15,7 +15,7 @@ from zimscraperlib.image.optimization import optimize_webp
 
 from .constants import IMAGES_ENCODER_VERSION
 from .shared import Global
-from .utils import get_digest, get_version_ident_for, normalize_ident, to_url
+from .utils import get_version_ident_for, to_url
 
 logger = Global.logger
 
@@ -40,7 +40,6 @@ class Imager:
         Bitmap images are converted to WebP and optimized
         SVG images are kept as is"""
         src, webp = io.BytesIO(), io.BytesIO()
-        # logger.debug(f"retrieving {url}")
         stream_file(url=url, byte_stream=src)
 
         if pathlib.Path(url).suffix == ".svg" or "/math/render/svg/" in url:
@@ -48,13 +47,7 @@ class Imager:
 
         with Image.open(src) as img:
             img.save(webp, format="WEBP")
-        # digest = get_digest(url)
-        # with open(f"/tmp/{digest}.jpg", 'wb') as f:
-        #     src.seek(0)
-        #     f.write(src.read())
-        # with open(f"/tmp/{digest}.webp", 'wb') as f:
-        #     webp.seek(0)
-        #     f.write(webp.read())
+
         del src
         return optimize_webp(
             src=webp,
@@ -63,14 +56,8 @@ class Imager:
             method=6,
         )
 
-    def get_s3_key_for(self, url: str) -> str:
-        """S3 key to use for that url"""
-        return re.sub(r"^(https?)://", r"\1/", url)
-
     def get_path_for(self, url: urllib.parse.ParseResult) -> str:
-        suffix = ".svg" if url.path.endswith(".svg") else ".webp"
-        digest = get_digest(url.geturl())
-        return f"images/{digest}-{normalize_ident(pathlib.Path(url.path).stem)}{suffix}"
+        return "images/{}".format(re.sub(r"^(https?)://", r"\1/", url.geturl()))
 
     def defer(
         self,
@@ -91,15 +78,13 @@ class Imager:
             return
 
         # skip processing if we already processed it or have it in pipe
-        digest = get_digest(url.geturl())
         path = self.get_path_for(url) if path is None else path
 
-        if digest in self.handled:
-            # logger.debug(f"URL `{url.geturl()}` already processed.")
+        if path in self.handled:
             return path
 
         # record that we are processing this one
-        self.handled.add(digest)
+        self.handled.add(path)
         self.nb_requested += 1
 
         Global.img_executor.submit(
@@ -140,20 +125,20 @@ class Imager:
             logger.error(f"Unable to query {url.geturl()}. Skipping")
             return path
 
-        key = self.get_s3_key_for(url.geturl())
+        # key = self.get_s3_key_for(url.geturl())
         s3_storage = KiwixStorage(Global.conf.s3_url)
         meta = {"ident": ident, "encoder_version": str(IMAGES_ENCODER_VERSION)}
 
         download_failed = False  # useful to trigger reupload or not
         try:
-            logger.debug(f"Attempting download of S3::{key} into ZIM::{path}")
             fileobj = io.BytesIO()
-            s3_storage.download_matching_fileobj(key, fileobj, meta=meta)
+            s3_storage.download_matching_fileobj(path, fileobj, meta=meta)
+            logger.debug(f"'{path}' found in S3")
         except NotFoundError:
             # don't have it, not a donwload error. we'll upload after processing
             pass
         except Exception as exc:
-            logger.error(f"failed to download {key} from cache: {exc}")
+            logger.error(f"Failed to download '{path}' from cache: {exc}")
             logger.exception(exc)
             download_failed = True
         else:
@@ -167,6 +152,7 @@ class Imager:
             return path
 
         # we're using S3 but don't have it or failed to download
+        logger.debug(f"'{path}' not found in S3, downloading from origin")
         try:
             fileobj = self.get_image_data(url.geturl())
         except Exception as exc:
@@ -184,10 +170,10 @@ class Imager:
 
         # only upload it if we didn't have it in cache
         if not download_failed:
-            logger.debug(f"Uploading {url.geturl()} to S3::{key} with {meta}")
+            logger.debug(f"Uploading {url.geturl()} to S3::{path} with {meta}")
             try:
-                s3_storage.upload_fileobj(fileobj=fileobj, key=key, meta=meta)
+                s3_storage.upload_fileobj(fileobj=fileobj, key=path, meta=meta)
             except Exception as exc:
-                logger.error(f"{key} failed to upload to cache: {exc}")
+                logger.error(f"{path} failed to upload to cache: {exc}")
 
         return path
