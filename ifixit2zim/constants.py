@@ -236,6 +236,7 @@ class Conf:
     # customization
     icon: Optional[str] = ""
     categories: Set[str] = field(default_factory=set)
+    categories_include_children: Optional[bool] = False
     guides: Set[int] = field(default_factory=set)
 
     # filesystem

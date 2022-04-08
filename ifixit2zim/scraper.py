@@ -186,24 +186,35 @@ class ifixit2zim(GlobalMixin):
                 with self.lock:
                     self.creator.add_illustration(size, fh.read())
 
-    def _process_categories(self, categories, include_sub_category=False):
+    def _process_categories(self, categories, force_include=False):
+        include_parents = False
         for category in categories:
+            include_me = False
+            include_childs = False
             if (
-                self.conf.categories
-                and len(self.conf.categories) > 0
-                and not include_sub_category
-                and category not in self.conf.categories
-                and convert_category_title_to_filename(category)
-                not in self.conf.categories
+                force_include
+                or category in self.conf.categories
+                or convert_category_title_to_filename(category) in self.conf.categories
             ):
-                continue
-            self.expected_categories.add(category)
-            self._process_categories(categories[category], True)
+                include_me = True
+                include_childs = self.conf.categories_include_children or force_include
+
+            include_due_to_child = self._process_categories(
+                categories[category], include_childs
+            )
+
+            if include_me or include_due_to_child:
+                self.expected_categories.add(category)
+                include_parents = True
+
+        return include_parents
 
     def build_expected_categories(self):
         logger.info("Downloading categories")
         categories = get_api_content("/categories", includeStubs=True)
-        self._process_categories(categories)
+        self._process_categories(
+            categories, (not self.conf.categories) or (len(self.conf.categories) == 0)
+        )
         logger.info("{} categories found".format(len(self.expected_categories)))
 
     guide_regex_full = re.compile(

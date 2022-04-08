@@ -199,6 +199,16 @@ def main():
     )
 
     parser.add_argument(
+        "--categories_include_children",
+        help="If only specific categories are requested with the paramter --category,"
+        " this parameter specifies that we also want their children categories in the"
+        " given ZIM",
+        default=False,
+        action="store_true",
+        dest="categories_include_children",
+    )
+
+    parser.add_argument(
         "--guide",
         help="Only scrape this guide (can be specified multiple times). "
         "Specify the guide ID (number)",
