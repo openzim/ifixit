@@ -9,6 +9,7 @@ from datetime import datetime
 
 import requests
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from zimscraperlib.image.transformation import resize_image
 
 from .constants import (
     CATEGORY_LABELS,
@@ -143,7 +144,7 @@ class ifixit2zim(GlobalMixin):
         self.conf.tags = list(
             set(
                 self.conf.tag
-                + ["_category:ifixit", "ifixit", "_videos:yes", "_pictures:yes"]
+                + ["_category:iFixit", "iFixit", "_videos:yes", "_pictures:yes"]
             )
         )
 
@@ -169,6 +170,21 @@ class ifixit2zim(GlobalMixin):
             logger.debug(f"> {path}")
             with self.lock:
                 self.creator.add_item_for(path=path, fpath=fpath)
+
+    def add_illustrations(self):
+        logger.info("Adding illustrations")
+
+        src_illus_fpath = pathlib.Path(ROOT_DIR.joinpath("assets", "illustration.png"))
+        tmp_illus_fpath = pathlib.Path(self.build_dir, "illustration.png")
+
+        shutil.copy(src_illus_fpath, tmp_illus_fpath)
+
+        # resize to appropriate size (ZIM uses 48x48 so we double for retina)
+        for size in (96, 48):
+            resize_image(tmp_illus_fpath, width=size, height=size, method="thumbnail")
+            with open(tmp_illus_fpath, "rb") as fh:
+                with self.lock:
+                    self.creator.add_illustration(size, fh.read())
 
     def _process_categories(self, categories, include_sub_category=False):
         for category in categories:
@@ -960,6 +976,7 @@ class ifixit2zim(GlobalMixin):
             self.build_expected_categories()
 
             self.add_assets()
+            self.add_illustrations()
             self.scrape_homepage()
             self.scrape_categories()
             self.scrape_guides()
