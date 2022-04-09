@@ -914,12 +914,6 @@ class ifixit2zim(GlobalMixin):
         num_guide = 1
         for guideid, guide in self.expected_guides.items():
             try:
-                if (
-                    self.conf.guides
-                    and len(self.conf.guides) > 0
-                    and guideid not in self.conf.guides
-                ):
-                    continue
                 logger.info(
                     f"Scraping guide {guideid} "
                     f"({num_guide}/{len(self.expected_guides)})"

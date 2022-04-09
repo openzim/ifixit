@@ -208,14 +208,6 @@ def main():
         dest="categories_include_children",
     )
 
-    parser.add_argument(
-        "--guide",
-        help="Only scrape this guide (can be specified multiple times). "
-        "Specify the guide ID (number)",
-        dest="guides",
-        action="append",
-    )
-
     args = parser.parse_args()
     Global.set_debug(args.debug)
 
