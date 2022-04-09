@@ -69,7 +69,7 @@
                 <div class="subcategorySection">
                     <!-- <h2 id='Section_3_Categories' class="js-dynamic-toc-section"> -->
                     <h2 id='Section_Childrens' class="js-dynamic-toc-section">
-                        {{ category['children'] | length }}{{ label['categories']}}
+                        {{ label['categories_before']}}{{ category['children'] | length }}{{ label['categories_after']}}
                     </h2>
                     <div class="grid">
                         {% for child in category['children'] %}

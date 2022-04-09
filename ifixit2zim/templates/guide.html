@@ -276,7 +276,7 @@
                             href="#s258194"
                           >
                             <strong class="stepValue"
-                              >{{label['step_no']}}{{loop.index}}</strong
+                              >{{label['step_no_before']}}{{loop.index}}{{label['step_no_after']}}</strong
                             >
                             <!-- TODO: Handle step title (title of the step OR if not specified + first step of the section, 'subject' of the section)
                                     <span class="stepTitleTitle" itemprop="name">
@@ -456,7 +456,7 @@
 
                         {% if guide['author']['join_date_rendered'] %}
                         <p>
-                          {{label['member_since']}}{{guide['author']['join_date_rendered']}}
+                          {{label['member_since_before']}}{{guide['author']['join_date_rendered']}}{{label['member_since_after']}}
                         </p>
                         {% endif %}
 
