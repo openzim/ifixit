@@ -128,8 +128,9 @@ def get_version_ident_for(url: str) -> str:
     try:
         resp = requests.head(url)
         headers = resp.headers
-    except Exception:
+    except Exception as exc:
         logger.warning(f"Unable to HEAD {url}")
+        logger.exception(exc)
         try:
             _, headers = stream_file(
                 url=url,
@@ -137,8 +138,9 @@ def get_version_ident_for(url: str) -> str:
                 block_size=1,
                 only_first_block=True,
             )
-        except Exception:
+        except Exception as exc2:
             logger.warning(f"Unable to query image at {url}")
+            logger.exception(exc2)
             return
 
     for header in ("ETag", "Last-Modified", "Content-Length"):
