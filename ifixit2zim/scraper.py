@@ -646,6 +646,10 @@ class ifixit2zim(GlobalMixin):
             f"/wikis/CATEGORY/{category}", langid=self.conf.lang_code
         )
 
+        if category_content is None:
+            self.missing_categories.add(category)
+            return
+
         logger.debug(f"Processing category {category}")
 
         for guide in category_content["featured_guides"]:
@@ -731,10 +735,6 @@ class ifixit2zim(GlobalMixin):
                     f"{len(self.expected_categories)})"
                 )
                 self.scrape_one_category(category)
-            except requests.exceptions.RequestException as ex:
-                self.missing_categories.add(category)
-                logger.warning(f"Missing category '{category}': {ex}")
-                traceback.print_exc()
             except Exception as ex:
                 self.error_categories.add(category)
                 logger.warning(f"Error while processing category '{category}': {ex}")
@@ -756,6 +756,11 @@ class ifixit2zim(GlobalMixin):
         guide_content = get_api_content(
             f"/guides/{guide['guideid']}", langid=guide["locale"]
         )
+
+        if guide_content is None:
+            logger.warning(f"Missing guide {guide['guideid']}")
+            self.missing_guides.add(guide)
+            return
 
         logger.debug(f"Processing guide {guide['guideid']}")
 
@@ -919,10 +924,6 @@ class ifixit2zim(GlobalMixin):
                     f"({num_guide}/{len(self.expected_guides)})"
                 )
                 self.scrape_one_guide(guide)
-            except requests.exceptions.RequestException as ex:
-                self.missing_guides.add(guideid)
-                logger.warning(f"Missing guide {guideid}: {ex}")
-                traceback.print_exc()
             except Exception as ex:
                 self.error_guides.add(guideid)
                 logger.warning(f"Error while processing guide {guideid}: {ex}")
