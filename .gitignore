@@ -2,6 +2,7 @@ output
 dist
 cache
 venv
+.venv
 saved_pages
 **/__pycache__
 
