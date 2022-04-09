@@ -1,0 +1,33 @@
+{% extends "base.html" %} {% block title %}{{info_wiki['title']}}{% endblock title%}
+{% block specific_head %}
+<link type="text/css" href="../assets/Wiki-topic-r_spN9srKqcGQAC8emdeTA.css" rel="stylesheet" as="style">
+<link type="text/css" href="../assets/Wiki-common-Zf5O-KLmFhhZ0w9cRZYZoQ.css" rel="stylesheet" as="style">
+{% endblock specific_head%} {% block content %}
+<div id="page" class=" ">
+  <div id="main">
+    <div id="mainBody">
+      <!-- MAIN BODY -->
+      <div id="contentFloat">
+        <div id="content">
+          <div class="container articleContainer info">
+            <h1 class="pageTitle wikiTitle originalText bordered">{{info_wiki['display_title']}}</h1>
+            <p class="summary originalText">{{info_wiki['description']}}</p>
+            <div id="Wiki_Details">
+              <div id="wikiRenderedText" class="wikiRenderedText renderedText originalText">
+                {{info_wiki['contents_rendered'] | safe}}
+              </div>
+            </div>
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <!-- /mainBody -->
+
+    <div class="clearer"></div>
+  </div>
+  <!-- /main -->
+</div>
+<!-- /page -->
+{% endblock content%}

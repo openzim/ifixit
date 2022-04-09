@@ -173,6 +173,14 @@ def main():
     )
 
     parser.add_argument(
+        "--max-missing-info-wikis",
+        help="Amount of missing INFO wikis which will force the scraper to stop",
+        default=10,
+        type=int,
+        dest="max_missing_info_wikis",
+    )
+
+    parser.add_argument(
         "--max-error-guides",
         help="Amount of guides with failed processing which will force the scraper to "
         "stop",
@@ -188,6 +196,15 @@ def main():
         default=100,
         type=int,
         dest="max_error_categories",
+    )
+
+    parser.add_argument(
+        "--max-error-info-wikis",
+        help="Amount of INFO wikis with failed processing which will force the scraper "
+        "to stop",
+        default=10,
+        type=int,
+        dest="max_error_info_wikis",
     )
 
     parser.add_argument(

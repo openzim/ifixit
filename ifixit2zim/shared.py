@@ -32,6 +32,7 @@ class Global:
 
     expected_categories = set()
     expected_guides = dict()
+    expected_info_wikis = set()
 
     @staticmethod
     def set_debug(value):
@@ -100,6 +101,10 @@ class GlobalMixin:
     @property
     def expected_guides(self):
         return Global.expected_guides
+
+    @property
+    def expected_info_wikis(self):
+        return Global.expected_info_wikis
 
     @property
     def imager(self):

@@ -25,7 +25,7 @@ from .constants import (
 )
 from .shared import Global, GlobalMixin, logger
 from .utils import (
-    convert_category_title_to_filename,
+    convert_title_to_filename,
     get_api_content,
     get_image_path,
     get_image_url,
@@ -71,15 +71,18 @@ class ifixit2zim(GlobalMixin):
 
         self.category_template = self.env.get_template("category.html")
         self.guide_template = self.env.get_template("guide.html")
+        self.info_wiki_template = self.env.get_template("info_wiki.html")
 
         # List of categories / guides which returned request errors, even after backoff.
         # We track them for reporting.
         self.missing_guides = set()
         self.missing_categories = set()
+        self.missing_info_wikis = set()
         # List of categories / guides which returned other errors.
         # We track them for reporting
         self.error_guides = set()
         self.error_categories = set()
+        self.error_info_wikis = set()
 
     @property
     def build_dir(self):
@@ -194,7 +197,7 @@ class ifixit2zim(GlobalMixin):
             if (
                 force_include
                 or category in self.conf.categories
-                or convert_category_title_to_filename(category) in self.conf.categories
+                or convert_title_to_filename(category) in self.conf.categories
             ):
                 include_me = True
                 include_childs = self.conf.categories_include_children or force_include
@@ -699,7 +702,7 @@ class ifixit2zim(GlobalMixin):
             'href="./category_\\g<device>.html"',
             category_content["contents_rendered"],
         )
-        category_content["filename"] = convert_category_title_to_filename(
+        category_content["filename"] = convert_title_to_filename(
             category_content["title"]
         )
         for idx, child in enumerate(category_content["children"]):
@@ -940,6 +943,87 @@ class ifixit2zim(GlobalMixin):
                     )
                 num_guide += 1
 
+    
+    def build_expected_info_wikis(self):
+        logger.info("Downloading list of INFO wikis")
+        limit = 200
+        offset = 0
+        while True:
+            info_wikis = get_api_content(f"/wikis/INFO", limit=limit, offset=offset)
+            if len(info_wikis) == 0:
+                break
+            for info_wiki in info_wikis:
+                self.expected_info_wikis.add(info_wiki['title'])
+            offset += limit
+        logger.info("{} INFO wikis found".format(len(self.expected_info_wikis)))
+
+    def scrape_info_wikis(self):
+
+        logger.info(f"Scraping {len(self.expected_info_wikis)} INFO wikis")
+
+        num_info_wiki = 1
+        for info_wiki_title in self.expected_info_wikis:
+            try:
+                logger.info(
+                    f"Scraping INFO wiki {info_wiki_title} "
+                    f"({num_info_wiki}/{len(self.expected_info_wikis)})"
+                )
+                self.scrape_one_info_wiki(info_wiki_title)
+            except Exception as ex:
+                self.error_info_wikis.add(info_wiki_title)
+                logger.warning(f"Error while processing INFO wiki {info_wiki_title}: {ex}")
+                traceback.print_exc()
+            finally:
+                if len(self.missing_info_wikis) > self.conf.max_missing_info_wikis:
+                    raise FinalScrapingFailure(
+                        "Too many INFO wikis found missing: " f"{len(self.missing_info_wikis)}"
+                    )
+                if len(self.error_info_wikis) > self.conf.max_error_info_wikis:
+                    raise FinalScrapingFailure(
+                        "Too many INFO wikis failed to be processed: "
+                        f"{len(self.error_info_wikis)}"
+                    )
+                num_info_wiki += 1
+
+    def scrape_one_info_wiki(self, info_wiki_title):
+        info_wiki_content = get_api_content(    f"/wikis/INFO/{info_wiki_title}"      )
+
+        if info_wiki_content is None:
+            self.missing_info_wikis.add(info_wiki_title)
+            return
+
+        logger.debug(f"Processing INFO wiki {info_wiki_title}")
+
+        def _replace_image(m):
+            orig_url = m.group("url")
+            new_url = get_image_path(orig_url)
+            return f"<img{m.group('before')}src=\"{new_url}\""
+
+        info_wiki_content["contents_rendered"] = re.sub(
+            self.image_regex, _replace_image, info_wiki_content["contents_rendered"]
+        )
+        # info_wiki_content["contents_rendered"] = self.device_link_regex_with_href.sub(
+        #     'href="../category/category_\\g<device>.html"',
+        #     info_wiki_content["contents_rendered"],
+        # )
+        info_wiki_content["filename"] = convert_title_to_filename(
+            info_wiki_content["title"]
+        )
+        info_wiki_rendered = self.info_wiki_template.render(
+            info_wiki=info_wiki_content,
+            # label=INFO_WIKI_LABELS[self.conf.lang_code],
+            metadata=self.metadata,
+            lang=self.conf.lang_code,
+        )
+        with self.lock:
+            self.creator.add_item_for(
+                path=f"info_wikis/info_{info_wiki_content['filename']}.html",
+                title=info_wiki_content["display_title"],
+                content=info_wiki_rendered,
+                mimetype="text/html",
+                is_front=True,
+            )
+
     def run(self):
         s3_storage = (
             setup_s3_and_check_credentials(self.conf.s3_url_with_credentials)
@@ -980,12 +1064,14 @@ class ifixit2zim(GlobalMixin):
 
         try:
             self.build_expected_categories()
+            self.build_expected_info_wikis()
 
             self.add_assets()
             self.add_illustrations()
-            self.scrape_homepage()
-            self.scrape_categories()
-            self.scrape_guides()
+            # self.scrape_homepage()
+            # self.scrape_categories()
+            # self.scrape_guides()
+            self.scrape_info_wikis()
 
             logger.info("Awaiting images")
             Global.img_executor.shutdown()
@@ -993,10 +1079,13 @@ class ifixit2zim(GlobalMixin):
             logger.info(
                 f"Stats: {len(self.expected_categories)} categories, "
                 f"{len(self.expected_guides)} guides, "
+                f"{len(self.expected_info_wikis)} INFO wikis, "
                 f"{len(self.missing_categories)} missing categories, "
                 f"{len(self.missing_guides)} missing guides, "
+                f"{len(self.missing_info_wikis)} INFO wikis, "
                 f"{len(self.error_categories)} categories in error, "
                 f"{len(self.error_guides)} guides in error, "
+                f"{len(self.error_info_wikis)} INFO wikis in error, "
                 f"{self.imager.nb_requested} images"
             )
 
