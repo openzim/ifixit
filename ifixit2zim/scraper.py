@@ -29,6 +29,7 @@ from .utils import (
     get_api_content,
     get_image_path,
     get_image_url,
+    cleanup_rendered_content,
     get_soup,
     guides_in_progress,
     setlocale,
@@ -65,6 +66,7 @@ class ifixit2zim(GlobalMixin):
         self.env.filters["guides_in_progress"] = guides_in_progress
         self.env.filters["get_image_path"] = get_image_path
         self.env.filters["get_image_url"] = get_image_url
+        self.env.filters["convert_title_to_filename"] = convert_title_to_filename
 
         # jinja context that we'll pass to all templates
         self.env_context = {"conf": Global.conf}
@@ -220,24 +222,7 @@ class ifixit2zim(GlobalMixin):
         )
         logger.info("{} categories found".format(len(self.expected_categories)))
 
-    guide_regex_full = re.compile(
-        r"href=\"https://\w*\.ifixit\.\w*/Guide/.*/(?P<guide_id>\d*)\""
-    )
-    guide_regex_rel = re.compile(r"href=\"/Guide/.*/(?P<guide_id>\d*).*?\"")
-    content_image_regex = re.compile(
-        r"(?P<prefix>https://guide-images\.cdn\.ifixit\.com/igi/)"
-        r"(?P<image_filename>\w*)\.\w*"
-    )
-    image_regex = re.compile(r"<img(?P<before>.*?)src=\"(?P<url>.*?)\"")
     device_link_regex_without_href = re.compile(r"/Device/(?P<device>.*)")
-    device_link_regex_with_href = re.compile(r"href=\"/Device/(?P<device>.*)\"")
-
-    def _get_image_guid_from_src(self, src):
-        # return src
-        return self.content_image_regex.sub("\\g<image_filename>", src)
-
-    def _get_category_from_href(self, href):
-        return self.device_link_regex_without_href.sub('\\g<device>"', href)
 
     def _extract_page_title_from_page(self, soup):
         page_title_selector = "h1.page-title span"
@@ -627,7 +612,11 @@ class ifixit2zim(GlobalMixin):
             "Content extracted from /Guide:\n" f"{json.dumps(home_content,indent=2)}"
         )
 
-        page = self.env.get_template("home.html").render(
+        homepage = self.env.get_template("home.html").render(
+            home_content=home_content, metadata=self.metadata
+        )
+
+        placeholder = self.env.get_template("placeholder.html").render(
             home_content=home_content, metadata=self.metadata
         )
 
@@ -635,13 +624,21 @@ class ifixit2zim(GlobalMixin):
             self.creator.add_item_for(
                 path="home/home.html",
                 title=self.conf.title,
-                content=page,
+                content=homepage,
                 mimetype="text/html",
                 is_front=True,
             )
 
             self.creator.add_redirect(
                 path=DEFAULT_HOMEPAGE, target_path="home/home.html"
+            )
+
+            self.creator.add_item_for(
+                path="home/placeholder.html",
+                title="Placeholder",
+                content=placeholder,
+                mimetype="text/html",
+                is_front=False,
             )
 
     def scrape_one_category(self, category):
@@ -695,22 +692,7 @@ class ifixit2zim(GlobalMixin):
             new_url = get_image_path(orig_url)
             return f"<img{m.group('before')}src=\"{new_url}\""
 
-        category_content["contents_rendered"] = re.sub(
-            self.image_regex, _replace_image, category_content["contents_rendered"]
-        )
-        category_content["contents_rendered"] = self.device_link_regex_with_href.sub(
-            'href="./category_\\g<device>.html"',
-            category_content["contents_rendered"],
-        )
-        category_content["filename"] = convert_title_to_filename(
-            category_content["title"]
-        )
-        for idx, child in enumerate(category_content["children"]):
-            category_content["children"][idx]["filename"] = re.sub(
-                r"\s",
-                "_",
-                category_content["children"][idx]["title"],
-            )
+        category_content["contents_rendered"] = cleanup_rendered_content(category_content["contents_rendered"])
         category_rendered = self.category_template.render(
             category=category_content,
             label=CATEGORY_LABELS[self.conf.lang_code],
@@ -719,7 +701,7 @@ class ifixit2zim(GlobalMixin):
         )
         with self.lock:
             self.creator.add_item_for(
-                path=f"categories/category_{category_content['filename']}.html",
+                path=f"categories/category_{convert_title_to_filename(category_content['title'])}.html",
                 title=category_content["display_title"],
                 content=category_rendered,
                 mimetype="text/html",
@@ -797,22 +779,9 @@ class ifixit2zim(GlobalMixin):
                     datetime.fromtimestamp(guide_content["published_date"]),
                     "%x",
                 )
-        guide_content["introduction_rendered"] = self.guide_regex_full.sub(
-            'href="./guide_\\g<guide_id>.html"',
-            guide_content["introduction_rendered"],
-        )
-        guide_content["introduction_rendered"] = self.guide_regex_rel.sub(
-            'href="./guide_\\g<guide_id>.html"',
-            guide_content["introduction_rendered"],
-        )
-        guide_content["conclusion_rendered"] = self.guide_regex_full.sub(
-            'href="./guide_\\g<guide_id>.html"',
-            guide_content["conclusion_rendered"],
-        )
-        guide_content["conclusion_rendered"] = self.guide_regex_rel.sub(
-            'href="./guide_\\g<guide_id>.html"',
-            guide_content["conclusion_rendered"],
-        )
+                
+        guide_content["introduction_rendered"] = cleanup_rendered_content(guide_content["introduction_rendered"])
+        guide_content["conclusion_rendered"] = cleanup_rendered_content(guide_content["conclusion_rendered"])
         for step in guide_content["steps"]:
             if not step["media"]:
                 raise UnexpectedDataKindException(
@@ -893,14 +862,7 @@ class ifixit2zim(GlobalMixin):
                             guide_content["guideid"],
                         )
                     )
-                line["text_rendered"] = self.guide_regex_full.sub(
-                    'href="./guide_\\g<guide_id>.html"',
-                    line["text_rendered"],
-                )
-                line["text_rendered"] = self.guide_regex_rel.sub(
-                    'href="./guide_\\g<guide_id>.html"',
-                    line["text_rendered"],
-                )
+                line["text_rendered"] = cleanup_rendered_content(line["text_rendered"]                )
         guide_rendered = self.guide_template.render(
             guide=guide_content,
             label=GUIDE_LABELS[self.conf.lang_code],
@@ -999,16 +961,7 @@ class ifixit2zim(GlobalMixin):
             new_url = get_image_path(orig_url)
             return f"<img{m.group('before')}src=\"{new_url}\""
 
-        info_wiki_content["contents_rendered"] = re.sub(
-            self.image_regex, _replace_image, info_wiki_content["contents_rendered"]
-        )
-        # info_wiki_content["contents_rendered"] = self.device_link_regex_with_href.sub(
-        #     'href="../category/category_\\g<device>.html"',
-        #     info_wiki_content["contents_rendered"],
-        # )
-        info_wiki_content["filename"] = convert_title_to_filename(
-            info_wiki_content["title"]
-        )
+        info_wiki_content["contents_rendered"] = cleanup_rendered_content(info_wiki_content["contents_rendered"]        )
         info_wiki_rendered = self.info_wiki_template.render(
             info_wiki=info_wiki_content,
             # label=INFO_WIKI_LABELS[self.conf.lang_code],
@@ -1017,7 +970,7 @@ class ifixit2zim(GlobalMixin):
         )
         with self.lock:
             self.creator.add_item_for(
-                path=f"info_wikis/info_{info_wiki_content['filename']}.html",
+                path=f"info_wikis/info_{convert_title_to_filename(info_wiki_content['title'])}.html",
                 title=info_wiki_content["display_title"],
                 content=info_wiki_rendered,
                 mimetype="text/html",
@@ -1068,10 +1021,10 @@ class ifixit2zim(GlobalMixin):
 
             self.add_assets()
             self.add_illustrations()
-            # self.scrape_homepage()
-            # self.scrape_categories()
+            self.scrape_homepage()
+            self.scrape_categories()
             # self.scrape_guides()
-            self.scrape_info_wikis()
+            # self.scrape_info_wikis()
 
             logger.info("Awaiting images")
             Global.img_executor.shutdown()

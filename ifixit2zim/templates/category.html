@@ -74,7 +74,7 @@
                     <div class="grid">
                         {% for child in category['children'] %}
                         <div class="categoryListCell">
-                            <a href="./category_{{child['filename']}}.html" class="categoryAnchor">
+                            <a href="./category_{{child['title'] | convert_title_to_filename}}.html" class="categoryAnchor">
                                 <img src="{{child | get_image_url(for_device=True) | get_image_path}}" width="179"
                                     height="143" alt="{{child['display_title']}}" class="category-image" />
                                 <h5 class="title">
