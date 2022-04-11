@@ -7,7 +7,6 @@ import shutil
 import traceback
 from datetime import datetime
 
-import requests
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from zimscraperlib.image.transformation import resize_image
 
@@ -25,11 +24,11 @@ from .constants import (
 )
 from .shared import Global, GlobalMixin, logger
 from .utils import (
+    cleanup_rendered_content,
     convert_title_to_filename,
     get_api_content,
     get_image_path,
     get_image_url,
-    cleanup_rendered_content,
     get_soup,
     guides_in_progress,
     setlocale,
@@ -692,7 +691,9 @@ class ifixit2zim(GlobalMixin):
             new_url = get_image_path(orig_url)
             return f"<img{m.group('before')}src=\"{new_url}\""
 
-        category_content["contents_rendered"] = cleanup_rendered_content(category_content["contents_rendered"])
+        category_content["contents_rendered"] = cleanup_rendered_content(
+            category_content["contents_rendered"]
+        )
         category_rendered = self.category_template.render(
             category=category_content,
             label=CATEGORY_LABELS[self.conf.lang_code],
@@ -701,7 +702,8 @@ class ifixit2zim(GlobalMixin):
         )
         with self.lock:
             self.creator.add_item_for(
-                path=f"categories/category_{convert_title_to_filename(category_content['title'])}.html",
+                path=f"categories/category_"
+                f"{convert_title_to_filename(category_content['title'])}.html",
                 title=category_content["display_title"],
                 content=category_rendered,
                 mimetype="text/html",
@@ -779,9 +781,13 @@ class ifixit2zim(GlobalMixin):
                     datetime.fromtimestamp(guide_content["published_date"]),
                     "%x",
                 )
-                
-        guide_content["introduction_rendered"] = cleanup_rendered_content(guide_content["introduction_rendered"])
-        guide_content["conclusion_rendered"] = cleanup_rendered_content(guide_content["conclusion_rendered"])
+
+        guide_content["introduction_rendered"] = cleanup_rendered_content(
+            guide_content["introduction_rendered"]
+        )
+        guide_content["conclusion_rendered"] = cleanup_rendered_content(
+            guide_content["conclusion_rendered"]
+        )
         for step in guide_content["steps"]:
             if not step["media"]:
                 raise UnexpectedDataKindException(
@@ -862,7 +868,7 @@ class ifixit2zim(GlobalMixin):
                             guide_content["guideid"],
                         )
                     )
-                line["text_rendered"] = cleanup_rendered_content(line["text_rendered"]                )
+                line["text_rendered"] = cleanup_rendered_content(line["text_rendered"])
         guide_rendered = self.guide_template.render(
             guide=guide_content,
             label=GUIDE_LABELS[self.conf.lang_code],
@@ -905,17 +911,16 @@ class ifixit2zim(GlobalMixin):
                     )
                 num_guide += 1
 
-    
     def build_expected_info_wikis(self):
         logger.info("Downloading list of INFO wikis")
         limit = 200
         offset = 0
         while True:
-            info_wikis = get_api_content(f"/wikis/INFO", limit=limit, offset=offset)
+            info_wikis = get_api_content("/wikis/INFO", limit=limit, offset=offset)
             if len(info_wikis) == 0:
                 break
             for info_wiki in info_wikis:
-                self.expected_info_wikis.add(info_wiki['title'])
+                self.expected_info_wikis.add(info_wiki["title"])
             offset += limit
         logger.info("{} INFO wikis found".format(len(self.expected_info_wikis)))
 
@@ -933,12 +938,15 @@ class ifixit2zim(GlobalMixin):
                 self.scrape_one_info_wiki(info_wiki_title)
             except Exception as ex:
                 self.error_info_wikis.add(info_wiki_title)
-                logger.warning(f"Error while processing INFO wiki {info_wiki_title}: {ex}")
+                logger.warning(
+                    f"Error while processing INFO wiki {info_wiki_title}: {ex}"
+                )
                 traceback.print_exc()
             finally:
                 if len(self.missing_info_wikis) > self.conf.max_missing_info_wikis:
                     raise FinalScrapingFailure(
-                        "Too many INFO wikis found missing: " f"{len(self.missing_info_wikis)}"
+                        "Too many INFO wikis found missing: "
+                        f"{len(self.missing_info_wikis)}"
                     )
                 if len(self.error_info_wikis) > self.conf.max_error_info_wikis:
                     raise FinalScrapingFailure(
@@ -948,7 +956,7 @@ class ifixit2zim(GlobalMixin):
                 num_info_wiki += 1
 
     def scrape_one_info_wiki(self, info_wiki_title):
-        info_wiki_content = get_api_content(    f"/wikis/INFO/{info_wiki_title}"      )
+        info_wiki_content = get_api_content(f"/wikis/INFO/{info_wiki_title}")
 
         if info_wiki_content is None:
             self.missing_info_wikis.add(info_wiki_title)
@@ -961,7 +969,9 @@ class ifixit2zim(GlobalMixin):
             new_url = get_image_path(orig_url)
             return f"<img{m.group('before')}src=\"{new_url}\""
 
-        info_wiki_content["contents_rendered"] = cleanup_rendered_content(info_wiki_content["contents_rendered"]        )
+        info_wiki_content["contents_rendered"] = cleanup_rendered_content(
+            info_wiki_content["contents_rendered"]
+        )
         info_wiki_rendered = self.info_wiki_template.render(
             info_wiki=info_wiki_content,
             # label=INFO_WIKI_LABELS[self.conf.lang_code],
@@ -970,7 +980,8 @@ class ifixit2zim(GlobalMixin):
         )
         with self.lock:
             self.creator.add_item_for(
-                path=f"info_wikis/info_{convert_title_to_filename(info_wiki_content['title'])}.html",
+                path=f"info_wikis/info_"
+                f"{convert_title_to_filename(info_wiki_content['title'])}.html",
                 title=info_wiki_content["display_title"],
                 content=info_wiki_rendered,
                 mimetype="text/html",
@@ -1021,10 +1032,10 @@ class ifixit2zim(GlobalMixin):
 
             self.add_assets()
             self.add_illustrations()
-            self.scrape_homepage()
-            self.scrape_categories()
+            # self.scrape_homepage()
+            # self.scrape_categories()
             # self.scrape_guides()
-            # self.scrape_info_wikis()
+            self.scrape_info_wikis()
 
             logger.info("Awaiting images")
             Global.img_executor.shutdown()
