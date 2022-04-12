@@ -4,17 +4,86 @@ import json
 import re
 
 from .constants import DEFAULT_HOMEPAGE
-from .shared import Global, GlobalMixin, logger
+from .exceptions import CategoryHomePageContentError
+from .scraper_generic import ScraperGeneric
+from .shared import Global, logger
 from .utils import get_soup
 
 
-class CategoryHomePageContentError(Exception):
-    pass
+class ScraperHomepage(ScraperGeneric):
+    def __init__(self, add_item_methods):
+        super().__init__(add_item_methods=add_item_methods)
 
+    def setup(self):
+        self.homepage_template = Global.env.get_template("home.html")
+        self.placeholder_template = Global.env.get_template("placeholder.html")
 
-class ScraperHomepage(GlobalMixin):
+    def get_items_name(self):
+        return "home"
 
-    device_link_regex_without_href = re.compile(r"/Device/(?P<device>.*)")
+    def build_expected_items(self):
+        self.add_item_methods["home"]()
+
+    def get_one_item_content(self, item_key, item_data):
+        soup, _ = get_soup("/Guide")
+        return soup
+
+    def process_one_item(self, item_key, item_data, item_content):
+        soup = item_content
+
+        # extract and clean main content
+        home_content = {
+            "main_title": soup.find("title").string,
+            "page_title": self._extract_page_title_from_page(soup),
+            "primary_title": self._extract_primary_title_from_page(soup),
+            "secondary_title": self._extract_secondary_title_from_page(soup),
+            "callout": self._extract_callout_from_page(soup),
+            "featured_categories": self._extract_featured_categories_from_page(soup),
+            "sub_categories": self._extract_sub_categories_from_page(soup),
+        }
+
+        for fc in home_content["featured_categories"]:
+            image_path = Global.imager.defer(url=fc["img_url"])
+            fc["img_path"] = image_path
+
+        home_content["callout"]["img_path"] = Global.imager.defer(
+            url=home_content["callout"]["img_url"]
+        )
+
+        logger.debug(
+            "Content extracted from /Guide:\n" f"{json.dumps(home_content,indent=2)}"
+        )
+
+        homepage = self.homepage_template.render(
+            home_content=home_content, metadata=Global.metadata
+        )
+
+        placeholder = self.placeholder_template.render(
+            home_content=home_content, metadata=Global.metadata
+        )
+
+        with Global.lock:
+            Global.creator.add_item_for(
+                path="home/home.html",
+                title=Global.conf.title,
+                content=homepage,
+                mimetype="text/html",
+                is_front=True,
+            )
+
+            Global.creator.add_redirect(
+                path=DEFAULT_HOMEPAGE, target_path="home/home.html"
+            )
+
+            Global.creator.add_item_for(
+                path="home/placeholder.html",
+                title="Placeholder",
+                content=placeholder,
+                mimetype="text/html",
+                is_front=False,
+            )
+
+    _device_link_regex_without_href = re.compile(r"/Device/(?P<device>.*)")
 
     def _extract_page_title_from_page(self, soup):
         page_title_selector = "h1.page-title span"
@@ -180,7 +249,7 @@ class ScraperHomepage(GlobalMixin):
         href = fc.attrs.get("href")
         if len(href) == 0:
             raise CategoryHomePageContentError("Empty href found in featured category")
-        name = self.device_link_regex_without_href.sub("\\g<device>", href)
+        name = self._device_link_regex_without_href.sub("\\g<device>", href)
         if name == href:
             raise CategoryHomePageContentError(
                 f"Extracting name from featured category failed ; href:'{href}'"
@@ -236,7 +305,7 @@ class ScraperHomepage(GlobalMixin):
         href = sc.attrs.get("href")
         if len(href) == 0:
             raise CategoryHomePageContentError("Empty href found in sub-category")
-        name = self.device_link_regex_without_href.sub("\\g<device>", href)
+        name = self._device_link_regex_without_href.sub("\\g<device>", href)
         if name == href:
             raise CategoryHomePageContentError(
                 f"Extracting name from sub-category failed ; href:'{href}'"
@@ -387,63 +456,3 @@ class ScraperHomepage(GlobalMixin):
             "footer_stats": self._extract_footer_stats_from_page(soup),
             "footer_copyright": self._extract_footer_copyright_from_page(soup),
         }
-
-    def scrape_homepage(self):
-
-        logger.info("Scraping homepage")
-
-        soup, _ = get_soup("/Guide")
-
-        logger.debug("Processing homepage")
-
-        # extract and clean main content
-        home_content = {
-            "main_title": soup.find("title").string,
-            "page_title": self._extract_page_title_from_page(soup),
-            "primary_title": self._extract_primary_title_from_page(soup),
-            "secondary_title": self._extract_secondary_title_from_page(soup),
-            "callout": self._extract_callout_from_page(soup),
-            "featured_categories": self._extract_featured_categories_from_page(soup),
-            "sub_categories": self._extract_sub_categories_from_page(soup),
-        }
-
-        for fc in home_content["featured_categories"]:
-            image_path = Global.imager.defer(url=fc["img_url"])
-            fc["img_path"] = image_path
-
-        home_content["callout"]["img_path"] = Global.imager.defer(
-            url=home_content["callout"]["img_url"]
-        )
-
-        logger.debug(
-            "Content extracted from /Guide:\n" f"{json.dumps(home_content,indent=2)}"
-        )
-
-        homepage = self.env.get_template("home.html").render(
-            home_content=home_content, metadata=self.metadata
-        )
-
-        placeholder = self.env.get_template("placeholder.html").render(
-            home_content=home_content, metadata=self.metadata
-        )
-
-        with self.lock:
-            self.creator.add_item_for(
-                path="home/home.html",
-                title=self.conf.title,
-                content=homepage,
-                mimetype="text/html",
-                is_front=True,
-            )
-
-            self.creator.add_redirect(
-                path=DEFAULT_HOMEPAGE, target_path="home/home.html"
-            )
-
-            self.creator.add_item_for(
-                path="home/placeholder.html",
-                title="Placeholder",
-                content=placeholder,
-                mimetype="text/html",
-                is_front=False,
-            )

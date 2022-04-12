@@ -249,12 +249,8 @@ class Conf:
     s3_url_with_credentials: Optional[str] = ""
 
     # error handling
-    max_missing_guides: Optional[int] = 0
-    max_missing_categories: Optional[int] = 0
-    max_missing_info_wikis: Optional[int] = 0
-    max_error_guides: Optional[int] = 0
-    max_error_categories: Optional[int] = 0
-    max_error_info_wikis: Optional[int] = 0
+    max_missing_items_percent: Optional[int] = 0
+    max_error_items_percent: Optional[int] = 0
 
     # debug/devel
     build_dir_is_tmp_dir: Optional[bool] = False

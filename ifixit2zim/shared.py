@@ -41,11 +41,8 @@ class Global:
 
     creator = None
     imager = None
+    env = None
     lock = threading.Lock()
-
-    expected_categories = set()
-    expected_guides = dict()
-    expected_info_wikis = set()
 
     @staticmethod
     def set_debug(value):
@@ -101,10 +98,6 @@ class Global:
             "convert_title_to_filename"
         ] = Global.convert_title_to_filename
         Global.env.filters["cleanup_rendered_content"] = Global.cleanup_rendered_content
-
-        Global.category_template = Global.env.get_template("category.html")
-        Global.guide_template = Global.env.get_template("guide.html")
-        Global.info_wiki_template = Global.env.get_template("info_wiki.html")
 
     @staticmethod
     def guides_in_progress(guides, in_progress=True):
@@ -182,7 +175,7 @@ class Global:
                 if match.group("kind").lower() in ["device", "topic"]:
                     return f"../categories/category_{match.group('object')}.html"
                 elif match.group("kind").lower() in ["info"]:
-                    return f"../info_wikis/info_{match.group('object')}.html"
+                    return f"../infos/info_{match.group('object')}.html"
                 elif match.group("kind").lower() in ["user", "team", "info", "wiki"]:
                     return "../home/placeholder.html"
                 elif match.group("kind").lower() in ["store", "boutique", "tienda"]:
@@ -244,18 +237,6 @@ class GlobalMixin:
         return Global.lock
 
     @property
-    def expected_categories(self):
-        return Global.expected_categories
-
-    @property
-    def expected_guides(self):
-        return Global.expected_guides
-
-    @property
-    def expected_info_wikis(self):
-        return Global.expected_info_wikis
-
-    @property
     def imager(self):
         return Global.imager
 
@@ -266,14 +247,6 @@ class GlobalMixin:
     @property
     def env(self):
         return Global.env
-
-    @property
-    def category_template(self):
-        return Global.category_template
-
-    @property
-    def guide_template(self):
-        return Global.guide_template
 
     @property
     def info_wiki_template(self):

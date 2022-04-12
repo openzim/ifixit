@@ -157,54 +157,23 @@ def main():
     )
 
     parser.add_argument(
-        "--max-missing-guides",
-        help="Amount of missing guides which will force the scraper to stop",
-        default=100,
+        "--max-missing-items-percent",
+        help="Amount of missing items which will force the scraper to stop, expressed"
+        " as a percentage of the total number of items to retrieve. Integer from 1 to"
+        " 100.",
+        default=5,
         type=int,
-        dest="max_missing_guides",
+        dest="max_missing_items_percent",
     )
 
     parser.add_argument(
-        "--max-missing-categories",
-        help="Amount of missing categories which will force the scraper to stop",
-        default=100,
+        "--max-error-items-percent",
+        help="Amount of items with failed processing which will force the scraper to"
+        " stop, expressed as a percentage of the total number of items to retrieve."
+        " Integer from 1 to 100.",
+        default=5,
         type=int,
-        dest="max_missing_categories",
-    )
-
-    parser.add_argument(
-        "--max-missing-info-wikis",
-        help="Amount of missing INFO wikis which will force the scraper to stop",
-        default=10,
-        type=int,
-        dest="max_missing_info_wikis",
-    )
-
-    parser.add_argument(
-        "--max-error-guides",
-        help="Amount of guides with failed processing which will force the scraper to "
-        "stop",
-        default=100,
-        type=int,
-        dest="max_error_guides",
-    )
-
-    parser.add_argument(
-        "--max-error-categories",
-        help="Amount of categories with failed processing which will force the scraper "
-        "to stop",
-        default=100,
-        type=int,
-        dest="max_error_categories",
-    )
-
-    parser.add_argument(
-        "--max-error-info-wikis",
-        help="Amount of INFO wikis with failed processing which will force the scraper "
-        "to stop",
-        default=10,
-        type=int,
-        dest="max_error_info_wikis",
+        dest="max_error_items_percent",
     )
 
     parser.add_argument(

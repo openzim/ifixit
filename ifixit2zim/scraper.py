@@ -2,33 +2,17 @@
 
 import pathlib
 import shutil
-import traceback
 from datetime import datetime
 
 from zimscraperlib.image.transformation import resize_image
 
-from .constants import (
-    CATEGORY_LABELS,
-    DIFFICULTY_EASY,
-    DIFFICULTY_HARD,
-    DIFFICULTY_MODERATE,
-    DIFFICULTY_VERY_EASY,
-    DIFFICULTY_VERY_HARD,
-    GUIDE_LABELS,
-    ROOT_DIR,
-    Conf,
-)
+from .constants import ROOT_DIR, Conf
+from .scraper_category import ScraperCategory
+from .scraper_guide import ScraperGuide
 from .scraper_homepage import ScraperHomepage
+from .scraper_info import ScraperInfo
 from .shared import Global, GlobalMixin, logger
-from .utils import get_api_content, setlocale, setup_s3_and_check_credentials
-
-
-class UnexpectedDataKindException(Exception):
-    pass
-
-
-class FinalScrapingFailure(Exception):
-    pass
+from .utils import setup_s3_and_check_credentials
 
 
 class ifixit2zim(GlobalMixin):
@@ -39,18 +23,45 @@ class ifixit2zim(GlobalMixin):
             if getattr(Global.conf, option) is None:
                 raise ValueError(f"Missing parameter `{option}`")
 
-        # List of categories / guides which returned request errors, even after backoff.
-        # We track them for reporting.
-        self.missing_guides = set()
-        self.missing_categories = set()
-        self.missing_info_wikis = set()
-        # List of categories / guides which returned other errors.
-        # We track them for reporting
-        self.error_guides = set()
-        self.error_categories = set()
-        self.error_info_wikis = set()
+        add_item_methods = {
+            "guide": self._add_guide_to_scrape,
+            "category": self._add_category_to_scrape,
+            "home": self._add_home_to_scrape,
+            "info": self._add_info_to_scrape,
+        }
+        self.scraper_homepage = ScraperHomepage(add_item_methods=add_item_methods)
+        self.scraper_guide = ScraperGuide(add_item_methods=add_item_methods)
+        self.scraper_category = ScraperCategory(add_item_methods=add_item_methods)
+        self.scraper_info = ScraperInfo(add_item_methods=add_item_methods)
+        self.scrapers = [
+            self.scraper_homepage,
+            self.scraper_category,
+            self.scraper_guide,
+            self.scraper_info,
+        ]
 
-        self.scraper_homepage = ScraperHomepage()
+    def _add_guide_to_scrape(self, guide_id, locale):
+        self.scraper_guide.add_item_to_scrape(
+            guide_id,
+            {
+                "guideid": guide_id,
+                "locale": locale,
+            },
+        )
+
+    def _add_category_to_scrape(self, category_id):
+        self.scraper_category.add_item_to_scrape(
+            category_id,
+            {
+                "categoryid": category_id,
+            },
+        )
+
+    def _add_info_to_scrape(self, info_title, info_data):
+        self.scraper_info.add_item_to_scrape(info_title, info_data)
+
+    def _add_home_to_scrape(self):
+        self.scraper_homepage.add_item_to_scrape(1, 1)  # Dummy item
 
     @property
     def build_dir(self):
@@ -142,362 +153,6 @@ class ifixit2zim(GlobalMixin):
                 with self.lock:
                     self.creator.add_illustration(size, fh.read())
 
-    def _process_categories(self, categories, force_include=False):
-        include_parents = False
-        for category in categories:
-            include_me = False
-            include_childs = False
-            if (
-                force_include
-                or category in self.conf.categories
-                or Global.convert_title_to_filename(category) in self.conf.categories
-            ):
-                include_me = True
-                include_childs = self.conf.categories_include_children or force_include
-
-            include_due_to_child = self._process_categories(
-                categories[category], include_childs
-            )
-
-            if include_me or include_due_to_child:
-                self.expected_categories.add(category)
-                include_parents = True
-
-        return include_parents
-
-    def build_expected_categories(self):
-        logger.info("Downloading categories")
-        categories = get_api_content("/categories", includeStubs=True)
-        self._process_categories(
-            categories, (not self.conf.categories) or (len(self.conf.categories) == 0)
-        )
-        logger.info("{} categories found".format(len(self.expected_categories)))
-
-    def scrape_one_category(self, category):
-        category_content = get_api_content(
-            f"/wikis/CATEGORY/{category}", langid=self.conf.lang_code
-        )
-
-        if category_content is None:
-            self.missing_categories.add(category)
-            return
-
-        logger.debug(f"Processing category {category}")
-
-        for guide in category_content["featured_guides"]:
-            if guide["type"] not in [
-                "replacement",
-                "technique",
-                "teardown",
-                "disassembly",
-            ]:
-                raise UnexpectedDataKindException(
-                    "Unsupported type of guide: {} for featured_guide {}".format(
-                        guide["type"], guide["guideid"]
-                    )
-                )
-            else:
-                self.expected_guides[guide["guideid"]] = {
-                    "guideid": guide["guideid"],
-                    "locale": guide["locale"],
-                }
-        for guide in category_content["guides"]:
-            if guide["type"] not in [
-                "replacement",
-                "technique",
-                "teardown",
-                "disassembly",
-            ]:
-                raise UnexpectedDataKindException(
-                    "Unsupported type of guide: {} for guide {}".format(
-                        guide["type"], guide["guideid"]
-                    )
-                )
-            else:
-                self.expected_guides[guide["guideid"]] = {
-                    "guideid": guide["guideid"],
-                    "locale": guide["locale"],
-                }
-
-        category_rendered = self.category_template.render(
-            category=category_content,
-            label=CATEGORY_LABELS[self.conf.lang_code],
-            metadata=self.metadata,
-            lang=self.conf.lang_code,
-        )
-        with self.lock:
-            self.creator.add_item_for(
-                path=f"categories/category_"
-                f"{Global.convert_title_to_filename(category_content['title'])}.html",
-                title=category_content["display_title"],
-                content=category_rendered,
-                mimetype="text/html",
-                is_front=True,
-            )
-
-    def scrape_categories(self):
-
-        logger.info(f"Scraping {len(self.expected_categories)} categories")
-
-        num_category = 1
-        for category in self.expected_categories:
-            try:
-                logger.info(
-                    f"Scraping category {category} ({num_category}/"
-                    f"{len(self.expected_categories)})"
-                )
-                self.scrape_one_category(category)
-            except Exception as ex:
-                self.error_categories.add(category)
-                logger.warning(f"Error while processing category '{category}': {ex}")
-                traceback.print_exc()
-            finally:
-                if len(self.missing_categories) > self.conf.max_missing_categories:
-                    raise FinalScrapingFailure(
-                        "Too many categories found missing: "
-                        f"{len(self.missing_categories)}"
-                    )
-                if len(self.error_categories) > self.conf.max_error_categories:
-                    raise FinalScrapingFailure(
-                        "Too many categories failed to be processed: "
-                        f"{len(self.error_categories)}"
-                    )
-                num_category += 1
-
-    def scrape_one_guide(self, guide):
-        guide_content = get_api_content(
-            f"/guides/{guide['guideid']}", langid=guide["locale"]
-        )
-
-        if guide_content is None:
-            logger.warning(f"Missing guide {guide['guideid']}")
-            self.missing_guides.add(guide)
-            return
-
-        logger.debug(f"Processing guide {guide['guideid']}")
-
-        if guide_content["type"] != "teardown":
-            if guide_content["difficulty"] in DIFFICULTY_VERY_EASY:
-                guide_content["difficulty_class"] = "difficulty-1"
-            elif guide_content["difficulty"] in DIFFICULTY_EASY:
-                guide_content["difficulty_class"] = "difficulty-2"
-            elif guide_content["difficulty"] in DIFFICULTY_MODERATE:
-                guide_content["difficulty_class"] = "difficulty-3"
-            elif guide_content["difficulty"] in DIFFICULTY_HARD:
-                guide_content["difficulty_class"] = "difficulty-4"
-            elif guide_content["difficulty"] in DIFFICULTY_VERY_HARD:
-                guide_content["difficulty_class"] = "difficulty-5"
-            else:
-                raise UnexpectedDataKindException(
-                    "Unknown guide difficulty: '{}' in guide {}".format(
-                        guide_content["difficulty"],
-                        guide_content["guideid"],
-                    )
-                )
-        with setlocale("en_GB"):
-            if guide_content["author"]["join_date"]:
-                guide_content["author"]["join_date_rendered"] = datetime.strftime(
-                    datetime.fromtimestamp(guide_content["author"]["join_date"]),
-                    "%x",
-                )
-            # TODO: format published date as June 10, 2014 instead of 11/06/2014
-            if guide_content["published_date"]:
-                guide_content["published_date_rendered"] = datetime.strftime(
-                    datetime.fromtimestamp(guide_content["published_date"]),
-                    "%x",
-                )
-
-        for step in guide_content["steps"]:
-            if not step["media"]:
-                raise UnexpectedDataKindException(
-                    "Missing media attribute in step {} of guide {}".format(
-                        step["stepid"], guide_content["guideid"]
-                    )
-                )
-            if step["media"]["type"] not in [
-                "image",
-                "video",
-                "embed",
-            ]:
-                raise UnexpectedDataKindException(
-                    "Unrecognized media type in step {} of guide {}".format(
-                        step["stepid"], guide_content["guideid"]
-                    )
-                )
-            if step["media"]["type"] == "video":
-                if "data" not in step["media"] or not step["media"]["data"]:
-                    raise UnexpectedDataKindException(
-                        "Missing 'data' in step {} of guide {}".format(
-                            step["stepid"], guide_content["guideid"]
-                        )
-                    )
-                if (
-                    "image" not in step["media"]["data"]
-                    or not step["media"]["data"]["image"]
-                ):
-                    raise UnexpectedDataKindException(
-                        "Missing outer 'image' in step {} of guide {}".format(
-                            step["stepid"], guide_content["guideid"]
-                        )
-                    )
-                if (
-                    "image" not in step["media"]["data"]["image"]
-                    or not step["media"]["data"]["image"]["image"]
-                ):
-                    raise UnexpectedDataKindException(
-                        "Missing inner 'image' in step {} of guide {}".format(
-                            step["stepid"], guide_content["guideid"]
-                        )
-                    )
-            if step["media"]["type"] == "embed":
-                if "data" not in step["media"] or not step["media"]["data"]:
-                    raise UnexpectedDataKindException(
-                        "Missing 'data' in step {} of guide {}".format(
-                            step["stepid"], guide_content["guideid"]
-                        )
-                    )
-                if (
-                    "html" not in step["media"]["data"]
-                    or not step["media"]["data"]["html"]
-                ):
-                    raise UnexpectedDataKindException(
-                        "Missing 'html' in step {} of guide {}".format(
-                            step["stepid"], guide_content["guideid"]
-                        )
-                    )
-            for line in step["lines"]:
-                if not line["bullet"] in [
-                    "black",
-                    "red",
-                    "orange",
-                    "yellow",
-                    "green",
-                    "blue",
-                    "light_blue",
-                    "violet",
-                    "icon_note",
-                    "icon_caution",
-                    "icon_caution",
-                    "icon_reminder",
-                ]:
-                    raise UnexpectedDataKindException(
-                        "Unrecognized bullet '{}' in step {} of guide {}".format(
-                            line["bullet"],
-                            step["stepid"],
-                            guide_content["guideid"],
-                        )
-                    )
-        guide_rendered = self.guide_template.render(
-            guide=guide_content,
-            label=GUIDE_LABELS[self.conf.lang_code],
-            metadata=self.metadata,
-        )
-        with self.lock:
-            self.creator.add_item_for(
-                path=f"guides/guide_{guide_content['guideid']}.html",
-                title=guide_content["title"],
-                content=guide_rendered,
-                mimetype="text/html",
-                is_front=True,
-            )
-
-    def scrape_guides(self):
-
-        logger.info(f"Scraping {len(self.expected_guides)} guides")
-
-        num_guide = 1
-        for guideid, guide in self.expected_guides.items():
-            try:
-                logger.info(
-                    f"Scraping guide {guideid} "
-                    f"({num_guide}/{len(self.expected_guides)})"
-                )
-                self.scrape_one_guide(guide)
-            except Exception as ex:
-                self.error_guides.add(guideid)
-                logger.warning(f"Error while processing guide {guideid}: {ex}")
-                traceback.print_exc()
-            finally:
-                if len(self.missing_guides) > self.conf.max_missing_guides:
-                    raise FinalScrapingFailure(
-                        "Too many guides found missing: " f"{len(self.missing_guides)}"
-                    )
-                if len(self.error_guides) > self.conf.max_error_guides:
-                    raise FinalScrapingFailure(
-                        "Too many guides failed to be processed: "
-                        f"{len(self.error_guides)}"
-                    )
-                num_guide += 1
-
-    def build_expected_info_wikis(self):
-        logger.info("Downloading list of INFO wikis")
-        limit = 200
-        offset = 0
-        while True:
-            info_wikis = get_api_content("/wikis/INFO", limit=limit, offset=offset)
-            if len(info_wikis) == 0:
-                break
-            for info_wiki in info_wikis:
-                self.expected_info_wikis.add(info_wiki["title"])
-            offset += limit
-        logger.info("{} INFO wikis found".format(len(self.expected_info_wikis)))
-
-    def scrape_info_wikis(self):
-
-        logger.info(f"Scraping {len(self.expected_info_wikis)} INFO wikis")
-
-        num_info_wiki = 1
-        for info_wiki_title in self.expected_info_wikis:
-            try:
-                logger.info(
-                    f"Scraping INFO wiki {info_wiki_title} "
-                    f"({num_info_wiki}/{len(self.expected_info_wikis)})"
-                )
-                self.scrape_one_info_wiki(info_wiki_title)
-            except Exception as ex:
-                self.error_info_wikis.add(info_wiki_title)
-                logger.warning(
-                    f"Error while processing INFO wiki {info_wiki_title}: {ex}"
-                )
-                traceback.print_exc()
-            finally:
-                if len(self.missing_info_wikis) > self.conf.max_missing_info_wikis:
-                    raise FinalScrapingFailure(
-                        "Too many INFO wikis found missing: "
-                        f"{len(self.missing_info_wikis)}"
-                    )
-                if len(self.error_info_wikis) > self.conf.max_error_info_wikis:
-                    raise FinalScrapingFailure(
-                        "Too many INFO wikis failed to be processed: "
-                        f"{len(self.error_info_wikis)}"
-                    )
-                num_info_wiki += 1
-
-    def scrape_one_info_wiki(self, info_wiki_title):
-        info_wiki_content = get_api_content(f"/wikis/INFO/{info_wiki_title}")
-
-        if info_wiki_content is None:
-            self.missing_info_wikis.add(info_wiki_title)
-            return
-
-        logger.debug(f"Processing INFO wiki {info_wiki_title}")
-
-        info_wiki_rendered = self.info_wiki_template.render(
-            info_wiki=info_wiki_content,
-            # label=INFO_WIKI_LABELS[self.conf.lang_code],
-            metadata=self.metadata,
-            lang=self.conf.lang_code,
-        )
-        with self.lock:
-            self.creator.add_item_for(
-                path=f"info_wikis/info_"
-                f"{Global.convert_title_to_filename(info_wiki_content['title'])}.html",
-                title=info_wiki_content["display_title"],
-                content=info_wiki_rendered,
-                mimetype="text/html",
-                is_front=True,
-            )
-
     def run(self):
         s3_storage = (
             setup_s3_and_check_credentials(self.conf.s3_url_with_credentials)
@@ -536,32 +191,38 @@ class ifixit2zim(GlobalMixin):
         Global.setup()
         self.creator.start()
 
+        for scraper in self.scrapers:
+            scraper.setup()
+
         try:
-            self.build_expected_categories()
-            self.build_expected_info_wikis()
 
             self.add_assets()
             self.add_illustrations()
-            self.scraper_homepage.scrape_homepage()
-            self.scrape_categories()
-            self.scrape_guides()
-            self.scrape_info_wikis()
+
+            for scraper in self.scrapers:
+                scraper.build_expected_items()
+
+            for scraper in self.scrapers:
+                scraper.scrape_items()
 
             logger.info("Awaiting images")
             Global.img_executor.shutdown()
 
-            logger.info(
-                f"Stats: {len(self.expected_categories)} categories, "
-                f"{len(self.expected_guides)} guides, "
-                f"{len(self.expected_info_wikis)} INFO wikis, "
-                f"{len(self.missing_categories)} missing categories, "
-                f"{len(self.missing_guides)} missing guides, "
-                f"{len(self.missing_info_wikis)} INFO wikis, "
-                f"{len(self.error_categories)} categories in error, "
-                f"{len(self.error_guides)} guides in error, "
-                f"{len(self.error_info_wikis)} INFO wikis in error, "
-                f"{self.imager.nb_requested} images"
-            )
+            stats = "Stats: "
+            for scraper in self.scrapers:
+                stats += f"{len(scraper.expected_items)} {scraper.get_items_name()}, "
+            for scraper in self.scrapers:
+                stats += (
+                    f"{len(scraper.missing_items)} missing {scraper.get_items_name()}, "
+                )
+            for scraper in self.scrapers:
+                stats += (
+                    f"{len(scraper.missing_items)} {scraper.get_items_name()}"
+                    " in error, "
+                )
+            stats += f"{self.imager.nb_requested} images"
+
+            logger.info(stats)
 
         except Exception as exc:
             # request Creator not to create a ZIM file on finish
