@@ -272,6 +272,8 @@ def _process_href_regex(str):
         elif match.group("kind"):
             if match.group("kind").lower() in ["device", "topic"]:
                 return f"../categories/category_{match.group('object')}.html"
+            elif match.group("kind").lower() in ["info"]:
+                return f"../info_wikis/info_{match.group('object')}.html"
             elif match.group("kind").lower() in ["user", "team", "info", "wiki"]:
                 return "../home/placeholder.html"
             elif match.group("kind").lower() in ["store", "boutique", "tienda"]:
