@@ -251,7 +251,7 @@
                 <div class="introduction-container">
                   <h2>{{label['introduction']}}</h2>
                   <div itemprop="description">
-                    {{guide['introduction_rendered']|safe}}
+                    {{guide['introduction_rendered'] | cleanup_rendered_content | safe}}
                   </div>
                 </div>
               </div>
@@ -304,7 +304,7 @@
                       >
                         <img
                           id="step{{steploop.index}}-mainImage"
-                          alt="{{step['lines'][0]['text_rendered']}}"
+                          alt="{{step['lines'][0]['text_rendered'] | cleanup_rendered_content}}"
                           class="stepImage js-step-main-image hasMenu fluid medium visible"
                           sizes="(max-width: 600px) 95vw, (max-width: 1000px) 50vw, 575px"
                           src="{{step['media']['data']['image'] | get_image_url | get_image_path }}"
@@ -409,7 +409,7 @@
                           </div>
 
                           <div class="conclusionText">
-                            {{guide['conclusion_rendered']|safe}}
+                            {{guide['conclusion_rendered'] | cleanup_rendered_content | safe}}
                           </div>
                         </div>
                       </div>

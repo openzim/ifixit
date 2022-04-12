@@ -55,7 +55,7 @@
             </div>
 
             <!-- Ifixit Org Blog & Copyright -->
-            {{metadata['footer_copyright'] | safe}}
+            {{metadata['footer_copyright'] | cleanup_rendered_content | safe}}
 
         </div>
 

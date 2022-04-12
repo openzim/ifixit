@@ -66,6 +66,7 @@ class ifixit2zim(GlobalMixin):
         self.env.filters["get_image_path"] = get_image_path
         self.env.filters["get_image_url"] = get_image_url
         self.env.filters["convert_title_to_filename"] = convert_title_to_filename
+        self.env.filters["cleanup_rendered_content"] = cleanup_rendered_content
 
         # jinja context that we'll pass to all templates
         self.env_context = {"conf": Global.conf}
@@ -691,9 +692,6 @@ class ifixit2zim(GlobalMixin):
             new_url = get_image_path(orig_url)
             return f"<img{m.group('before')}src=\"{new_url}\""
 
-        category_content["contents_rendered"] = cleanup_rendered_content(
-            category_content["contents_rendered"]
-        )
         category_rendered = self.category_template.render(
             category=category_content,
             label=CATEGORY_LABELS[self.conf.lang_code],
@@ -782,12 +780,6 @@ class ifixit2zim(GlobalMixin):
                     "%x",
                 )
 
-        guide_content["introduction_rendered"] = cleanup_rendered_content(
-            guide_content["introduction_rendered"]
-        )
-        guide_content["conclusion_rendered"] = cleanup_rendered_content(
-            guide_content["conclusion_rendered"]
-        )
         for step in guide_content["steps"]:
             if not step["media"]:
                 raise UnexpectedDataKindException(
@@ -868,7 +860,6 @@ class ifixit2zim(GlobalMixin):
                             guide_content["guideid"],
                         )
                     )
-                line["text_rendered"] = cleanup_rendered_content(line["text_rendered"])
         guide_rendered = self.guide_template.render(
             guide=guide_content,
             label=GUIDE_LABELS[self.conf.lang_code],
@@ -969,9 +960,6 @@ class ifixit2zim(GlobalMixin):
             new_url = get_image_path(orig_url)
             return f"<img{m.group('before')}src=\"{new_url}\""
 
-        info_wiki_content["contents_rendered"] = cleanup_rendered_content(
-            info_wiki_content["contents_rendered"]
-        )
         info_wiki_rendered = self.info_wiki_template.render(
             info_wiki=info_wiki_content,
             # label=INFO_WIKI_LABELS[self.conf.lang_code],
@@ -1032,7 +1020,7 @@ class ifixit2zim(GlobalMixin):
 
             self.add_assets()
             self.add_illustrations()
-            # self.scrape_homepage()
+            self.scrape_homepage()
             # self.scrape_categories()
             # self.scrape_guides()
             self.scrape_info_wikis()

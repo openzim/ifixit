@@ -15,7 +15,7 @@
             <div class="fa fa-circle bullet bullet_{{line['bullet']}}">
             </div>
             {% endif %}
-            <p>{{line['text_rendered'] | safe}}</p>
+            <p>{{line['text_rendered'] | cleanup_rendered_content | safe}}</p>
             <div class="clearer"></div>
         </li>
         {% endfor %}
