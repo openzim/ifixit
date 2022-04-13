@@ -15,14 +15,47 @@ from .utils import get_api_content, setlocale
 
 
 class ScraperGuide(ScraperGeneric):
-    def __init__(self, add_item_methods):
-        super().__init__(add_item_methods=add_item_methods)
+    def __init__(self):
+        super().__init__()
 
     def setup(self):
         self.guide_template = Global.env.get_template("guide.html")
 
     def get_items_name(self):
         return "guide"
+
+    def _add_guide_to_scrape(self, guideid, locale, force=False):
+        if force or not Global.conf.categories:
+            self.add_item_to_scrape(
+                guideid,
+                {
+                    "guideid": guideid,
+                    "locale": locale,
+                },
+            )
+        return guideid
+
+    def _get_guide_path_from_key(self, guide_key):
+        return f"guides/guide_{guide_key}.html"
+
+    def get_guide_link(self, guide):
+        guideid = None
+        locale = Global.conf.lang_code
+        if isinstance(guide, str):
+            guideid = guide
+        else:
+            if "guideid" not in guide or not guide["guideid"]:
+                raise UnexpectedDataKindException(
+                    f"Impossible to extract guide id from {guide}"
+                )
+            if "locale" not in guide or not guide["locale"]:
+                raise UnexpectedDataKindException(
+                    f"Impossible to extract guide locale from {guide}"
+                )
+            guideid = guide["guideid"]
+            locale = guide["locale"]
+        guide_key = self._add_guide_to_scrape(guideid, locale)
+        return f"../{self._get_guide_path_from_key(guide_key)}"
 
     def build_expected_items(self):
         # expected guides are added by the category processing
@@ -157,7 +190,7 @@ class ScraperGuide(ScraperGeneric):
         )
         with Global.lock:
             Global.creator.add_item_for(
-                path=f"guides/guide_{guide_content['guideid']}.html",
+                path=self._get_guide_path_from_key(item_key),
                 title=guide_content["title"],
                 content=guide_rendered,
                 mimetype="text/html",

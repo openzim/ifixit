@@ -1,17 +1,45 @@
+from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
 from .shared import Global, logger
 from .utils import get_api_content
 
 
 class ScraperInfo(ScraperGeneric):
-    def __init__(self, add_item_methods):
-        super().__init__(add_item_methods=add_item_methods)
+    def __init__(self):
+        super().__init__()
 
     def setup(self):
         self.info_template = Global.env.get_template("info.html")
 
     def get_items_name(self):
         return "info"
+
+    def _add_info_to_scrape(self, info_title, force=False):
+        info_key = Global.convert_title_to_filename(info_title.lower())
+        if force or not Global.conf.categories:
+            self.add_item_to_scrape(
+                info_key,
+                {
+                    "info_title": info_title,
+                },
+            )
+        return info_key
+
+    def _get_info_path_from_key(self, info_key):
+        return f"infos/info_{info_key}.html"
+
+    def get_info_link(self, info):
+        info_title = None
+        if isinstance(info, str):
+            info_title = info
+        elif "title" in info and info["title"]:
+            info_title = info["title"]
+        else:
+            raise UnexpectedDataKindException(
+                f"Impossible to extract info title from {info}"
+            )
+        info_key = self._add_info_to_scrape(info_title)
+        return f"../{self._get_info_path_from_key(info_key)}"
 
     def build_expected_items(self):
         logger.info("Downloading list of info")
@@ -22,9 +50,9 @@ class ScraperInfo(ScraperGeneric):
             if len(info_wikis) == 0:
                 break
             for info_wiki in info_wikis:
-                self.add_item_methods["info"](info_wiki["title"], info_wiki)
+                self._add_info_to_scrape(info_wiki["title"], force=True)
             offset += limit
-        logger.info("{} info found".format(len(self.expected_items)))
+        logger.info("{} info found".format(len(self.expected_items_keys)))
 
     def get_one_item_content(self, item_key, item_data):
         info_wiki_title = item_key
@@ -42,8 +70,7 @@ class ScraperInfo(ScraperGeneric):
         )
         with Global.lock:
             Global.creator.add_item_for(
-                path=f"infos/info_"
-                f"{Global.convert_title_to_filename(info_wiki_content['title'])}.html",
+                path=self._get_info_path_from_key(item_key),
                 title=info_wiki_content["display_title"],
                 content=info_wiki_rendered,
                 mimetype="text/html",

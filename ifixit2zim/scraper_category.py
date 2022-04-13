@@ -6,14 +6,41 @@ from .utils import get_api_content
 
 
 class ScraperCategory(ScraperGeneric):
-    def __init__(self, add_item_methods):
-        super().__init__(add_item_methods=add_item_methods)
+    def __init__(self):
+        super().__init__()
 
     def setup(self):
         self.category_template = Global.env.get_template("category.html")
 
     def get_items_name(self):
         return "category"
+
+    def _add_category_to_scrape(self, category_title, force=False):
+        category_key = Global.convert_title_to_filename(category_title.lower())
+        if force or not Global.conf.categories:
+            self.add_item_to_scrape(
+                category_key,
+                {
+                    "category_title": category_title,
+                },
+            )
+        return category_key
+
+    def _get_category_path_from_key(self, category_key):
+        return f"categories/category_{category_key}.html"
+
+    def get_category_link(self, category):
+        category_title = None
+        if isinstance(category, str):
+            category_title = category
+        elif "title" in category and category["title"]:
+            category_title = category["title"]
+        else:
+            raise UnexpectedDataKindException(
+                f"Impossible to extract category title from {category}"
+            )
+        category_key = self._add_category_to_scrape(category_title)
+        return f"../{self._get_category_path_from_key(category_key)}"
 
     def _process_categories(self, categories, force_include=False):
         include_parents = False
@@ -35,7 +62,7 @@ class ScraperCategory(ScraperGeneric):
             )
 
             if include_me or include_due_to_child:
-                self.add_item_methods["category"](category)
+                self._add_category_to_scrape(category, force=True)
                 include_parents = True
 
         return include_parents
@@ -47,7 +74,7 @@ class ScraperCategory(ScraperGeneric):
             categories,
             (not Global.conf.categories) or (len(Global.conf.categories) == 0),
         )
-        logger.info("{} categories found".format(len(self.expected_items)))
+        logger.info("{} categories found".format(len(self.expected_items_keys)))
 
     def get_one_item_content(self, item_key, item_data):
         categoryid = item_key
@@ -59,36 +86,8 @@ class ScraperCategory(ScraperGeneric):
         return category_content
 
     def process_one_item(self, item_key, item_data, item_content):
+        category_key = item_key
         category_content = item_content
-
-        for guide in category_content["featured_guides"]:
-            if guide["type"] not in [
-                "replacement",
-                "technique",
-                "teardown",
-                "disassembly",
-            ]:
-                raise UnexpectedDataKindException(
-                    "Unsupported type of guide: {} for featured_guide {}".format(
-                        guide["type"], guide["guideid"]
-                    )
-                )
-            else:
-                self.add_item_methods["guide"](guide["guideid"], guide["locale"])
-        for guide in category_content["guides"]:
-            if guide["type"] not in [
-                "replacement",
-                "technique",
-                "teardown",
-                "disassembly",
-            ]:
-                raise UnexpectedDataKindException(
-                    "Unsupported type of guide: {} for guide {}".format(
-                        guide["type"], guide["guideid"]
-                    )
-                )
-            else:
-                self.add_item_methods["guide"](guide["guideid"], guide["locale"])
 
         category_rendered = self.category_template.render(
             category=category_content,
@@ -96,10 +95,10 @@ class ScraperCategory(ScraperGeneric):
             metadata=Global.metadata,
             lang=Global.conf.lang_code,
         )
+
         with Global.lock:
             Global.creator.add_item_for(
-                path=f"categories/category_"
-                f"{Global.convert_title_to_filename(category_content['title'])}.html",
+                path=self._get_category_path_from_key(category_key),
                 title=category_content["display_title"],
                 content=category_rendered,
                 mimetype="text/html",

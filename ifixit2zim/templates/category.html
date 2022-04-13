@@ -74,7 +74,7 @@
                     <div class="grid">
                         {% for child in category['children'] %}
                         <div class="categoryListCell">
-                            <a href="./category_{{child['title'] | convert_title_to_filename}}.html" class="categoryAnchor">
+                            <a href="{{child | get_category_link}}" class="categoryAnchor">
                                 <img src="{{child | get_image_url(for_device=True) | get_image_path}}" width="179"
                                     height="143" alt="{{child['display_title']}}" class="category-image" />
                                 <h5 class="title">
@@ -96,7 +96,7 @@
                         {{label['featured_guides']}}</h2>
                     <div class="entry-container">
                         {% for guide in category['featured_guides'] %}
-                        {% if loop.index < 3 %} <a href="../guides/guide_{{guide['guideid']}}.html"
+                        {% if loop.index < 3 %} <a href="{{guide | get_guide_link}}"
                             class="entry">
                             <div class="thumbnail">
                                 <span class="featured-icon"><i class="svg-icon" alt="Featured" title="Featured"
@@ -137,7 +137,7 @@
                     <div class="grid">
                         {% for guide in category['guides'] | guides_in_progress(False) | selectattr('type', '==', guide_type) %}
                         <div class="cell">
-                            <a href="../guides/guide_{{guide['guideid']}}.html" class="title">
+                            <a href="{{guide | get_guide_link}}" class="title">
                                 <img src="{{guide | get_image_url(for_guide=True) | get_image_path }}" width="133"
                                     height="100" alt="{{guide[guide_text]}}" class="thumb" />
                                 <div class='title-text'>
@@ -196,7 +196,7 @@
                                     {% set guide_text = 'title' %}
                                 {% endif %}
                                 <div class="cell">
-                                    <a href="../guides/guide_{{guide['guideid']}}.html" class="title">
+                                    <a href="{{guide | get_guide_link}}" class="title">
                                         <img src="{{guide | get_image_url(for_guide=True) | get_image_path}}" width="133"
                                             height="100" alt="{{guide[guide_text]}}" class="thumb" />
                                         <div class='title-text'>

@@ -23,45 +23,16 @@ class ifixit2zim(GlobalMixin):
             if getattr(Global.conf, option) is None:
                 raise ValueError(f"Missing parameter `{option}`")
 
-        add_item_methods = {
-            "guide": self._add_guide_to_scrape,
-            "category": self._add_category_to_scrape,
-            "home": self._add_home_to_scrape,
-            "info": self._add_info_to_scrape,
-        }
-        self.scraper_homepage = ScraperHomepage(add_item_methods=add_item_methods)
-        self.scraper_guide = ScraperGuide(add_item_methods=add_item_methods)
-        self.scraper_category = ScraperCategory(add_item_methods=add_item_methods)
-        self.scraper_info = ScraperInfo(add_item_methods=add_item_methods)
+        self.scraper_homepage = ScraperHomepage()
+        self.scraper_guide = ScraperGuide()
+        self.scraper_category = ScraperCategory()
+        self.scraper_info = ScraperInfo()
         self.scrapers = [
             self.scraper_homepage,
             self.scraper_category,
             self.scraper_guide,
             self.scraper_info,
         ]
-
-    def _add_guide_to_scrape(self, guide_id, locale):
-        self.scraper_guide.add_item_to_scrape(
-            guide_id,
-            {
-                "guideid": guide_id,
-                "locale": locale,
-            },
-        )
-
-    def _add_category_to_scrape(self, category_id):
-        self.scraper_category.add_item_to_scrape(
-            category_id,
-            {
-                "categoryid": category_id,
-            },
-        )
-
-    def _add_info_to_scrape(self, info_title, info_data):
-        self.scraper_info.add_item_to_scrape(info_title, info_data)
-
-    def _add_home_to_scrape(self):
-        self.scraper_homepage.add_item_to_scrape(1, 1)  # Dummy item
 
     @property
     def build_dir(self):
@@ -189,10 +160,17 @@ class ifixit2zim(GlobalMixin):
 
         logger.debug("Starting Zim creation")
         Global.setup()
-        self.creator.start()
-
+        Global.env.filters[
+            "get_category_link"
+        ] = self.scraper_category.get_category_link
+        Global.env.filters["get_guide_link"] = self.scraper_guide.get_guide_link
+        Global.env.filters["get_info_link"] = self.scraper_info.get_info_link
+        Global.get_category_link = self.scraper_category.get_category_link
+        Global.get_guide_link = self.scraper_guide.get_guide_link
+        Global.get_info_link = self.scraper_info.get_info_link
         for scraper in self.scrapers:
             scraper.setup()
+        self.creator.start()
 
         try:
 
@@ -202,22 +180,32 @@ class ifixit2zim(GlobalMixin):
             for scraper in self.scrapers:
                 scraper.build_expected_items()
 
-            for scraper in self.scrapers:
-                scraper.scrape_items()
+            while True:
+                for scraper in self.scrapers:
+                    scraper.scrape_items()
+                needs_rerun = False
+                for scraper in self.scrapers:
+                    if not scraper.expected_items_queue.empty():
+                        needs_rerun = True
+                if not needs_rerun:
+                    break
 
             logger.info("Awaiting images")
             Global.img_executor.shutdown()
 
             stats = "Stats: "
             for scraper in self.scrapers:
-                stats += f"{len(scraper.expected_items)} {scraper.get_items_name()}, "
-            for scraper in self.scrapers:
                 stats += (
-                    f"{len(scraper.missing_items)} missing {scraper.get_items_name()}, "
+                    f"{len(scraper.expected_items_keys)} {scraper.get_items_name()}, "
                 )
             for scraper in self.scrapers:
                 stats += (
-                    f"{len(scraper.missing_items)} {scraper.get_items_name()}"
+                    f"{len(scraper.missing_items_keys)} missing"
+                    f" {scraper.get_items_name()}, "
+                )
+            for scraper in self.scrapers:
+                stats += (
+                    f"{len(scraper.error_items_keys)} {scraper.get_items_name()}"
                     " in error, "
                 )
             stats += f"{self.imager.nb_requested} images"

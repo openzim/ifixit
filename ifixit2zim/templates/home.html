@@ -39,7 +39,7 @@
 
                    <div class="featured-categories">
                      {%for category in home_content['featured_categories']%}
-                      <a class="featured-category-item" href="../categories/category_{{category['name']}}.html"
+                      <a class="featured-category-item" href="{{category['name'] | get_category_link}}"
                          title="{{category['title']}}">
                          <div class="shadow-overlay"></div>
                          <p class="featured-category-title">{{category['text']}}</p>
@@ -53,7 +53,7 @@
                    </div>
                    <div class="sub-categories">
                      {%for category in home_content['sub_categories']%}
-                      <a class="sub-category" href="../categories/category_{{category['name']}}.html">
+                      <a class="sub-category" href="{{category['name'] | get_category_link}}">
                          <p class="sub-category-title">
                             <span class="overflow-slide-in"
                                title="{{category['title']}}"><i

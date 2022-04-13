@@ -11,8 +11,8 @@ from .utils import get_soup
 
 
 class ScraperHomepage(ScraperGeneric):
-    def __init__(self, add_item_methods):
-        super().__init__(add_item_methods=add_item_methods)
+    def __init__(self):
+        super().__init__()
 
     def setup(self):
         self.homepage_template = Global.env.get_template("home.html")
@@ -22,7 +22,7 @@ class ScraperHomepage(ScraperGeneric):
         return "home"
 
     def build_expected_items(self):
-        self.add_item_methods["home"]()
+        self.add_item_to_scrape(1, 1)
 
     def get_one_item_content(self, item_key, item_data):
         soup, _ = get_soup("/Guide")

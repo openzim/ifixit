@@ -94,9 +94,6 @@ class Global:
         Global.env.filters["guides_in_progress"] = Global.guides_in_progress
         Global.env.filters["get_image_path"] = Global.get_image_path
         Global.env.filters["get_image_url"] = Global.get_image_url
-        Global.env.filters[
-            "convert_title_to_filename"
-        ] = Global.convert_title_to_filename
         Global.env.filters["cleanup_rendered_content"] = Global.cleanup_rendered_content
 
     @staticmethod
@@ -153,7 +150,7 @@ class Global:
     href_object_kind_regex = (
         r"^(?:https*://[\w\.]*(?:ifixit)[\w\.]*)*/"
         r"(?P<kind>Device|Topic|User|Team|Info|Wiki|Store|Boutique|Tienda|Guide|"
-        r"Anleitung|Guía|Guida|Tutoriel)/.*?(?P<object>[\w%_-]*)$"
+        r"Anleitung|Guía|Guida|Tutoriel).*/(?P<object>[\w%_-]*)(?P<after>.*)$"
     )
     href_regex = re.compile(
         f"{href_anchor_regex}|{href_object_kind_regex}", flags=re.IGNORECASE
@@ -161,6 +158,11 @@ class Global:
 
     @staticmethod
     def _process_href_regex(str):
+        if "Guide/login/register" in str:
+            return "../home/placeholder.html"
+        if "Guide/new" in str:
+            return "../home/placeholder.html"
+
         found_none = True
         found_one = False
         for match in Global.href_regex.finditer(str):
@@ -173,9 +175,15 @@ class Global:
                 return f"ANCHOR_{match.group('anchor')}"
             elif match.group("kind"):
                 if match.group("kind").lower() in ["device", "topic"]:
-                    return f"../categories/category_{match.group('object')}.html"
+                    return (
+                        f"{Global.get_category_link(match.group('object'))}"
+                        f"{match.group('after')}"
+                    )
                 elif match.group("kind").lower() in ["info"]:
-                    return f"../infos/info_{match.group('object')}.html"
+                    return (
+                        f"{Global.get_info_link(match.group('object'))}"
+                        f"{match.group('after')}"
+                    )
                 elif match.group("kind").lower() in ["user", "team", "info", "wiki"]:
                     return "../home/placeholder.html"
                 elif match.group("kind").lower() in ["store", "boutique", "tienda"]:
@@ -187,7 +195,10 @@ class Global:
                     "guida",
                     "tutoriel",
                 ]:
-                    return f"../guides/guide_{match.group('object')}.html"
+                    return (
+                        f"{Global.get_guide_link(match.group('object'))}"
+                        f"{match.group('after')}"
+                    )
                 else:
                     raise Exception(
                         f"Unsupported kind '{match.group('kind')}'"
