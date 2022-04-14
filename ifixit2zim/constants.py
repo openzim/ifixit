@@ -128,6 +128,20 @@ DIFFICULTY_VERY_HARD = [
 # https://www.ifixit.com/Guide/MacBook+Air+11-Inch+Late+2010+Battery+Replacement/4384
 # https://www.ifixit.com/Teardown/Apple+Watch+Teardown/40655
 
+HOME_LABELS = {
+    "en": {"top_title": "Repair guides for every thing, written by everyone."},
+    "fr": {"top_title": "Tutoriels de réparation pour tout, écrits par tous."},
+    "pt": {"top_title": "Guias de reparo para tudo, escritos por todos."},
+    "de": {"top_title": "Reparaturanleitungen für alles, geschrieben von allen."},
+    "ko": {"top_title": "모두가 작성한, 모든 것을 수리하는 안내서."},
+    "zh": {"top_title": "大家齐心协力写出的包罗万象的免费修理指南。"},
+    "ru": {"top_title": "Руководства по ремонту всего, от всех."},
+    "nl": {"top_title": "Reparatiehandleidingen voor alles, door iedereen."},
+    "ja": {"top_title": "修理を愛する人たちが作った、あらゆるモノへの修理ガイド"},
+    "tr": {"top_title": "Herkes tarafından, her şey için yazılmış tamir kılavuzları."},
+    "es": {"top_title": "Guías de reparación para todo, escritas por todos."},
+    "it": {"top_title": "Guide di riparazione per ogni cosa, scritte da tutti."},
+}
 CATEGORY_LABELS = {
     "en": {
         "author": "Author: ",

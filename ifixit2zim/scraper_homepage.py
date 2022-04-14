@@ -3,7 +3,7 @@
 import json
 import re
 
-from .constants import DEFAULT_HOMEPAGE
+from .constants import DEFAULT_HOMEPAGE, HOME_LABELS
 from .exceptions import CategoryHomePageContentError
 from .scraper_generic import ScraperGeneric
 from .shared import Global, logger
@@ -55,11 +55,15 @@ class ScraperHomepage(ScraperGeneric):
         )
 
         homepage = self.homepage_template.render(
-            home_content=home_content, metadata=Global.metadata
+            home_content=home_content,
+            metadata=Global.metadata,
+            label=HOME_LABELS[Global.conf.lang_code],
         )
 
         placeholder = self.placeholder_template.render(
-            home_content=home_content, metadata=Global.metadata
+            home_content=home_content,
+            metadata=Global.metadata,
+            label=HOME_LABELS[Global.conf.lang_code],
         )
 
         with Global.lock:
