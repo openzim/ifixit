@@ -22,6 +22,15 @@ URLS = {
     "en": "https://www.ifixit.com",
     "fr": "https://fr.ifixit.com",
     "pt": "https://pt.ifixit.com",
+    "de": "https://de.ifixit.com",
+    "ru": "https://ru.ifixit.com",
+    "ko": "https://ko.ifixit.com",
+    "zh": "https://zh.ifixit.com",
+    "nl": "https://nl.ifixit.com",
+    "ja": "https://jp.ifixit.com",
+    "tr": "https://tr.ifixit.com",
+    "es": "https://es.ifixit.com",
+    "it": "https://it.ifixit.com",
 }
 
 DEFAULT_GUIDE_IMAGE_URL = (
@@ -224,7 +233,7 @@ CATEGORY_LABELS = {
         "teardown_guides": "Demontages",
         "disassembly_guides": "Demontagehandleidingen",
     },
-    "jp": {
+    "ja": {
         "author": "作成者: ",
         "categories_before": "",
         "categories_after": " カテゴリー",
@@ -423,7 +432,7 @@ GUIDE_LABELS = {
         "published": "Gepubliceerd: ",
         "teardown": "Uit elkaar gehaald",
     },
-    "jp": {
+    "ja": {
         "written_by": "作成者：",
         "difficulty": "難易度",
         "steps": "手順",
