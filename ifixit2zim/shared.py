@@ -100,10 +100,7 @@ class Global:
     def guides_in_progress(guides, in_progress=True):
         if in_progress:
             return [guide for guide in guides if "GUIDE_IN_PROGRESS" in guide["flags"]]
-        else:
-            return [
-                guide for guide in guides if "GUIDE_IN_PROGRESS" not in guide["flags"]
-            ]
+        return [guide for guide in guides if "GUIDE_IN_PROGRESS" not in guide["flags"]]
 
     @staticmethod
     def get_image_path(image_url):
@@ -113,20 +110,19 @@ class Global:
     def _get_image_url_search(obj, for_guide, for_device, for_wiki):
         if "standard" in obj:
             return obj["standard"]
-        elif "medium" in obj:
+        if "medium" in obj:
             return obj["medium"]
-        elif "large" in obj:
+        if "large" in obj:
             return obj["large"]
-        elif "original" in obj:
+        if "original" in obj:
             return obj["original"]
-        elif for_guide:
+        if for_guide:
             return DEFAULT_GUIDE_IMAGE_URL
-        elif for_device:
+        if for_device:
             return DEFAULT_DEVICE_IMAGE_URL
-        elif for_wiki:
+        if for_wiki:
             return DEFAULT_WIKI_IMAGE_URL
-        else:
-            raise ImageUrlNotFound(f"Unable to find image URL in object {obj}")
+        raise ImageUrlNotFound(f"Unable to find image URL in object {obj}")
 
     @staticmethod
     def get_image_url(obj, for_guide=False, for_device=False, for_wiki=False):
@@ -134,8 +130,7 @@ class Global:
             return Global._get_image_url_search(
                 obj["image"], for_guide, for_device, for_wiki
             )
-        else:
-            return Global._get_image_url_search(obj, for_guide, for_device, for_wiki)
+        return Global._get_image_url_search(obj, for_guide, for_device, for_wiki)
 
     guide_regex_full = re.compile(
         r"href=\"https://\w*\.ifixit\.\w*/Guide/.*/(?P<guide_id>\d*)\""
@@ -157,38 +152,38 @@ class Global:
     )
 
     @staticmethod
-    def _process_href_regex(str):
-        if "Guide/login/register" in str:
+    def _process_href_regex(href):
+        if "Guide/login/register" in href:
             return "../home/placeholder.html"
-        if "Guide/new" in str:
+        if "Guide/new" in href:
             return "../home/placeholder.html"
 
         found_none = True
         found_one = False
-        for match in Global.href_regex.finditer(str):
+        for match in Global.href_regex.finditer(href):
             if found_one:
-                logger.warn(f"Too many matches in _process_href_regex for '{str}'")
-                return str
+                logger.warn(f"Too many matches in _process_href_regex for '{href}'")
+                return href
             found_one = True
             found_none = False
             if match.group("anchor"):
                 return f"ANCHOR_{match.group('anchor')}"
-            elif match.group("kind"):
+            if match.group("kind"):
                 if match.group("kind").lower() in ["device", "topic"]:
                     return (
                         f"{Global.get_category_link(match.group('object'))}"
                         f"{match.group('after')}"
                     )
-                elif match.group("kind").lower() in ["info"]:
+                if match.group("kind").lower() in ["info"]:
                     return (
                         f"{Global.get_info_link(match.group('object'))}"
                         f"{match.group('after')}"
                     )
-                elif match.group("kind").lower() in ["user", "team", "info", "wiki"]:
+                if match.group("kind").lower() in ["user", "team", "info", "wiki"]:
                     return "../home/placeholder.html"
-                elif match.group("kind").lower() in ["store", "boutique", "tienda"]:
+                if match.group("kind").lower() in ["store", "boutique", "tienda"]:
                     return "../home/placeholder.html"
-                elif match.group("kind").lower() in [
+                if match.group("kind").lower() in [
                     "guide",
                     "anleitung",
                     "guía",
@@ -199,15 +194,13 @@ class Global:
                         f"{Global.get_guide_link(match.group('object'))}"
                         f"{match.group('after')}"
                     )
-                else:
-                    raise Exception(
-                        f"Unsupported kind '{match.group('kind')}'"
-                        " in _process_href_regex"
-                    )
-            else:
-                raise Exception("Unsupported match in _process_href_regex")
+                raise Exception(
+                    f"Unsupported kind '{match.group('kind')}'"
+                    " in _process_href_regex"
+                )
+            raise Exception("Unsupported match in _process_href_regex")
         if found_none:
-            return str
+            return href
 
     @staticmethod
     def _process_gbl_regex(match):
@@ -216,14 +209,13 @@ class Global:
                 f"<img{match.group('image_before')}"
                 f"src=\"{Global.get_image_path(match.group('image_url'))}\""
             )
-        elif match.group("href_url"):
+        if match.group("href_url"):
             return f"href=\"{Global._process_href_regex(match.group('href_url'))}\""
-        else:
-            raise Exception("Unsupported match in cleanup_rendered_content")
+        raise Exception("Unsupported match in cleanup_rendered_content")
 
     @staticmethod
-    def cleanup_rendered_content(str):
-        return re.sub(Global.gbl_regex, Global._process_gbl_regex, str)
+    def cleanup_rendered_content(content):
+        return re.sub(Global.gbl_regex, Global._process_gbl_regex, content)
 
     @staticmethod
     def convert_title_to_filename(title):
