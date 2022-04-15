@@ -64,10 +64,9 @@
                     </h1>
 
                     <div class="guide-author guide-title-subtext">
-                      {{label['written_by']}} {{guide['author']['username']}}
-                      <!-- TODO: Retrieve user profiles
-                                                       Display other contributors
-                                                       Retrieve page history -->
+                      {{label['written_by']}} 
+                      <a class="guide-title-subtext-strong" href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">{{guide['author']['username']}}</a>
+                      <!-- TODO: Display other contributors + Retrieve page history -->
                     </div>
                     {% if guide['type'] == 'teardown' %}
                     <div class="guide-published-date guide-title-subtext">
@@ -436,9 +435,7 @@
 
                     <div class="author-meta row">
                       <div class="author-photo column">
-                        <!-- TODO: Retrieve user profiles: href="https://fr.ifixit.com/User/3366811/Kaylie+Klausing"-->
-                        <a>
-                          <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
+                        <a href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">
                           <img
                             alt=""
                             src="{{rel_prefix}}{{guide['author'] | get_image_url | get_image_path }}"
@@ -450,8 +447,7 @@
 
                       <div class="author-info column">
                         <h4>
-                          <!-- TODO: Retrieve user profiles: href="https://fr.ifixit.com/User/3366811/Kaylie+Klausing"-->
-                          <a> {{guide['author']['username']}} </a>
+                          <a href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">{{guide['author']['username']}}</a>
                         </h4>
 
                         {% if guide['author']['join_date_rendered'] %}

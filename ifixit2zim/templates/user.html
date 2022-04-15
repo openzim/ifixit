@@ -1,0 +1,75 @@
+{% set rel_prefix="../../" %}
+{% set bodyFullWidth = False %}
+{% extends "base.html" %}
+{% block title %}{{user['username']}}{% endblock title%}
+{% block specific_head %}
+<link type="text/css" href="{{rel_prefix}}assets/Wiki-common-Zf5O-KLmFhhZ0w9cRZYZoQ.css" rel="stylesheet" as="style">
+<link type="text/css" href="{{rel_prefix}}assets/view_profile-LAZ9O7S0EMQ9_BZEO-F8OQ.css" rel="stylesheet" as="style">
+{% endblock specific_head%} {% block content %}
+<div id="page">
+  <div id="main">
+    <div id="mainBody">
+      <!-- MAIN BODY -->
+      <div id="sidebarFloat" class="hideOnWikiSplit">
+        <div id="sidebar">
+          <div class="sidebarBox sidebarBoxMain" id="aboutBox">
+            <h1 id="aboutBoxName" class="hidden-mobile">{{user['username']}}</h1>      
+            {% if user['unique_username'] %}
+            <span id="unique-username">
+              @{{user['unique_username']}} </span>
+            {% endif %}
+            <div id="aboutBoxSummary">
+              <div id="aboutBoxAvatar">
+                <img alt="User" src="{{rel_prefix}}{{user | get_image_url(for_user=True) | get_image_path}}" width="96" height="96">
+              </div>
+              <h2 class="visible-mobile">{{user['username']}}</h2>
+              <table id="userStatList">
+                <tbody>
+                  <tr>
+                    <td id="numReputation" class="statNum">{{user['reputation']}}</td>
+                    <td class="statDesc">{{label['reputation']}}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" class="memberSince">
+                      <em>{{label['member_since_before']}}{{user['join_date_rendered']}}{{label['member_since_after']}}</em>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="clearer"></div>
+            <div class="statuses">
+            </div>
+
+            <div class="clearer"></div>
+            {% if user['summary'] %}
+            <div id="aboutTextBox">
+              <p>{{user['summary']}}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if user['about_rendered'] %}
+      <div id="contentFloat">
+        <div id="content">
+          <div class="js-tab-content about ">
+            <div class="aboutContent">
+              <div class="user renderedText">
+                {{user['about_rendered'] | cleanup_rendered_content(rel_prefix) | safe}}
+              </div>
+            </div>
+          </div>
+         </div>
+      </div>
+      {% endif %}
+      <div class="clearer"></div>
+
+    </div> <!-- /mainBody -->
+
+    <div class="clearer"></div>
+  </div> <!-- /main -->
+</div>
+{% endblock content%}

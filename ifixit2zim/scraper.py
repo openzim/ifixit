@@ -13,6 +13,7 @@ from .scraper_category import ScraperCategory
 from .scraper_guide import ScraperGuide
 from .scraper_homepage import ScraperHomepage
 from .scraper_info import ScraperInfo
+from .scraper_user import ScraperUser
 from .shared import Global, GlobalMixin, logger
 from .utils import setup_s3_and_check_credentials
 
@@ -29,11 +30,13 @@ class ifixit2zim(GlobalMixin):
         self.scraper_guide = ScraperGuide()
         self.scraper_category = ScraperCategory()
         self.scraper_info = ScraperInfo()
+        self.scraper_user = ScraperUser()
         self.scrapers = [
             self.scraper_homepage,
             self.scraper_category,
             self.scraper_guide,
             self.scraper_info,
+            self.scraper_user,
         ]
 
     @property
@@ -191,11 +194,18 @@ class ifixit2zim(GlobalMixin):
         Global.env.filters[
             "get_info_link_from_props"
         ] = self.scraper_info.get_info_link_from_props
+        Global.env.filters[
+            "get_user_link_from_obj"
+        ] = self.scraper_user.get_user_link_from_obj
+        Global.env.filters[
+            "get_user_link_from_props"
+        ] = self.scraper_user.get_user_link_from_props
         Global.get_category_link_from_props = (
             self.scraper_category.get_category_link_from_props
         )
         Global.get_guide_link_from_props = self.scraper_guide.get_guide_link_from_props
         Global.get_info_link_from_props = self.scraper_info.get_info_link_from_props
+        Global.get_user_link_from_props = self.scraper_user.get_user_link_from_props
         for scraper in self.scrapers:
             scraper.setup()
         self.creator.start()

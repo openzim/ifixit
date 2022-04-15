@@ -49,6 +49,24 @@ DEFAULT_WIKI_IMAGE_URL = (
     "default_images/WikiNoImage_300x225.jpg"
 )
 
+DEFAULT_USER_IMAGE_URLS = [
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-1.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-2.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-3.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-4.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-5.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-6.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-7.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-8.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-9.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/"
+    "avatar-10.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/"
+    "avatar-11.standard",
+    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/"
+    "avatar-12.standard",
+]
+
 # Open this URL in the various languages to retrieve labels below
 # https://www.ifixit.com/api/2.0/guides?guideids=219,220,202,206,46465
 DIFFICULTY_VERY_EASY = [
@@ -522,6 +540,70 @@ GUIDE_LABELS = {
 }
 
 
+USER_LABELS = {
+    "en": {
+        "reputation": "Reputation",
+        "member_since": "Member Since ",
+        "member_since_after": "",
+    },
+    "fr": {
+        "reputation": "Réputation",
+        "member_since": "Membre depuis ",
+        "member_since_after": "",
+    },
+    "pt": {
+        "reputation": "Reputação",
+        "member_since": "Membro desde ",
+        "member_since_after": "",
+    },
+    "de": {
+        "reputation": "Reputation",
+        "member_since": "Mitglied seit ",
+        "member_since_after": "",
+    },
+    "ko": {
+        "reputation": "평판",
+        "member_since_before": "",
+        "member_since_after": " 부터 회원",
+    },
+    "zh": {
+        "reputation": "信誉积分",
+        "member_since_before": "",
+        "member_since_after": " 注册",
+    },
+    "ru": {
+        "reputation": "Репутация",
+        "member_since_before": "Пользователь с ",
+        "member_since_after": "",
+    },
+    "nl": {
+        "reputation": "Reputatie",
+        "member_since_before": "Lid sinds ",
+        "member_since_after": "",
+    },
+    "ja": {
+        "reputation": "ポイント",
+        "member_since_before": "メンバー登録日 ",
+        "member_since_after": "",
+    },
+    "tr": {
+        "reputation": "İtibar",
+        "member_since_before": "Üyelik tarihi: ",
+        "member_since_after": "",
+    },
+    "it": {
+        "reputation": "Reputazione",
+        "member_since_before": "Membro dal ",
+        "member_since_after": "",
+    },
+    "es": {
+        "reputation": "Reputación",
+        "member_since_before": "Miembro Desde ",
+        "member_since_after": "",
+    },
+}
+
+
 API_PREFIX = "/api/2.0"
 
 
@@ -553,6 +635,8 @@ class Conf:
     no_guide: Optional[bool] = False
     infos: Set[str] = field(default_factory=set)
     no_info: Optional[bool] = False
+    users: Set[str] = field(default_factory=set)
+    no_user: Optional[bool] = False
 
     # filesystem
     _output_dir: Optional[str] = "."

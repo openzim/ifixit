@@ -225,6 +225,22 @@ def main():
     )
 
     parser.add_argument(
+        "--user",
+        help="Only scrape this user (can be specified multiple times). "
+        "Specify the userid",
+        dest="users",
+        action="append",
+    )
+
+    parser.add_argument(
+        "--no-user",
+        help="Do not scrape any user.",
+        dest="no_user",
+        action="store_true",
+        default=False,
+    )
+
+    parser.add_argument(
         "--scrape-only-first-items",
         help="Scrape only first items of every type.",
         dest="scrape_only_first_items",

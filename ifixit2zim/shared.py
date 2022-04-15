@@ -18,6 +18,7 @@ from .constants import (
     DEFAULT_DEVICE_IMAGE_URL,
     DEFAULT_GUIDE_IMAGE_URL,
     DEFAULT_HOMEPAGE,
+    DEFAULT_USER_IMAGE_URLS,
     DEFAULT_WIKI_IMAGE_URL,
     NAME,
     ROOT_DIR,
@@ -114,7 +115,7 @@ class Global:
         return Global.imager.defer(url=image_url)
 
     @staticmethod
-    def _get_image_url_search(obj, for_guide, for_device, for_wiki):
+    def _get_image_url_search(obj, for_guide, for_device, for_wiki, for_user):
         if "standard" in obj:
             return obj["standard"]
         if "medium" in obj:
@@ -129,15 +130,22 @@ class Global:
             return DEFAULT_DEVICE_IMAGE_URL
         if for_wiki:
             return DEFAULT_WIKI_IMAGE_URL
+        if for_user and "userid" in obj:
+            idx = obj["userid"] % len(DEFAULT_USER_IMAGE_URLS) + 1
+            return DEFAULT_USER_IMAGE_URLS[idx]
         raise ImageUrlNotFound(f"Unable to find image URL in object {obj}")
 
     @staticmethod
-    def get_image_url(obj, for_guide=False, for_device=False, for_wiki=False):
+    def get_image_url(
+        obj, for_guide=False, for_device=False, for_wiki=False, for_user=False
+    ):
         if "image" in obj and obj["image"]:
             return Global._get_image_url_search(
-                obj["image"], for_guide, for_device, for_wiki
+                obj["image"], for_guide, for_device, for_wiki, for_user
             )
-        return Global._get_image_url_search(obj, for_guide, for_device, for_wiki)
+        return Global._get_image_url_search(
+            obj, for_guide, for_device, for_wiki, for_user
+        )
 
     guide_regex_full = re.compile(
         r"href=\"https://\w*\.ifixit\.\w*/Guide/.*/(?P<guide_id>\d*)\""
@@ -161,12 +169,14 @@ class Global:
     href_anchor_regex = r"^(?P<anchor>#.*)$"
     href_object_kind_regex = (
         r"^(?:https*://[\w\.]*(?:ifixit)[\w\.]*)*/"
-        r"((?:(?P<kind>User|Team|Wiki|Store|Boutique|Tienda).*/(?P<object>[\w%_\.-]+)"
+        r"((?:(?P<kind>Team|Wiki|Store|Boutique|Tienda).*/(?P<object>[\w%_\.-]+)"
         r"(?P<after>#.*)?.*)"
         r"|(?:(?P<guide>Guide|Anleitung|Guía|Guida|Tutoriel|Teardown)/"
         r"(?P<guidetitle>.+)/(?P<guideid>\d+)(?P<guideafter>#.*)?.*)"
         r"|(?:(?P<device>Device|Topic)/(?P<devicetitle>[\w%_\.-]+)"
         r"(?P<deviceafter>#.*)?.*)"
+        r"|(?P<user>User)/(?P<userid>\d*)/(?P<usertitle>[\w%_\.+-]+)"
+        r"(?P<userafter>#.*)?.*"
         r"|(?:(?P<info>Info)/(?P<infotitle>[\w%_\.-]+)(?P<infoafter>#.*)?.*))$"
     )
     href_regex = re.compile(
@@ -225,6 +235,11 @@ class Global:
         if match.group("info"):
             link = Global.get_info_link_from_props(info_title=match.group("infotitle"))
             return f"{rel_prefix}{link}" f"{match.group('infoafter') or ''}"
+        if match.group("user"):
+            link = Global.get_user_link_from_props(
+                userid=match.group("userid"), usertitle=match.group("usertitle")
+            )
+            return f"{rel_prefix}{link}" f"{match.group('userafter') or ''}"
         if match.group("kind"):
             if match.group("kind").lower() in ["user", "team", "wiki"]:
                 return (
