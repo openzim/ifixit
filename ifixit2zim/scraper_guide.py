@@ -10,7 +10,7 @@ from .constants import (
 )
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
-from .shared import Global
+from .shared import Global, logger
 from .utils import get_api_content, setlocale
 
 
@@ -24,16 +24,15 @@ class ScraperGuide(ScraperGeneric):
     def get_items_name(self):
         return "guide"
 
-    def _add_guide_to_scrape(self, guideid, locale, force=False):
-        if force or not Global.conf.categories:
-            self.add_item_to_scrape(
-                guideid,
-                {
-                    "guideid": guideid,
-                    "locale": locale,
-                },
-            )
-        return guideid
+    def _add_guide_to_scrape(self, guideid, locale, is_expected):
+        self.add_item_to_scrape(
+            guideid,
+            {
+                "guideid": guideid,
+                "locale": locale,
+            },
+            is_expected,
+        )
 
     def _get_guide_path_from_key(self, guide_key):
         return f"guides/guide_{guide_key}.html"
@@ -54,12 +53,32 @@ class ScraperGuide(ScraperGeneric):
                 )
             guideid = guide["guideid"]
             locale = guide["locale"]
-        guide_key = self._add_guide_to_scrape(guideid, locale)
-        return f"../{self._get_guide_path_from_key(guide_key)}"
+        if not Global.conf.guides and not Global.conf.no_guide:
+            self._add_guide_to_scrape(guideid, locale, False)
+        return f"../{self._get_guide_path_from_key(guideid)}"
 
     def build_expected_items(self):
-        # expected guides are added by the category processing
-        pass
+        if Global.conf.no_guide:
+            logger.info("No guide required")
+            return
+        if Global.conf.guides:
+            logger.info("Adding required guides as expected")
+            for guide in Global.conf.guides:
+                self._add_guide_to_scrape(guide, Global.conf.lang_code, True)
+            return
+        logger.info("Downloading list of guides")
+        limit = 200
+        offset = 0
+        while True:
+            guides = get_api_content("/guides", limit=limit, offset=offset)
+            if len(guides) == 0:
+                break
+            for guide in guides:
+                guideid = guide["guideid"]
+                locale = guide["locale"]
+                self._add_guide_to_scrape(guideid, locale, True)
+            offset += limit
+        logger.info("{} guides found".format(len(self.expected_items_keys)))
 
     def get_one_item_content(self, item_key, item_data):
         guideid = item_key

@@ -15,16 +15,17 @@ class ScraperCategory(ScraperGeneric):
     def get_items_name(self):
         return "category"
 
-    def _add_category_to_scrape(self, category_title, force=False):
-        category_key = Global.convert_title_to_filename(category_title.lower())
-        if force or not Global.conf.categories:
-            self.add_item_to_scrape(
-                category_key,
-                {
-                    "category_title": category_title,
-                },
-            )
-        return category_key
+    def _add_category_to_scrape(self, category_key, category_title, is_expected):
+        self.add_item_to_scrape(
+            category_key,
+            {
+                "category_title": category_title,
+            },
+            is_expected,
+        )
+
+    def _get_category_key_from_title(self, category_title):
+        return Global.convert_title_to_filename(category_title.lower())
 
     def _get_category_path_from_key(self, category_key):
         return f"categories/category_{category_key}.html"
@@ -39,41 +40,30 @@ class ScraperCategory(ScraperGeneric):
             raise UnexpectedDataKindException(
                 f"Impossible to extract category title from {category}"
             )
-        category_key = self._add_category_to_scrape(category_title)
+        category_key = self._get_category_key_from_title(category_title)
+        if not Global.conf.categories and not Global.conf.no_category:
+            self._add_category_to_scrape(category_key, category_title, False)
         return f"../{self._get_category_path_from_key(category_key)}"
 
-    def _process_categories(self, categories, force_include=False):
-        include_parents = False
+    def _process_categories(self, categories):
         for category in categories:
-            include_me = False
-            include_childs = False
-            if (
-                force_include
-                or category in Global.conf.categories
-                or Global.convert_title_to_filename(category) in Global.conf.categories
-            ):
-                include_me = True
-                include_childs = (
-                    Global.conf.categories_include_children or force_include
-                )
-
-            include_due_to_child = self._process_categories(
-                categories[category], include_childs
-            )
-
-            if include_me or include_due_to_child:
-                self._add_category_to_scrape(category, force=True)
-                include_parents = True
-
-        return include_parents
+            category_key = self._get_category_key_from_title(category)
+            self._add_category_to_scrape(category_key, category, True)
+            self._process_categories(categories[category])
 
     def build_expected_items(self):
-        logger.info("Building list of expected category")
+        if Global.conf.no_category:
+            logger.info("No category required")
+            return
+        if Global.conf.categories:
+            logger.info("Adding required categories as expected")
+            for category in Global.conf.categories:
+                category_key = self._get_category_key_from_title(category)
+                self._add_category_to_scrape(category_key, category, True)
+            return
+        logger.info("Downloading list of categories")
         categories = get_api_content("/categories", includeStubs=True)
-        self._process_categories(
-            categories,
-            (not Global.conf.categories) or (len(Global.conf.categories) == 0),
-        )
+        self._process_categories(categories)
         logger.info("{} categories found".format(len(self.expected_items_keys)))
 
     def get_one_item_content(self, item_key, item_data):

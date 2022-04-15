@@ -547,7 +547,11 @@ class Conf:
     # customization
     icon: Optional[str] = ""
     categories: Set[str] = field(default_factory=set)
-    categories_include_children: Optional[bool] = False
+    no_category: Optional[bool] = False
+    guides: Set[str] = field(default_factory=set)
+    no_guide: Optional[bool] = False
+    infos: Set[str] = field(default_factory=set)
+    no_info: Optional[bool] = False
 
     # filesystem
     _output_dir: Optional[str] = "."
@@ -566,6 +570,7 @@ class Conf:
     # debug/devel
     build_dir_is_tmp_dir: Optional[bool] = False
     keep_build_dir: Optional[bool] = False
+    scrape_only_first_items: Optional[bool] = False
     debug: Optional[bool] = False
     delay: Optional[float] = 0
     api_delay: Optional[float] = 0
@@ -614,5 +619,3 @@ class Conf:
                 if ";" in tag:
                     self.tag += [p.strip() for p in tag.split(";")]
                     self.tag.remove(tag)
-
-        self.categories = set() if self.categories is None else self.categories

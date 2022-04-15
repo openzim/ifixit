@@ -49,9 +49,17 @@ class ifixit2zim(GlobalMixin):
         logger.debug("Checking user-provided metadata")
 
         if not self.conf.name:
+            is_selection = (
+                self.conf.categories
+                or self.conf.guides
+                or self.conf.infos
+                or self.conf.no_category
+                or self.conf.no_guide
+                or self.conf.no_info
+            )
             self.conf.name = "ifixit_{lang}_{selection}".format(
                 lang=self.conf.language["iso-639-1"],
-                selection="selection" if self.conf.categories else "all",
+                selection="selection" if is_selection else "all",
             )
 
         period = datetime.now().strftime("%Y-%m")
@@ -184,9 +192,10 @@ class ifixit2zim(GlobalMixin):
                 for scraper in self.scrapers:
                     scraper.scrape_items()
                 needs_rerun = False
-                for scraper in self.scrapers:
-                    if not scraper.expected_items_queue.empty():
-                        needs_rerun = True
+                if not Global.conf.scrape_only_first_items:
+                    for scraper in self.scrapers:
+                        if not scraper.items_queue.empty():
+                            needs_rerun = True
                 if not needs_rerun:
                     break
 

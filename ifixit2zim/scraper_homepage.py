@@ -22,7 +22,7 @@ class ScraperHomepage(ScraperGeneric):
         return "home"
 
     def build_expected_items(self):
-        self.add_item_to_scrape(1, 1)
+        self.add_item_to_scrape(1, 1, True)
 
     def get_one_item_content(self, item_key, item_data):
         soup, _ = get_soup("/Guide")

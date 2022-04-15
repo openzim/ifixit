@@ -185,13 +185,51 @@ def main():
     )
 
     parser.add_argument(
-        "--categories_include_children",
-        help="If only specific categories are requested with the paramter --category,"
-        " this parameter specifies that we also want their children categories in the"
-        " given ZIM",
-        default=False,
+        "--no-category",
+        help="Do not scrape any category.",
+        dest="no_category",
         action="store_true",
-        dest="categories_include_children",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--guide",
+        help="Only scrape this guide (can be specified multiple times). "
+        "Specify the guide name",
+        dest="guides",
+        action="append",
+    )
+
+    parser.add_argument(
+        "--no-guide",
+        help="Do not scrape any guide.",
+        dest="no_guide",
+        action="store_true",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--info",
+        help="Only scrape this info (can be specified multiple times). "
+        "Specify the info name",
+        dest="infos",
+        action="append",
+    )
+
+    parser.add_argument(
+        "--no-info",
+        help="Do not scrape any info.",
+        dest="no_info",
+        action="store_true",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--scrape-only-first-items",
+        help="Scrape only first items of every type.",
+        dest="scrape_only_first_items",
+        action="store_true",
+        default=False,
     )
 
     args = parser.parse_args()

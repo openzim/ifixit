@@ -14,16 +14,17 @@ class ScraperInfo(ScraperGeneric):
     def get_items_name(self):
         return "info"
 
-    def _add_info_to_scrape(self, info_title, force=False):
-        info_key = Global.convert_title_to_filename(info_title.lower())
-        if force or not Global.conf.categories:
-            self.add_item_to_scrape(
-                info_key,
-                {
-                    "info_title": info_title,
-                },
-            )
-        return info_key
+    def _add_info_to_scrape(self, info_key, info_title, is_expected):
+        self.add_item_to_scrape(
+            info_key,
+            {
+                "info_title": info_title,
+            },
+            is_expected,
+        )
+
+    def _get_info_key_from_title(self, info_title):
+        return Global.convert_title_to_filename(info_title.lower())
 
     def _get_info_path_from_key(self, info_key):
         return f"infos/info_{info_key}.html"
@@ -38,10 +39,21 @@ class ScraperInfo(ScraperGeneric):
             raise UnexpectedDataKindException(
                 f"Impossible to extract info title from {info}"
             )
-        info_key = self._add_info_to_scrape(info_title)
+        info_key = self._get_info_key_from_title(info_title)
+        if not Global.conf.infos and not Global.conf.no_info:
+            self._add_info_to_scrape(info_key, info_title, False)
         return f"../{self._get_info_path_from_key(info_key)}"
 
     def build_expected_items(self):
+        if Global.conf.no_info:
+            logger.info("No info required")
+            return
+        if Global.conf.infos:
+            logger.info("Adding required infos as expected")
+            for info_title in Global.conf.infos:
+                info_key = self._get_info_key_from_title(info_title)
+                self._add_info_to_scrape(info_key, info_title, True)
+            return
         logger.info("Downloading list of info")
         limit = 200
         offset = 0
@@ -50,7 +62,9 @@ class ScraperInfo(ScraperGeneric):
             if len(info_wikis) == 0:
                 break
             for info_wiki in info_wikis:
-                self._add_info_to_scrape(info_wiki["title"], force=True)
+                info_title = info_wiki["title"]
+                info_key = self._get_info_key_from_title(info_title)
+                self._add_info_to_scrape(info_key, info_title, True)
             offset += limit
         logger.info("{} info found".format(len(self.expected_items_keys)))
 
