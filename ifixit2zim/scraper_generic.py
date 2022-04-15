@@ -42,13 +42,13 @@ class ScraperGeneric(ABC):
             return
         if is_expected:
             logger.debug(f"Adding {self.get_items_name()} {item_key} to scraping queue")
-            self.expected_items_keys[item_key]=item_data
+            self.expected_items_keys[item_key] = item_data
         else:
             logger.warning(
                 f"Adding unexpected {self.get_items_name()} {item_key} "
                 "to scraping queue"
             )
-            self.unexpected_items_keys[item_key]=item_data
+            self.unexpected_items_keys[item_key] = item_data
         self.items_queue.put(
             {
                 "key": item_key,
