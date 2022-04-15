@@ -8,8 +8,8 @@ from .shared import Global, logger
 
 class ScraperGeneric(ABC):
     def __init__(self):
-        self.expected_items_keys = set()
-        self.unexpected_items_keys = set()
+        self.expected_items_keys = dict()
+        self.unexpected_items_keys = dict()
         self.items_queue = Queue()
         self.missing_items_keys = set()
         self.error_items_keys = set()
@@ -42,13 +42,13 @@ class ScraperGeneric(ABC):
             return
         if is_expected:
             logger.debug(f"Adding {self.get_items_name()} {item_key} to scraping queue")
-            self.expected_items_keys.add(item_key)
+            self.expected_items_keys[item_key]=item_data
         else:
             logger.warning(
                 f"Adding unexpected {self.get_items_name()} {item_key} "
                 "to scraping queue"
             )
-            self.unexpected_items_keys.add(item_key)
+            self.unexpected_items_keys[item_key]=item_data
         self.items_queue.put(
             {
                 "key": item_key,
