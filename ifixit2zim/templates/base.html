@@ -32,7 +32,7 @@
 
     {% block specific_head %}{% endblock %}
 </head>
-<body class="page-background-gradient fr responsive fullWidth user-guide chakra-ui-light">
+<body class="page-background-gradient fr responsive {% if bodyFullWidth %}fullWidth{% endif %} user-guide chakra-ui-light">
     <div id="background">
         {% block content %}{% endblock %}
         <div class="clearer"></div>
