@@ -11,6 +11,7 @@ from zimscraperlib.i18n import get_language_details
 ROOT_DIR = pathlib.Path(__file__).parent
 NAME = ROOT_DIR.name
 DEFAULT_HOMEPAGE = "Main-Page"
+UNKNOWN_LOCALE = "unknown"
 
 with open(ROOT_DIR.joinpath("VERSION"), "r") as fh:
     VERSION = fh.read().strip()

@@ -7,6 +7,7 @@ from .constants import (
     DIFFICULTY_VERY_EASY,
     DIFFICULTY_VERY_HARD,
     GUIDE_LABELS,
+    UNKNOWN_LOCALE,
 )
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
@@ -53,6 +54,12 @@ class ScraperGuide(ScraperGeneric):
                 )
             guideid = guide["guideid"]
             locale = guide["locale"]
+            # override unknown locale if needed
+            if (
+                guideid in self.expected_items_keys
+                and self.expected_items_keys[guideid]["locale"] == UNKNOWN_LOCALE
+            ):
+                self.expected_items_keys[guideid]["locale"] = locale
         if not Global.conf.guides and not Global.conf.no_guide:
             self._add_guide_to_scrape(guideid, locale, False)
         return f"../{self._get_guide_path_from_key(guideid)}"
@@ -64,7 +71,7 @@ class ScraperGuide(ScraperGeneric):
         if Global.conf.guides:
             logger.info("Adding required guides as expected")
             for guide in Global.conf.guides:
-                self._add_guide_to_scrape(guide, Global.conf.lang_code, True)
+                self._add_guide_to_scrape(guide, UNKNOWN_LOCALE, True)
             return
         logger.info("Downloading list of guides")
         limit = 200
@@ -75,16 +82,25 @@ class ScraperGuide(ScraperGeneric):
                 break
             for guide in guides:
                 guideid = guide["guideid"]
-                locale = guide["locale"]
-                self._add_guide_to_scrape(guideid, locale, True)
+                # Unfortunately for now iFixit API always returns "en" as language on
+                # this endpoint, so we consider it as unknown
+                self._add_guide_to_scrape(guideid, UNKNOWN_LOCALE, True)
             offset += limit
         logger.info("{} guides found".format(len(self.expected_items_keys)))
 
     def get_one_item_content(self, item_key, item_data):
         guideid = item_key
         guide = item_data
+        locale = guide["locale"]
+        if locale == UNKNOWN_LOCALE:
+            locale = Global.conf.lang_code  # fallback value
+        if locale == "ja":
+            locale = "jp"  # Unusual iFixit convention
 
-        guide_content = get_api_content(f"/guides/{guideid}", langid=guide["locale"])
+        guide_content = get_api_content(f"/guides/{guideid}", langid=locale)
+        if guide_content is None and locale != "en":
+            # guide is most probably available in English anyway
+            guide_content = get_api_content(f"/guides/{guideid}", langid="en")
 
         return guide_content
 
