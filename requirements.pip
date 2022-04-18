@@ -1,8 +1,6 @@
 requests>=2.26.0,<2.27
 zimscraperlib>=1.4.0,<1.5
 kiwixstorage>=0.8.1,<0.9
-sqlalchemy==1.4.32
 Jinja2==3.1.1
 backoff==1.11.1 
-python-worker==1.8.1
 pif>=0.8.2,<0.9
