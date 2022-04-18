@@ -86,6 +86,12 @@ class ScraperGuide(ScraperGeneric):
                 # this endpoint, so we consider it as unknown
                 self._add_guide_to_scrape(guideid, UNKNOWN_LOCALE, True)
             offset += limit
+            if Global.conf.scrape_only_first_items:
+                logger.warning(
+                    "Aborting the retrieval of all guides since only first items"
+                    " will be scraped anyway"
+                )
+                break
         logger.info("{} guides found".format(len(self.expected_items_keys)))
 
     def get_one_item_content(self, item_key, item_data):

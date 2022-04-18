@@ -72,8 +72,8 @@ class ScraperGeneric(ABC):
     def scrape_items(self):
 
         logger.info(
-            f"Scraping {self.get_items_name()} items ({self.items_queue.qsize()} "
-            "expected)"
+            f"Scraping {self.get_items_name()} items ({self.items_queue.qsize()}"
+            " items remaining)"
         )
 
         num_items = 1
@@ -85,8 +85,8 @@ class ScraperGeneric(ABC):
                 item_key = item["key"]
                 item_data = item["data"]
                 logger.info(
-                    f"Scraping {self.get_items_name()} {item_key} ({num_items}/"
-                    f"{len(self.expected_items_keys)+len(self.unexpected_items_keys)})"
+                    f"  Scraping {self.get_items_name()} {item_key}"
+                    f" ({self.items_queue.qsize()} items remaining)"
                 )
                 self.scrape_one_item(item_key, item_data)
             except Exception as ex:

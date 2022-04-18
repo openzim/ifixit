@@ -66,6 +66,12 @@ class ScraperInfo(ScraperGeneric):
                 info_key = self._get_info_key_from_title(info_title)
                 self._add_info_to_scrape(info_key, info_title, True)
             offset += limit
+            if Global.conf.scrape_only_first_items:
+                logger.warning(
+                    "Aborting the retrieval of all infos since only first items"
+                    " will be scraped anyway"
+                )
+                break
         logger.info("{} info found".format(len(self.expected_items_keys)))
 
     def get_one_item_content(self, item_key, item_data):
