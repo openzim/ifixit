@@ -21,7 +21,7 @@ docker run -v my_dir:/output openzim/ifixit ifixit2zim --help
 
 ### Python
 
-`ifixit2zim` is a Python3 (**3.6+**) software. If you are not using the [Docker](https://docker.com) image, you are advised to use it in a virtual environment to avoid installing software dependencies on your system.
+`ifixit2zim` is a Python3 (**3.6+**) software. If you are not using the [Docker](https://docker.com) image, you are advised to use it in a virtual environment to avoid installing software dependencies on your system. In addition to Python3, you also need to have an up-to-date installation of pip, setuptools and wheel as recommanded [here](https://packaging.python.org/en/latest/tutorials/installing-packages/#id14) (wheel is important since you will have to build some dependencies).
 
 ```bash
 python3 -m venv .venv
