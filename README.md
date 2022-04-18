@@ -9,13 +9,49 @@
 
 This scraper downloads the iFixit resources (categories, guides, ...) and puts them in a ZIM file, a clean and user friendly format for storing content for offline usage.
 
-For now, this tool is still under active development. Most recent version of the tool is located in the `develop` branch or any of its sub-branches.
+## Usage
 
-## Develop
+`ifixit2zim` works off a *language version* that you must provide via the `--language` argument. The list of supported languages is visible in the `--help` message.
 
-If you want to help us by enhancing this scraper with some additional / better code, 
-feel free to choose an open issue without assignee and work on it. If you are not used 
-to Kiwix scrapper development, you will find some guidance below.
+### Docker
+
+```bash
+docker run -v my_dir:/output openzim/ifixit ifixit2zim --help
+```
+
+### Python
+
+`ifixit2zim` is a Python3 (**3.6+**) software. If you are not using the [Docker](https://docker.com) image, you are advised to use it in a virtual environment to avoid installing software dependencies on your system.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+
+# using published version
+pip3 install ifixit2zim
+ifixit2zim --help
+
+# running from source
+pip3 install -r requirements.pip
+python3 ifixit2zim/ --help
+```
+
+Call `deactivate` to quit the virtual environment.
+
+See `requirements.txt` for the list of python dependencies.
+
+
+## Contributing
+
+**All contributions are welcome!**
+
+Please open an issue on Github and/or submit a Pull-request.
+
+### Guidelines
+
+- Don't take assigned issues. Comment if those get staled.
+- If your contribution is far from trivial, open an issue to discuss it first.
+- Ensure your code passed [black formatting](https://pypi.org/project/black/), [isort](https://pypi.org/project/isort/) and [flake8](https://pypi.org/project/flake8/) (88 chars)
 
 ### Create an appropriate Python environment
 
@@ -41,7 +77,7 @@ Docker container as explained below.
 
 First, build the Docker image (to be ran in the main folder of this repo):
 ```
-docker build -t openzim/fixit:local .
+docker build -t openzim/ifixit:local .
 ```
 
 Then run the scraper with CLI arguments needed for your test (everything after `ifixit2zim` in the example below).
