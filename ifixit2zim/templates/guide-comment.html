@@ -1,0 +1,11 @@
+<div id="comment-{{ comment['commentid']}}" class="comment ">
+    <div class="commentContent">
+        {{curcomment['text_rendered'] | cleanup_rendered_content(rel_prefix) | safe}}
+    </div>
+    <p class="commentMeta">
+        <a href="{{rel_prefix}}{{ curcomment['author'] | get_user_link_from_obj}}">{{ curcomment['author']['username'] }}</a> -
+        <a href="#comment-{{ curcomment['commentid']}}" class="js-permalink comment-date">
+            <time>{{ curcomment['modified_date'] | get_timestamp_day_rendered }}</time>
+        </a>
+    </p>
+</div>

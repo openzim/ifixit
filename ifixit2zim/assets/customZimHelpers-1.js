@@ -6,3 +6,12 @@ function switchStepImage(element, mainImgId, className, divThubId) {
   }
   document.getElementById(divThubId).classList.add("active");
 }
+
+function switchCommentsVisibility(stepCommentsId) {
+  elem = document.getElementById(stepCommentsId);
+  if (elem.classList.contains("hide-comments")) {
+    elem.classList.remove("hide-comments");
+  } else {
+    elem.classList.add("hide-comments");
+  }
+}

@@ -116,6 +116,10 @@ class Global:
         Global.env.filters[
             "get_timestamp_day_rendered"
         ] = Global.get_timestamp_day_rendered
+        Global.env.filters["get_item_comments_count"] = Global.get_item_comments_count
+        Global.env.filters[
+            "get_guide_total_comments_count"
+        ] = Global.get_guide_total_comments_count
 
     @staticmethod
     def _raise_helper(msg):
@@ -148,7 +152,7 @@ class Global:
         if for_wiki:
             return DEFAULT_WIKI_IMAGE_URL
         if for_user and "userid" in obj:
-            idx = obj["userid"] % len(DEFAULT_USER_IMAGE_URLS) + 1
+            idx = obj["userid"] % len(DEFAULT_USER_IMAGE_URLS)
             return DEFAULT_USER_IMAGE_URLS[idx]
         raise ImageUrlNotFound(f"Unable to find image URL in object {obj}")
 
@@ -375,12 +379,29 @@ class Global:
                 )
 
     @staticmethod
+    def get_item_comments_count(item):
+        if "comments" not in item:
+            return 0
+        total = 0
+        for comment in item["comments"]:
+            total += 1
+            if "replies" in comment:
+                total += len(comment["replies"])
+        return total
+
+    @staticmethod
+    def get_guide_total_comments_count(guide):
+        total = Global.get_item_comments_count(guide)
+        for step in guide["steps"]:
+            total += Global.get_item_comments_count(step)
+        return total
+
+    @staticmethod
     def get_timestamp_day_rendered(timestamp):
         with setlocale("en_GB"):
             if timestamp:
                 return datetime.strftime(datetime.fromtimestamp(timestamp), "%x")
-            else:
-                return ""
+            return ""
 
 
 class GlobalMixin:

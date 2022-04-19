@@ -73,6 +73,15 @@
                       {{label['published']}}{{guide['published_date'] | get_timestamp_day_rendered}}
                     </div>
                     {% endif %}
+                    <ul class="stats-container visible-desktop">
+                      <li class="comments-count">
+                        <i class="svg-icon" style="width: 16px; height: 16px;">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.946l-2.206 3.53a1 1 0 0 1-1.696 0L4.946 12H2a2 2 0 0 1-2-2V2zm14 0H2v8h4.054L8 13.113 9.946 10H14V2z"></path>
+                          </svg>
+                        </i>{{label['comments_stats_title']}}<span class="stats-value" >{{guide | get_guide_total_comments_count}}</span>
+                      </li>
+                   </ul>
                   </div>
                   <div class="guide-metadata guide-main-image-container">
                     {% if guide['type'] == 'teardown' %}
@@ -380,6 +389,33 @@
                     <div class="js-comment-container">
                       <div class="row divider comments-button-container">
                         <div class="column four-fifths divider-content"></div>
+                        <div class="column add-comment-button-container readonly-hidden">
+                          <button class="button button-link add-comment-button right
+                        js-show-comments js-comment-count js-add-comment has-comments "
+                        {% if step | get_item_comments_count > 0 %}onclick="switchCommentsVisibility('comments-step-{{step['stepid']}}')"{% endif %}>
+                            <i class="svg-icon" style="width: 16px; height: 16px;">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                                fill="currentColor">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                  d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.946l-2.206 3.53a1 1 0 0 1-1.696 0L4.946 12H2a2 2 0 0 1-2-2V2zm14 0H2v8h4.054L8 13.113 9.946 10H14V2z">
+                                </path>
+                              </svg>
+                            </i>
+                            {% if step | get_item_comments_count == 1 %}
+                              {{label['comments_count_one']}}
+                            {% else %}
+                              {{label['comments_count_before']}}{{step|get_item_comments_count}}{{label['comments_count_after']}}
+                            {% endif %}
+                          </button>
+                        </div>
+                      </div>
+                      <div id="comments-step-{{step['stepid']}}" class="row comments-container hide-comments" style="height: auto; opacity: 1;">
+                        <div class="column column-card step-comments">
+                          <div class="js-comments">
+                            {% set curitem=step %}
+                            {% include 'guide-comments.html' %}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -471,11 +507,33 @@
                 </div>
               </div>
             </div>
+
+            <div>
+              <div class="guide-comments-container container">
+                <div class="column comments js-comment-container js-page-comments" id="guide-comments-container">
+                  <div class="row comments-header">
+                    <div class="hidden-mobile">
+                      <h3 class="js-comment-count">
+                        {% if guide | get_item_comments_count == 1 %}
+                          {{label['comments_count_one']}}
+                        {% else %}
+                          {{label['comments_count_before']}}{{guide|get_item_comments_count}}{{label['comments_count_after']}}
+                        {% endif %}
+                      </h3>
+                    </div>
+                  </div>
+                  <div id="comments" class="readonly-disabled js-comments">
+                    {% set curitem=guide %}
+                    {% include 'guide-comments.html' %}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <div class="clearer"></div>
-      <script type="text/javascript" src="{{rel_prefix}}assets/switchImages.js"></script>
+      <script type="text/javascript" src="{{rel_prefix}}assets/customZimHelpers-1.js"></script>
     </div>
     <!-- /mainBody -->
 

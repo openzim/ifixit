@@ -24,6 +24,7 @@ class ScraperUser(ScraperGeneric):
                 "userid": userid,
             },
             is_expected,
+            False,
         )
 
     def _build_user_path(self, userid, usertitle):

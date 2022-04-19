@@ -76,3 +76,7 @@ div.homepage-top h1 {
   padding-bottom: 24px;
   color: rgb(255, 255, 255);
 }
+
+div.hide-comments {
+  display: none;
+}

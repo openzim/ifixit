@@ -14,7 +14,7 @@
             <p class="summary originalText">{{info_wiki['description']}}</p>
             <div id="Wiki_Details">
               <div id="wikiRenderedText" class="wikiRenderedText renderedText originalText">
-                {{info_wiki['contents_rendered'] | cleanup_rendered_content | safe}}
+                {{info_wiki['contents_rendered'] | cleanup_rendered_content(rel_prefix) | safe}}
               </div>
             </div>
             <div class="clearer"></div>

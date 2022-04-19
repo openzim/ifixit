@@ -36,7 +36,9 @@ class ScraperGeneric(ABC):
     def process_one_item(self, item_key, item_data, item_content):
         pass
 
-    def add_item_to_scrape(self, item_key, item_data, is_expected):
+    def add_item_to_scrape(
+        self, item_key, item_data, is_expected, warn_unexpected=True
+    ):
         item_key = str(item_key)  # just in case it's an int
         if (
             item_key in self.expected_items_keys
@@ -47,10 +49,14 @@ class ScraperGeneric(ABC):
             logger.debug(f"Adding {self.get_items_name()} {item_key} to scraping queue")
             self.expected_items_keys[item_key] = item_data
         else:
-            logger.warning(
+            message = (
                 f"Adding unexpected {self.get_items_name()} {item_key} "
                 "to scraping queue"
             )
+            if warn_unexpected:
+                logger.warning(message)
+            else:
+                logger.debug(message)
             self.unexpected_items_keys[item_key] = item_data
         self.items_queue.put(
             {

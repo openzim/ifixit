@@ -1,0 +1,30 @@
+{% for comment in curitem['comments'] %}
+<div class="comment-row comment-thread" id="container-{{ comment['commentid']}}">
+    <i class="svg-icon" style="width: 24px; height: 24px;"><svg
+        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        fill="currentColor">
+        <path fill-rule="evenodd" clip-rule="evenodd"
+        d="M2 4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10.857a2 2 0 0 1-2 2h-4.232l-2.92 4.673a1 1 0 0 1-1.696 0l-2.92-4.673H4a2 2 0 0 1-2-2V4zm18 0H4v10.857h5.34L12 19.113l2.66-4.256H20V4z">
+        </path>
+    </svg></i>
+    <div class="comment-info {% if comment['replies'] | length > 0 %}has-replies{% endif %}">
+    {% set curcomment=comment %}
+    {% include 'guide-comment.html' %}
+    {% for reply in comment['replies'] %}
+    <div class="comment-reply">
+        {% set curcomment=reply %}
+        {% include 'guide-comment.html' %}
+    </div>
+    {% endfor %}
+    </div>
+</div>
+{% if loop.index == 3%}
+<div id="show_more_button" align="center">
+    <button class="button button-action-solid js-show-page-comments"
+        onclick="switchCommentsVisibility('hidden-main-comments');switchCommentsVisibility('show_more_button');">
+       <i class="fa fa-angle-down "></i>{{label['comments_show_more']}}</button>
+</div>
+</div>
+<div id="hidden-main-comments" class="readonly-disabled js-comments hide-comments">
+{% endif %}
+{% endfor %}

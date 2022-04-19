@@ -223,7 +223,7 @@
                                     - the rendered way is not ideal since there is a lot of links to replace
                                     - the json/raw relies on wiki lists which seems to not be available through the API
                                 -->
-                                {{category['contents_rendered']| cleanup_rendered_content | safe}}
+                                {{category['contents_rendered']| cleanup_rendered_content(rel_prefix) | safe}}
                             </div>
                         </div>
 
