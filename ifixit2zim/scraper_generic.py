@@ -35,6 +35,7 @@ class ScraperGeneric(ABC):
         pass
 
     def add_item_to_scrape(self, item_key, item_data, is_expected):
+        item_key = str(item_key)  # just in case it's an int
         if (
             item_key in self.expected_items_keys
             or item_key in self.unexpected_items_keys
