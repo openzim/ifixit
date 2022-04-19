@@ -1,11 +1,10 @@
 import urllib
-from datetime import datetime
 
 from .constants import USER_LABELS
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
 from .shared import Global, logger
-from .utils import get_api_content, setlocale
+from .utils import get_api_content
 
 
 class ScraperUser(ScraperGeneric):
@@ -85,13 +84,6 @@ class ScraperUser(ScraperGeneric):
 
     def process_one_item(self, item_key, item_data, item_content):
         user_content = item_content
-
-        with setlocale("en_GB"):
-            if user_content["join_date"]:
-                user_content["join_date_rendered"] = datetime.strftime(
-                    datetime.fromtimestamp(user_content["join_date"]),
-                    "%x",
-                )
 
         user_rendered = self.user_template.render(
             user=user_content,

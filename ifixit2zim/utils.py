@@ -3,12 +3,9 @@
 # vim: ai ts=4 sts=4 et sw=4 nu
 
 import io
-import locale
 import re
-import threading
 import urllib.parse
 import zlib
-from contextlib import contextmanager
 from typing import Union
 
 import backoff
@@ -20,8 +17,6 @@ from zimscraperlib.download import _get_retry_adapter, stream_file
 
 from .constants import API_PREFIX
 from .shared import Global, logger
-
-LOCALE_LOCK = threading.Lock()
 
 
 def to_path(url: str) -> str:
@@ -154,16 +149,6 @@ def setup_s3_and_check_credentials(s3_url_with_credentials):
         logger.error(f"  Public IP: {get_public_ip()}")
         raise ValueError("Unable to connect to Optimization Cache. Check its URL.")
     return s3_storage
-
-
-@contextmanager
-def setlocale(name):
-    with LOCALE_LOCK:
-        saved = locale.setlocale(locale.LC_ALL)
-        try:
-            yield locale.setlocale(locale.LC_ALL, name)
-        finally:
-            locale.setlocale(locale.LC_ALL, saved)
 
 
 def backoff_hdlr(details):

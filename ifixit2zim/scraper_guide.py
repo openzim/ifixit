@@ -1,5 +1,4 @@
 import urllib
-from datetime import datetime
 
 from .constants import (
     DIFFICULTY_EASY,
@@ -13,7 +12,7 @@ from .constants import (
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
 from .shared import Global, logger
-from .utils import get_api_content, setlocale
+from .utils import get_api_content
 
 
 class ScraperGuide(ScraperGeneric):
@@ -142,18 +141,6 @@ class ScraperGuide(ScraperGeneric):
                         guide_content["difficulty"],
                         guide_content["guideid"],
                     )
-                )
-        with setlocale("en_GB"):
-            if guide_content["author"]["join_date"]:
-                guide_content["author"]["join_date_rendered"] = datetime.strftime(
-                    datetime.fromtimestamp(guide_content["author"]["join_date"]),
-                    "%x",
-                )
-            # TODO: format published date as June 10, 2014 instead of 11/06/2014
-            if guide_content["published_date"]:
-                guide_content["published_date_rendered"] = datetime.strftime(
-                    datetime.fromtimestamp(guide_content["published_date"]),
-                    "%x",
                 )
 
         for step in guide_content["steps"]:

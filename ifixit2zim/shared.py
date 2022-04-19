@@ -3,11 +3,13 @@
 # vim: ai ts=4 sts=4 et sw=4 nu
 # pylint: disable=cyclic-import
 
-import datetime
+import locale
 import logging
 import re
 import threading
 import urllib
+from contextlib import contextmanager
+from datetime import date, datetime
 
 import requests
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -24,9 +26,21 @@ from .constants import (
     ROOT_DIR,
 )
 
+LOCALE_LOCK = threading.Lock()
+
 
 class ImageUrlNotFound(Exception):
     pass
+
+
+@contextmanager
+def setlocale(name):
+    with LOCALE_LOCK:
+        saved = locale.setlocale(locale.LC_ALL)
+        try:
+            yield locale.setlocale(locale.LC_ALL, name)
+        finally:
+            locale.setlocale(locale.LC_ALL, saved)
 
 
 class Global:
@@ -86,7 +100,7 @@ class Global:
             publisher=Global.conf.publisher,
             name=Global.conf.name,
             tags=";".join(Global.conf.tags),
-            date=datetime.date.today(),
+            date=date.today(),
         ).config_verbose(True)
 
         # jinja2 environment setup
@@ -99,6 +113,9 @@ class Global:
         Global.env.filters["get_image_path"] = Global.get_image_path
         Global.env.filters["get_image_url"] = Global.get_image_url
         Global.env.filters["cleanup_rendered_content"] = Global.cleanup_rendered_content
+        Global.env.filters[
+            "get_timestamp_day_rendered"
+        ] = Global.get_timestamp_day_rendered
 
     @staticmethod
     def _raise_helper(msg):
@@ -356,6 +373,14 @@ class Global:
                     path=alternate_path,
                     target_path=path,
                 )
+
+    @staticmethod
+    def get_timestamp_day_rendered(timestamp):
+        with setlocale("en_GB"):
+            if timestamp:
+                return datetime.strftime(datetime.fromtimestamp(timestamp), "%x")
+            else:
+                return ""
 
 
 class GlobalMixin:

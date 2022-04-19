@@ -31,7 +31,7 @@
                   </tr>
                   <tr>
                     <td colspan="2" class="memberSince">
-                      <em>{{label['member_since_before']}}{{user['join_date_rendered']}}{{label['member_since_after']}}</em>
+                      <em>{{label['member_since_before']}}{{user['join_date'] | get_timestamp_day_rendered}}{{label['member_since_after']}}</em>
                     </td>
                   </tr>
                 </tbody>

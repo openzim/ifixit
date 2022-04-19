@@ -70,7 +70,7 @@
                     </div>
                     {% if guide['type'] == 'teardown' %}
                     <div class="guide-published-date guide-title-subtext">
-                      {{label['published']}}{{guide['published_date_rendered']}}
+                      {{label['published']}}{{guide['published_date'] | get_timestamp_day_rendered}}
                     </div>
                     {% endif %}
                   </div>
@@ -88,7 +88,7 @@
                             {{guide['title']}}
                           </h1>
                           <div class="guide-published-date guide-title-subtext">
-                            {{label['published']}}{{guide['published_date_rendered']}}
+                            {{label['published']}}{{guide['published_date'] | get_timestamp_day_rendered}}
                           </div>
                         </div>
                       </div>
@@ -450,9 +450,9 @@
                           <a href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">{{guide['author']['username']}}</a>
                         </h4>
 
-                        {% if guide['author']['join_date_rendered'] %}
+                        {% if guide['author']['join_date'] %}
                         <p>
-                          {{label['member_since_before']}}{{guide['author']['join_date_rendered']}}{{label['member_since_after']}}
+                          {{label['member_since_before']}}{{guide['author']['join_date'] | get_timestamp_day_rendered}}{{label['member_since_after']}}
                         </p>
                         {% endif %}
 
