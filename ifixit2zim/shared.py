@@ -167,7 +167,7 @@ class Global:
             found_one = True
             found_none = False
             if match.group("anchor"):
-                return f"ANCHOR_{match.group('anchor')}"
+                return f"{match.group('anchor')}"
             if match.group("kind"):
                 if match.group("kind").lower() in ["device", "topic"]:
                     return (
