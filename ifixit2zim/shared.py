@@ -144,7 +144,7 @@ class Global:
     href_anchor_regex = r"^(?P<anchor>#.*)$"
     href_object_kind_regex = (
         r"^(?:https*://[\w\.]*(?:ifixit)[\w\.]*)*/"
-        r"((?:(?P<kind>Team|Wiki|Store|Boutique|Tienda).*/(?P<object>[\w%_\.-]+)"
+        r"((?:(?P<kind>User|Team|Wiki|Store|Boutique|Tienda).*/(?P<object>[\w%_\.-]+)"
         r"(?P<after>#.*)?.*)"
         r"|(?:(?P<guide>Guide|Anleitung|Guía|Guida|Tutoriel|Teardown)/"
         r"(?P<guidetitle>.+)/(?P<guideid>\d+)(?P<guideafter>#.*)?.*)"
@@ -163,43 +163,35 @@ class Global:
         if "Guide/new" in href:
             return f"{rel_prefix}home/placeholder.html"
 
-        found_none = True
-        found_one = False
-        for match in Global.href_regex.finditer(href):
-            if found_one:
-                logger.warn(f"Too many matches in _process_href_regex for '{href}'")
-                return href
-            found_one = True
-            found_none = False
-            if match.group("anchor"):
-                return f"{match.group('anchor')}"
-            if match.group("guide"):
-                link = Global.get_guide_link_from_props(
-                    guideid=match.group("guideid"), guidetitle=match.group("guidetitle")
-                )
-                return f"{rel_prefix}{link}{match.group('guideafter') or ''}"
-            if match.group("device"):
-                link = Global.get_category_link_from_props(
-                    category_title=match.group("devicetitle")
-                )
-                return f"{rel_prefix}{link}{match.group('deviceafter') or ''}"
-            if match.group("info"):
-                link = Global.get_info_link_from_props(
-                    info_title=match.group("infotitle")
-                )
-                return f"{rel_prefix}{link}" f"{match.group('infoafter') or ''}"
-            if match.group("kind"):
-                if match.group("kind").lower() in ["user", "team", "info", "wiki"]:
-                    return f"{rel_prefix}home/placeholder.html"
-                if match.group("kind").lower() in ["store", "boutique", "tienda"]:
-                    return f"{rel_prefix}home/placeholder.html"
-                raise Exception(
-                    f"Unsupported kind '{match.group('kind')}'"
-                    " in _process_href_regex"
-                )
-            raise Exception("Unsupported match in _process_href_regex")
-        if found_none:
+        match = Global.href_regex.search(href)
+
+        if not match:
             return href
+
+        if match.group("anchor"):
+            return f"{match.group('anchor')}"
+        if match.group("guide"):
+            link = Global.get_guide_link_from_props(
+                guideid=match.group("guideid"), guidetitle=match.group("guidetitle")
+            )
+            return f"{rel_prefix}{link}{match.group('guideafter') or ''}"
+        if match.group("device"):
+            link = Global.get_category_link_from_props(
+                category_title=match.group("devicetitle")
+            )
+            return f"{rel_prefix}{link}{match.group('deviceafter') or ''}"
+        if match.group("info"):
+            link = Global.get_info_link_from_props(info_title=match.group("infotitle"))
+            return f"{rel_prefix}{link}" f"{match.group('infoafter') or ''}"
+        if match.group("kind"):
+            if match.group("kind").lower() in ["user", "team", "wiki"]:
+                return f"{rel_prefix}home/placeholder.html"
+            if match.group("kind").lower() in ["store", "boutique", "tienda"]:
+                return f"{rel_prefix}home/placeholder.html"
+            raise Exception(
+                f"Unsupported kind '{match.group('kind')}' in _process_href_regex"
+            )
+        raise Exception("Unsupported match in _process_href_regex")
 
     @staticmethod
     def _process_gbl_regex(match, rel_prefix):
