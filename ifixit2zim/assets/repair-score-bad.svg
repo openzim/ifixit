@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="26px" height="26px" viewBox="0 0 26 26" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 3.6.1 (26313) - http://www.bohemiancoding.com/sketch -->
+    <title>repair-score-bad</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#F64530" offset="0%"/>
+            <stop stop-color="#D82506" offset="100%"/>
+        </linearGradient>
+        <filter x="-50%" y="-50%" width="200%" height="200%" filterUnits="objectBoundingBox" id="filter-2">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetOuter1"/>
+            <feGaussianBlur stdDeviation="0.5" in="shadowOffsetOuter1" result="shadowBlurOuter1"/>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.142068614 0" in="shadowBlurOuter1" type="matrix" result="shadowMatrixOuter1"/>
+            <feMerge>
+                <feMergeNode in="shadowMatrixOuter1"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Artboard-3" transform="translate(-227.000000, -956.000000)">
+            <g id="repair-score-bad" transform="translate(227.000000, 956.000000)">
+                <circle id="Oval-10-Copy-2" fill="url(#linearGradient-1)" cx="13" cy="13" r="13"/>
+                <g id="Path-90-+-Path-90-Copy" filter="url(#filter-2)" transform="translate(7.000000, 7.000000)" fill="#FFFFFF">
+                    <path d="M0.284451055,2.30932395 L9.6457621,11.608135 L11.7599655,9.47972147 L2.39865441,0.180910422 L0.284451055,2.30932395 L0.284451055,2.30932395 Z" id="Shape"/>
+                    <path d="M9.6457621,0.180910422 L0.284451055,9.47972147 L2.39865441,11.608135 L11.7599655,2.30932395 L9.6457621,0.180910422 L9.6457621,0.180910422 Z" id="Shape"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
