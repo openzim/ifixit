@@ -1,3 +1,5 @@
+import urllib
+
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
 from .shared import Global, logger
@@ -26,23 +28,31 @@ class ScraperInfo(ScraperGeneric):
     def _get_info_key_from_title(self, info_title):
         return Global.convert_title_to_filename(info_title.lower())
 
-    def _get_info_path_from_key(self, info_key):
-        return f"infos/info_{info_key}.html"
+    def _build_info_path(self, info_title):
+        return f"Info/{urllib.parse.quote_plus(info_title)}"
 
-    def get_info_link(self, info):
-        info_title = None
-        if isinstance(info, str):
-            info_title = info
-        elif "title" in info and info["title"]:
-            info_title = info["title"]
-        else:
+    def get_info_link_from_obj(self, info):
+        if "title" not in info or not info["title"]:
             raise UnexpectedDataKindException(
                 f"Impossible to extract info title from {info}"
             )
+        info_title = info["title"]
+        return self.get_info_link_from_props(info_title=info_title)
+
+    def get_info_link_from_props(self, info_title):
+        if Global.conf.no_info:
+            return "home/placeholder.html"
         info_key = self._get_info_key_from_title(info_title)
-        if not Global.conf.infos and not Global.conf.no_info:
-            self._add_info_to_scrape(info_key, info_title, False)
-        return f"../{self._get_info_path_from_key(info_key)}"
+        if Global.conf.infos:
+            is_not_included = True
+            for other_info in Global.conf.infos:
+                other_info_key = self._get_info_key_from_title(other_info)
+                if other_info_key == info_key:
+                    is_not_included = False
+            if is_not_included:
+                return "home/placeholder.html"
+        self._add_info_to_scrape(info_key, info_title, False)
+        return self._build_info_path(info_title)
 
     def build_expected_items(self):
         if Global.conf.no_info:
@@ -88,11 +98,9 @@ class ScraperInfo(ScraperGeneric):
             metadata=Global.metadata,
             lang=Global.conf.lang_code,
         )
-        with Global.lock:
-            Global.creator.add_item_for(
-                path=self._get_info_path_from_key(item_key),
-                title=info_wiki_content["display_title"],
-                content=info_wiki_rendered,
-                mimetype="text/html",
-                is_front=True,
-            )
+
+        Global.add_html_item(
+            path=self._build_info_path(info_wiki_content["title"]),
+            title=info_wiki_content["display_title"],
+            content=info_wiki_rendered,
+        )

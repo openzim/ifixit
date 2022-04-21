@@ -1,3 +1,4 @@
+import urllib
 from datetime import datetime
 
 from .constants import (
@@ -35,34 +36,44 @@ class ScraperGuide(ScraperGeneric):
             is_expected,
         )
 
-    def _get_guide_path_from_key(self, guide_key):
-        return f"guides/guide_{guide_key}.html"
+    def _build_guide_path(self, guideid, guidetitle):
+        return f"Guide/{urllib.parse.quote_plus(guidetitle)}/{guideid}"
 
-    def get_guide_link(self, guide):
-        guideid = None
-        locale = Global.conf.lang_code
-        if isinstance(guide, str):
-            guideid = guide
-        else:
-            if "guideid" not in guide or not guide["guideid"]:
-                raise UnexpectedDataKindException(
-                    f"Impossible to extract guide id from {guide}"
-                )
-            if "locale" not in guide or not guide["locale"]:
-                raise UnexpectedDataKindException(
-                    f"Impossible to extract guide locale from {guide}"
-                )
-            guideid = guide["guideid"]
-            locale = guide["locale"]
-            # override unknown locale if needed
-            if (
-                guideid in self.expected_items_keys
-                and self.expected_items_keys[guideid]["locale"] == UNKNOWN_LOCALE
-            ):
-                self.expected_items_keys[guideid]["locale"] = locale
-        if not Global.conf.guides and not Global.conf.no_guide:
-            self._add_guide_to_scrape(guideid, locale, False)
-        return f"../{self._get_guide_path_from_key(guideid)}"
+    def get_guide_link_from_obj(self, guide):
+        if "guideid" not in guide or not guide["guideid"]:
+            raise UnexpectedDataKindException(
+                f"Impossible to extract guide id from {guide}"
+            )
+        if "locale" not in guide or not guide["locale"]:
+            raise UnexpectedDataKindException(
+                f"Impossible to extract guide locale from {guide}"
+            )
+        if "title" not in guide or not guide["title"]:
+            raise UnexpectedDataKindException(
+                f"Impossible to extract guide title from {guide}"
+            )
+        guideid = guide["guideid"]
+        locale = guide["locale"]
+        title = guide["title"]
+        # override unknown locale if needed
+        if (
+            guideid in self.expected_items_keys
+            and self.expected_items_keys[guideid]["locale"] == UNKNOWN_LOCALE
+        ):
+            self.expected_items_keys[guideid]["locale"] = locale
+        return self.get_guide_link_from_props(
+            guideid=guideid, guidetitle=title, guidelocale=locale
+        )
+
+    def get_guide_link_from_props(
+        self, guideid, guidetitle, guidelocale=UNKNOWN_LOCALE
+    ):
+        if Global.conf.no_guide:
+            return "home/placeholder.html"
+        if Global.conf.guides and str(guideid) not in Global.conf.guides:
+            return "home/placeholder.html"
+        self._add_guide_to_scrape(guideid, guidelocale, False)
+        return self._build_guide_path(guideid=guideid, guidetitle=guidetitle)
 
     def build_expected_items(self):
         if Global.conf.no_guide:
@@ -229,11 +240,11 @@ class ScraperGuide(ScraperGeneric):
             label=GUIDE_LABELS[Global.conf.lang_code],
             metadata=Global.metadata,
         )
-        with Global.lock:
-            Global.creator.add_item_for(
-                path=self._get_guide_path_from_key(item_key),
-                title=guide_content["title"],
-                content=guide_rendered,
-                mimetype="text/html",
-                is_front=True,
-            )
+
+        Global.add_html_item(
+            path=self._build_guide_path(
+                guideid=guide_content["guideid"], guidetitle=guide_content["title"]
+            ),
+            title=guide_content["title"],
+            content=guide_rendered,
+        )

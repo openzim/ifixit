@@ -1,3 +1,5 @@
+import urllib
+
 from .constants import CATEGORY_LABELS
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
@@ -27,23 +29,31 @@ class ScraperCategory(ScraperGeneric):
     def _get_category_key_from_title(self, category_title):
         return Global.convert_title_to_filename(category_title.lower())
 
-    def _get_category_path_from_key(self, category_key):
-        return f"categories/category_{category_key}.html"
+    def _build_category_path(self, category_title):
+        return f"Device/{urllib.parse.quote_plus(category_title)}"
 
-    def get_category_link(self, category):
-        category_title = None
-        if isinstance(category, str):
-            category_title = category
-        elif "title" in category and category["title"]:
-            category_title = category["title"]
-        else:
+    def get_category_link_from_obj(self, category):
+        if "title" not in category or not category["title"]:
             raise UnexpectedDataKindException(
                 f"Impossible to extract category title from {category}"
             )
+        category_title = category["title"]
+        return self.get_category_link_from_props(category_title=category_title)
+
+    def get_category_link_from_props(self, category_title):
+        if Global.conf.no_category:
+            return "home/placeholder.html"
         category_key = self._get_category_key_from_title(category_title)
-        if not Global.conf.categories and not Global.conf.no_category:
-            self._add_category_to_scrape(category_key, category_title, False)
-        return f"../{self._get_category_path_from_key(category_key)}"
+        if Global.conf.categories:
+            is_not_included = True
+            for other_category in Global.conf.categories:
+                other_category_key = self._get_category_key_from_title(other_category)
+                if other_category_key == category_key:
+                    is_not_included = False
+            if is_not_included:
+                return "home/placeholder.html"
+        self._add_category_to_scrape(category_key, category_title, False)
+        return self._build_category_path(category_title)
 
     def _process_categories(self, categories):
         for category in categories:
@@ -76,7 +86,6 @@ class ScraperCategory(ScraperGeneric):
         return category_content
 
     def process_one_item(self, item_key, item_data, item_content):
-        category_key = item_key
         category_content = item_content
 
         category_rendered = self.category_template.render(
@@ -86,11 +95,8 @@ class ScraperCategory(ScraperGeneric):
             lang=Global.conf.lang_code,
         )
 
-        with Global.lock:
-            Global.creator.add_item_for(
-                path=self._get_category_path_from_key(category_key),
-                title=category_content["display_title"],
-                content=category_rendered,
-                mimetype="text/html",
-                is_front=True,
-            )
+        Global.add_html_item(
+            path=self._build_category_path(category_title=category_content["title"]),
+            title=category_content["display_title"],
+            content=category_rendered,
+        )

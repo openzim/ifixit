@@ -174,13 +174,28 @@ class ifixit2zim(GlobalMixin):
         logger.debug("Starting Zim creation")
         Global.setup()
         Global.env.filters[
-            "get_category_link"
-        ] = self.scraper_category.get_category_link
-        Global.env.filters["get_guide_link"] = self.scraper_guide.get_guide_link
-        Global.env.filters["get_info_link"] = self.scraper_info.get_info_link
-        Global.get_category_link = self.scraper_category.get_category_link
-        Global.get_guide_link = self.scraper_guide.get_guide_link
-        Global.get_info_link = self.scraper_info.get_info_link
+            "get_category_link_from_obj"
+        ] = self.scraper_category.get_category_link_from_obj
+        Global.env.filters[
+            "get_category_link_from_props"
+        ] = self.scraper_category.get_category_link_from_props
+        Global.env.filters[
+            "get_guide_link_from_obj"
+        ] = self.scraper_guide.get_guide_link_from_obj
+        Global.env.filters[
+            "get_guide_link_from_props"
+        ] = self.scraper_guide.get_guide_link_from_props
+        Global.env.filters[
+            "get_info_link_from_obj"
+        ] = self.scraper_info.get_info_link_from_obj
+        Global.env.filters[
+            "get_info_link_from_props"
+        ] = self.scraper_info.get_info_link_from_props
+        Global.get_category_link_from_props = (
+            self.scraper_category.get_category_link_from_props
+        )
+        Global.get_guide_link_from_props = self.scraper_guide.get_guide_link_from_props
+        Global.get_info_link_from_props = self.scraper_info.get_info_link_from_props
         for scraper in self.scrapers:
             scraper.setup()
         self.creator.start()
@@ -211,6 +226,8 @@ class ifixit2zim(GlobalMixin):
 
             logger.info("Awaiting images")
             Global.img_executor.shutdown()
+
+            self.report_progress()
 
             stats = "Stats: "
             for scraper in self.scrapers:

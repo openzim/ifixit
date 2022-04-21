@@ -104,7 +104,7 @@ class Global:
 
     @staticmethod
     def get_image_path(image_url):
-        return f"../{Global.imager.defer(url=image_url)}"
+        return Global.imager.defer(url=image_url)
 
     @staticmethod
     def _get_image_url_search(obj, for_guide, for_device, for_wiki):
@@ -144,19 +144,24 @@ class Global:
     href_anchor_regex = r"^(?P<anchor>#.*)$"
     href_object_kind_regex = (
         r"^(?:https*://[\w\.]*(?:ifixit)[\w\.]*)*/"
-        r"(?P<kind>Device|Topic|User|Team|Info|Wiki|Store|Boutique|Tienda|Guide|"
-        r"Anleitung|Guía|Guida|Tutoriel).*/(?P<object>[\w%_-]*)(?P<after>.*)$"
+        r"((?:(?P<kind>Team|Wiki|Store|Boutique|Tienda).*/(?P<object>[\w%_\.-]+)"
+        r"(?P<after>#.*)?.*)"
+        r"|(?:(?P<guide>Guide|Anleitung|Guía|Guida|Tutoriel|Teardown)/"
+        r"(?P<guidetitle>.+)/(?P<guideid>\d+)(?P<guideafter>#.*)?.*)"
+        r"|(?:(?P<device>Device|Topic)/(?P<devicetitle>[\w%_\.-]+)"
+        r"(?P<deviceafter>#.*)?.*)"
+        r"|(?:(?P<info>Info)/(?P<infotitle>[\w%_\.-]+)(?P<infoafter>#.*)?.*))$"
     )
     href_regex = re.compile(
         f"{href_anchor_regex}|{href_object_kind_regex}", flags=re.IGNORECASE
     )
 
     @staticmethod
-    def _process_href_regex(href):
+    def _process_href_regex(href, rel_prefix):
         if "Guide/login/register" in href:
-            return "../home/placeholder.html"
+            return f"{rel_prefix}home/placeholder.html"
         if "Guide/new" in href:
-            return "../home/placeholder.html"
+            return f"{rel_prefix}home/placeholder.html"
 
         found_none = True
         found_one = False
@@ -168,32 +173,26 @@ class Global:
             found_none = False
             if match.group("anchor"):
                 return f"{match.group('anchor')}"
+            if match.group("guide"):
+                link = Global.get_guide_link_from_props(
+                    guideid=match.group("guideid"), guidetitle=match.group("guidetitle")
+                )
+                return f"{rel_prefix}{link}{match.group('guideafter') or ''}"
+            if match.group("device"):
+                link = Global.get_category_link_from_props(
+                    category_title=match.group("devicetitle")
+                )
+                return f"{rel_prefix}{link}{match.group('deviceafter') or ''}"
+            if match.group("info"):
+                link = Global.get_info_link_from_props(
+                    info_title=match.group("infotitle")
+                )
+                return f"{rel_prefix}{link}" f"{match.group('infoafter') or ''}"
             if match.group("kind"):
-                if match.group("kind").lower() in ["device", "topic"]:
-                    return (
-                        f"{Global.get_category_link(match.group('object'))}"
-                        f"{match.group('after')}"
-                    )
-                if match.group("kind").lower() in ["info"]:
-                    return (
-                        f"{Global.get_info_link(match.group('object'))}"
-                        f"{match.group('after')}"
-                    )
                 if match.group("kind").lower() in ["user", "team", "info", "wiki"]:
-                    return "../home/placeholder.html"
+                    return f"{rel_prefix}home/placeholder.html"
                 if match.group("kind").lower() in ["store", "boutique", "tienda"]:
-                    return "../home/placeholder.html"
-                if match.group("kind").lower() in [
-                    "guide",
-                    "anleitung",
-                    "guía",
-                    "guida",
-                    "tutoriel",
-                ]:
-                    return (
-                        f"{Global.get_guide_link(match.group('object'))}"
-                        f"{match.group('after')}"
-                    )
+                    return f"{rel_prefix}home/placeholder.html"
                 raise Exception(
                     f"Unsupported kind '{match.group('kind')}'"
                     " in _process_href_regex"
@@ -203,23 +202,45 @@ class Global:
             return href
 
     @staticmethod
-    def _process_gbl_regex(match):
+    def _process_gbl_regex(match, rel_prefix):
         if match.group("image_url"):
             return (
-                f"<img{match.group('image_before')}"
-                f"src=\"{Global.get_image_path(match.group('image_url'))}\""
+                f"<img{match.group('image_before')}src=\"{rel_prefix}"
+                f"{Global.get_image_path(match.group('image_url'))}\""
             )
         if match.group("href_url"):
-            return f"href=\"{Global._process_href_regex(match.group('href_url'))}\""
+            href = Global._process_href_regex(match.group("href_url"), rel_prefix)
+            return f'href="{href}"'
         raise Exception("Unsupported match in cleanup_rendered_content")
 
     @staticmethod
-    def cleanup_rendered_content(content):
-        return re.sub(Global.gbl_regex, Global._process_gbl_regex, content)
+    def cleanup_rendered_content(content, rel_prefix="../"):
+        return re.sub(
+            Global.gbl_regex,
+            lambda match: Global._process_gbl_regex(match, rel_prefix),
+            content,
+        )
 
     @staticmethod
     def convert_title_to_filename(title):
         return re.sub(r"\s", "_", title)
+
+    @staticmethod
+    def add_html_item(path, title, content):
+        with Global.lock:
+            Global.creator.add_item_for(
+                path=path,
+                title=title,
+                content=content,
+                mimetype="text/html",
+                is_front=True,
+            )
+            alternate_path = path.replace("+", "_")
+            if alternate_path != path:
+                Global.creator.add_redirect(
+                    path=alternate_path,
+                    target_path=path,
+                )
 
 
 class GlobalMixin:

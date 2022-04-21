@@ -20,15 +20,15 @@
     -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" type="text/css" media="print" href="../assets/Shared-print-ej-m-RsicBzcpqbxdfzumQ.css">
+    <link rel="stylesheet" type="text/css" media="print" href="{{rel_prefix}}assets/Shared-print-ej-m-RsicBzcpqbxdfzumQ.css">
 
 
-    <link type="text/css" href="../assets/css2.css" rel="stylesheet" as="style">
-    <link type="text/css" href="../assets/guide-all-evkgScrziDY3Uq33ElIkNA.css" rel="stylesheet" as="style">
-    <link type="text/css" href="../assets/font-awesome-HTdabjFBu1PkVsVncBZulw.css" rel="stylesheet" as="style">
-    <link type="text/css" href="../assets/module-all-a4ubLUywxaL0H1WJD5LLgQ.css" rel="stylesheet" as="style">
-    <link type="text/css" href="../assets/core-ETWCjfemWxBbJHaoXafxFg.css" rel="stylesheet" as="style">
-    <link type="text/css" href="../assets/core-primitives-F5WnAWhrwpl7oCtqtgogQQ.css" rel="stylesheet" as="style">
+    <link type="text/css" href="{{rel_prefix}}assets/css2.css" rel="stylesheet" as="style">
+    <link type="text/css" href="{{rel_prefix}}assets/guide-all-evkgScrziDY3Uq33ElIkNA.css" rel="stylesheet" as="style">
+    <link type="text/css" href="{{rel_prefix}}assets/font-awesome-HTdabjFBu1PkVsVncBZulw.css" rel="stylesheet" as="style">
+    <link type="text/css" href="{{rel_prefix}}assets/module-all-a4ubLUywxaL0H1WJD5LLgQ.css" rel="stylesheet" as="style">
+    <link type="text/css" href="{{rel_prefix}}assets/core-ETWCjfemWxBbJHaoXafxFg.css" rel="stylesheet" as="style">
+    <link type="text/css" href="{{rel_prefix}}assets/core-primitives-F5WnAWhrwpl7oCtqtgogQQ.css" rel="stylesheet" as="style">
 
     {% block specific_head %}{% endblock %}
 </head>
@@ -55,7 +55,7 @@
             </div>
 
             <!-- Ifixit Org Blog & Copyright -->
-            {{metadata['footer_copyright'] | cleanup_rendered_content | safe}}
+            {{metadata['footer_copyright'] | cleanup_rendered_content(rel_prefix) | safe}}
 
         </div>
 

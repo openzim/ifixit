@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% set rel_prefix="../" %}{% extends "base.html" %}
 
 {% block title %}{{metadata['title']}}{% endblock title%}
 
 {% block specific_head %}
-<link type="text/css" href="../assets/Shared-i18n_formatting-7XRaMqur0Z-hJvP-W8sS2A.css" rel="stylesheet" as="style">
-<link type="text/css" href="../assets/area_index-BDTBciD-Y7NVVjoPQBUyhA.css" rel="stylesheet" as="style">
+<link type="text/css" href="{{rel_prefix}}assets/Shared-i18n_formatting-7XRaMqur0Z-hJvP-W8sS2A.css" rel="stylesheet" as="style">
+<link type="text/css" href="{{rel_prefix}}assets/area_index-BDTBciD-Y7NVVjoPQBUyhA.css" rel="stylesheet" as="style">
 {% endblock specific_head%}
 
 {% block content %}
@@ -51,11 +51,11 @@
 
                    <div class="featured-categories">
                      {%for category in home_content['featured_categories']%}
-                      <a class="featured-category-item" href="{{category['name'] | get_category_link}}"
+                      <a class="featured-category-item" href="{{rel_prefix}}{{category['name'] | get_category_link_from_props}}"
                          title="{{category['title']}}">
                          <div class="shadow-overlay"></div>
                          <p class="featured-category-title">{{category['text']}}</p>
-                         <img src="{{category['img_url'] | get_image_path}}" role="presentation" width="280" height="210">
+                         <img src="{{rel_prefix}}{{category['img_url'] | get_image_path}}" role="presentation" width="280" height="210">
                       </a>
                       {%endfor%}
                    </div>
@@ -65,7 +65,7 @@
                    </div>
                    <div class="sub-categories">
                      {%for category in home_content['sub_categories']%}
-                      <a class="sub-category" href="{{category['name'] | get_category_link}}">
+                      <a class="sub-category" href="{{rel_prefix}}{{category['name'] | get_category_link_from_props}}">
                          <p class="sub-category-title">
                             <span class="overflow-slide-in"
                                title="{{category['title']}}"><i
