@@ -2,6 +2,8 @@ import traceback
 from abc import ABC, abstractmethod
 from queue import Queue
 
+from schedule import run_pending
+
 from .exceptions import FinalScrapingFailure
 from .shared import Global, logger
 
@@ -79,6 +81,7 @@ class ScraperGeneric(ABC):
 
         num_items = 1
         while not self.items_queue.empty():
+            run_pending()
             if Global.conf.scrape_only_first_items and num_items > 5:
                 break
             try:

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import json
 import pathlib
 import shutil
 from datetime import datetime
 
+from schedule import every
 from zimscraperlib.image.transformation import resize_image
 
 from .constants import ROOT_DIR, Conf
@@ -133,6 +135,9 @@ class ifixit2zim(GlobalMixin):
                     self.creator.add_illustration(size, fh.read())
 
     def run(self):
+        # first report => creates a file with appropriate structure
+        self.report_progress()
+
         s3_storage = (
             setup_s3_and_check_credentials(self.conf.s3_url_with_credentials)
             if self.conf.s3_url_with_credentials
@@ -187,6 +192,11 @@ class ifixit2zim(GlobalMixin):
 
             for scraper in self.scrapers:
                 scraper.build_expected_items()
+                self.report_progress()
+
+            # set a timer to report progress only every 10 seconds, not need to do it
+            # after every item scrapped
+            every(10).seconds.do(self.report_progress)
 
             while True:
                 for scraper in self.scrapers:
@@ -245,3 +255,23 @@ class ifixit2zim(GlobalMixin):
             )
         finally:
             self.cleanup()
+
+    def report_progress(self):
+        if not Global.conf.stats_filename:
+            return
+        done = 0
+        total = 0
+        for scraper in self.scrapers:
+            scraper_total = len(scraper.expected_items_keys) + len(
+                scraper.unexpected_items_keys
+            )
+            scraper_remains = scraper.items_queue.qsize()
+            scraper_done = scraper_total - scraper_remains
+            total += scraper_total
+            done += scraper_done
+        progress = {
+            "done": done,
+            "total": total,
+        }
+        with open(Global.conf.stats_filename, "w") as outfile:
+            json.dump(progress, outfile, indent=2)
