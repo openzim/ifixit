@@ -1,4 +1,4 @@
-{% set rel_prefix="../" %}{% extends "base.html" %} {% block title %}Placeholder{% endblock title%}
+{% set rel_prefix="../" %}{% extends "base.html" %} {% block title %}External content{% endblock title%}
 {% block specific_head %}
 <link type="text/css" href="{{rel_prefix}}assets/Wiki-topic-r_spN9srKqcGQAC8emdeTA.css" rel="stylesheet" as="style">
 <link type="text/css" href="{{rel_prefix}}assets/Wiki-common-Zf5O-KLmFhhZ0w9cRZYZoQ.css" rel="stylesheet" as="style">
@@ -14,15 +14,15 @@
                <div class="container articleContainer wiki">
 
                   <h1 class="pageTitle wikiTitle originalText bordered">
-                     Oups </h1>
+                     External content - be carefull </h1>
 
-                  <p class="summary originalText">This content is not (yet) available offline
+                  <p class="summary originalText">This link is targeting an EXTERNAL content, not available for offline browsing
                   </p>
 
                   <div id="Wiki_Details">
                      <div id="wikiRenderedText" class="wikiRenderedText renderedText originalText">
-                        <p>This content has unfortunately not yet been retrieved in the archive you are currently browsing.</p>
-
+                        <p>If you want/can, you might go there by clicking on the following link:
+                        <a id="external_link"></a></p>
                   </div>
 
                   <div class="clearer"></div>
@@ -31,6 +31,7 @@
             </div>
          </div>
          <div class="clearer"></div>
+         <script type="text/javascript" src="{{rel_prefix}}assets/external_content.js"></script>
 
       </div> <!-- /mainBody -->
 

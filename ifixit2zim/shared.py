@@ -7,6 +7,7 @@ import datetime
 import logging
 import re
 import threading
+import urllib
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from zimscraperlib.logging import getLogger as lib_getLogger
@@ -166,7 +167,7 @@ class Global:
         match = Global.href_regex.search(href)
 
         if not match:
-            return href
+            return f"{rel_prefix}home/external_content?url={urllib.parse.quote(href)}"
 
         if match.group("anchor"):
             return f"{match.group('anchor')}"

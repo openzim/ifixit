@@ -17,6 +17,9 @@ class ScraperHomepage(ScraperGeneric):
     def setup(self):
         self.homepage_template = Global.env.get_template("home.html")
         self.placeholder_template = Global.env.get_template("placeholder.html")
+        self.external_content_template = Global.env.get_template(
+            "external_content.html"
+        )
 
     def get_items_name(self):
         return "home"
@@ -61,9 +64,11 @@ class ScraperHomepage(ScraperGeneric):
         )
 
         placeholder = self.placeholder_template.render(
-            home_content=home_content,
             metadata=Global.metadata,
-            label=HOME_LABELS[Global.conf.lang_code],
+        )
+
+        external_content = self.external_content_template.render(
+            metadata=Global.metadata,
         )
 
         with Global.lock:
@@ -83,6 +88,14 @@ class ScraperHomepage(ScraperGeneric):
                 path="home/placeholder.html",
                 title="Placeholder",
                 content=placeholder,
+                mimetype="text/html",
+                is_front=False,
+            )
+
+            Global.creator.add_item_for(
+                path="home/external_content",
+                title="External content",
+                content=external_content,
                 mimetype="text/html",
                 is_front=False,
             )
