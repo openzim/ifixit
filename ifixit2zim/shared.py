@@ -189,6 +189,8 @@ class Global:
 
     @staticmethod
     def _process_unrecognized_href(url, rel_prefix):
+        if not url.startswith("https://") and not url.startswith("http://"):
+            return Global._process_external_url(url, rel_prefix)
         try:
             resp = requests.head(url)
             headers = resp.headers
@@ -197,7 +199,8 @@ class Global:
             logger.exception(exc)
             return Global._process_external_url(url, rel_prefix)
 
-        if headers.get("Content-Type").startswith("image/"):
+        contentType = headers.get("Content-Type")
+        if contentType and contentType.startswith("image/"):
             return f"{rel_prefix}{Global.get_image_path(url)}"
 
         return Global._process_external_url(url, rel_prefix)
