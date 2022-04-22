@@ -205,59 +205,86 @@ class Global:
 
         return Global._process_external_url(url, rel_prefix)
 
+    def _process_href_regex_dynamics(href, rel_prefix):
+        if "Guide/login/register" in href or "Guide/new" in href:
+            return (
+                f"{rel_prefix}home/unavailable_offline"
+                f"?url={urllib.parse.quote(href)}"
+            )
+        return None
+
+    def _process_href_regex_nomatch(href, rel_prefix, match):
+        if match:
+            return None
+        return Global._process_unrecognized_href(href, rel_prefix)
+
+    def _process_href_regex_anchor(href, rel_prefix, match):
+        if not match.group("anchor"):
+            return None
+        return f"{match.group('anchor')}"
+
+    def _process_href_regex_guide(href, rel_prefix, match):
+        if not match.group("guide"):
+            return None
+        link = Global.get_guide_link_from_props(
+            guideid=match.group("guideid"), guidetitle=match.group("guidetitle")
+        )
+        return f"{rel_prefix}{link}{match.group('guideafter') or ''}"
+
+    def _process_href_regex_device(href, rel_prefix, match):
+        if not match.group("device"):
+            return None
+        link = Global.get_category_link_from_props(
+            category_title=match.group("devicetitle")
+        )
+        return f"{rel_prefix}{link}{match.group('deviceafter') or ''}"
+
+    def _process_href_regex_info(href, rel_prefix, match):
+        if not match.group("info"):
+            return None
+        link = Global.get_info_link_from_props(info_title=match.group("infotitle"))
+        return f"{rel_prefix}{link}" f"{match.group('infoafter') or ''}"
+
+    def _process_href_regex_user(href, rel_prefix, match):
+        if not match.group("user"):
+            return None
+        link = Global.get_user_link_from_props(
+            userid=match.group("userid"), usertitle=match.group("usertitle")
+        )
+        return f"{rel_prefix}{link}" f"{match.group('userafter') or ''}"
+
+    def _process_href_regex_kind(href, rel_prefix, match):
+        if not match.group("kind"):
+            return None
+        if match.group("kind").lower() in ["team", "wiki"]:
+            return (
+                f"{rel_prefix}home/not_yet_available" f"?url={urllib.parse.quote(href)}"
+            )
+        if match.group("kind").lower() in ["store", "boutique", "tienda"]:
+            return (
+                f"{rel_prefix}home/unavailable_offline"
+                f"?url={urllib.parse.quote(href)}"
+            )
+        raise Exception(
+            f"Unsupported kind '{match.group('kind')}' in _process_href_regex"
+        )
+
     @staticmethod
     def _process_href_regex(href, rel_prefix):
-        if "Guide/login/register" in href:
-            return (
-                f"{rel_prefix}home/unavailable_offline"
-                f"?url={urllib.parse.quote(href)}"
-            )
-        if "Guide/new" in href:
-            return (
-                f"{rel_prefix}home/unavailable_offline"
-                f"?url={urllib.parse.quote(href)}"
-            )
-
         match = Global.href_regex.search(href)
-
-        if not match:
-            return Global._process_unrecognized_href(href, rel_prefix)
-
-        if match.group("anchor"):
-            return f"{match.group('anchor')}"
-        if match.group("guide"):
-            link = Global.get_guide_link_from_props(
-                guideid=match.group("guideid"), guidetitle=match.group("guidetitle")
-            )
-            return f"{rel_prefix}{link}{match.group('guideafter') or ''}"
-        if match.group("device"):
-            link = Global.get_category_link_from_props(
-                category_title=match.group("devicetitle")
-            )
-            return f"{rel_prefix}{link}{match.group('deviceafter') or ''}"
-        if match.group("info"):
-            link = Global.get_info_link_from_props(info_title=match.group("infotitle"))
-            return f"{rel_prefix}{link}" f"{match.group('infoafter') or ''}"
-        if match.group("user"):
-            link = Global.get_user_link_from_props(
-                userid=match.group("userid"), usertitle=match.group("usertitle")
-            )
-            return f"{rel_prefix}{link}" f"{match.group('userafter') or ''}"
-        if match.group("kind"):
-            if match.group("kind").lower() in ["user", "team", "wiki"]:
-                return (
-                    f"{rel_prefix}home/not_yet_available"
-                    f"?url={urllib.parse.quote(href)}"
-                )
-            if match.group("kind").lower() in ["store", "boutique", "tienda"]:
-                return (
-                    f"{rel_prefix}home/unavailable_offline"
-                    f"?url={urllib.parse.quote(href)}"
-                )
-            raise Exception(
-                f"Unsupported kind '{match.group('kind')}' in _process_href_regex"
-            )
-        raise Exception("Unsupported match in _process_href_regex")
+        res = (
+            Global._process_href_regex_dynamics(href, rel_prefix)
+            or Global._process_href_regex_nomatch(href, rel_prefix, match)
+            or Global._process_href_regex_anchor(href, rel_prefix, match)
+            or Global._process_href_regex_guide(href, rel_prefix, match)
+            or Global._process_href_regex_device(href, rel_prefix, match)
+            or Global._process_href_regex_info(href, rel_prefix, match)
+            or Global._process_href_regex_user(href, rel_prefix, match)
+            or Global._process_href_regex_kind(href, rel_prefix, match)
+        )
+        if res is None:
+            raise Exception("Unsupported match in _process_href_regex")
+        return res
 
     @staticmethod
     def _process_youtube(match, rel_prefix):
