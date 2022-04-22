@@ -30,7 +30,7 @@ class ScraperCategory(ScraperGeneric):
         return Global.convert_title_to_filename(category_title.lower())
 
     def _build_category_path(self, category_title):
-        return f"Device/{urllib.parse.quote_plus(category_title)}"
+        return f"Device/{category_title}"
 
     def get_category_link_from_obj(self, category):
         if "title" not in category or not category["title"]:

@@ -314,7 +314,13 @@ class Global:
                 mimetype="text/html",
                 is_front=True,
             )
-            alternate_path = path.replace("+", "_")
+            alternate_path = path.replace(" ", "_")
+            if alternate_path != path:
+                Global.creator.add_redirect(
+                    path=alternate_path,
+                    target_path=path,
+                )
+            alternate_path = path.replace(" ", "+")
             if alternate_path != path:
                 Global.creator.add_redirect(
                     path=alternate_path,

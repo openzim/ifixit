@@ -28,7 +28,7 @@ class ScraperUser(ScraperGeneric):
         )
 
     def _build_user_path(self, userid, usertitle):
-        return f"Users/{userid}/{urllib.parse.quote_plus(usertitle)}"
+        return f"Users/{userid}/{usertitle}"
 
     def get_user_link_from_obj(self, user):
         if "userid" not in user or not user["userid"]:

@@ -37,7 +37,7 @@ class ScraperGuide(ScraperGeneric):
         )
 
     def _build_guide_path(self, guideid, guidetitle):
-        return f"Guide/{urllib.parse.quote_plus(guidetitle)}/{guideid}"
+        return f"Guide/{guidetitle}/{guideid}"
 
     def get_guide_link_from_obj(self, guide):
         if "guideid" not in guide or not guide["guideid"]:

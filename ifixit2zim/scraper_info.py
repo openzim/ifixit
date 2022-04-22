@@ -29,7 +29,7 @@ class ScraperInfo(ScraperGeneric):
         return Global.convert_title_to_filename(info_title.lower())
 
     def _build_info_path(self, info_title):
-        return f"Info/{urllib.parse.quote_plus(info_title)}"
+        return f"Info/{info_title}"
 
     def get_info_link_from_obj(self, info):
         if "title" not in info or not info["title"]:
