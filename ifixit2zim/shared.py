@@ -9,6 +9,7 @@ import re
 import threading
 import urllib
 
+import requests
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from zimscraperlib.logging import getLogger as lib_getLogger
 from zimscraperlib.zim.creator import Creator
@@ -168,6 +169,25 @@ class Global:
     )
 
     @staticmethod
+    def _process_external_url(url, rel_prefix):
+        return f"{rel_prefix}home/external_content?url={urllib.parse.quote(url)}"
+
+    @staticmethod
+    def _process_unrecognized_href(url, rel_prefix):
+        try:
+            resp = requests.head(url)
+            headers = resp.headers
+        except Exception as exc:
+            logger.warning(f"Unable to HEAD unrecognized href: {url}")
+            logger.exception(exc)
+            return Global._process_external_url(url, rel_prefix)
+
+        if headers.get("Content-Type").startswith("image/"):
+            return f"{rel_prefix}{Global.get_image_path(url)}"
+
+        return Global._process_external_url(url, rel_prefix)
+
+    @staticmethod
     def _process_href_regex(href, rel_prefix):
         if "Guide/login/register" in href:
             return f"{rel_prefix}home/placeholder.html"
@@ -177,7 +197,7 @@ class Global:
         match = Global.href_regex.search(href)
 
         if not match:
-            return f"{rel_prefix}home/external_content?url={urllib.parse.quote(href)}"
+            return Global._process_unrecognized_href(href, rel_prefix)
 
         if match.group("anchor"):
             return f"{match.group('anchor')}"
@@ -207,9 +227,10 @@ class Global:
     @staticmethod
     def _process_youtube(match, rel_prefix):
         return (
-            f"<a href=\"{match.group('youtubesrc')}\">"
+            f'<a href="'
+            f"{Global._process_external_url(match.group('youtubesrc'), rel_prefix)}\">"
             f"<div{Global.cleanup_rendered_content(match.group('part1'), rel_prefix)}"
-            'youtube-player'
+            "youtube-player"
             f"{Global.cleanup_rendered_content(match.group('part2'), rel_prefix)}"
             f"{Global.cleanup_rendered_content(match.group('part3'), rel_prefix)}"
             "</div></a>"
