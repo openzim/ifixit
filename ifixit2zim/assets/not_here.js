@@ -7,7 +7,7 @@ function getUrlVars() {
 }
 
 document.addEventListener("DOMContentLoaded", function(){
-    elink = document.getElementById("external_link");
+    elink = document.getElementById("my_link");
     targetUrl = decodeURIComponent(getUrlVars()["url"])
     elink.href = targetUrl;
     elink.textContent =  targetUrl;

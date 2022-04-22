@@ -93,10 +93,15 @@ class Global:
             loader=FileSystemLoader(ROOT_DIR.joinpath("templates")),
             autoescape=select_autoescape(),
         )
+        Global.env.globals["raise"] = Global._raise_helper
         Global.env.filters["guides_in_progress"] = Global.guides_in_progress
         Global.env.filters["get_image_path"] = Global.get_image_path
         Global.env.filters["get_image_url"] = Global.get_image_url
         Global.env.filters["cleanup_rendered_content"] = Global.cleanup_rendered_content
+
+    @staticmethod
+    def _raise_helper(msg):
+        raise Exception(msg)
 
     @staticmethod
     def guides_in_progress(guides, in_progress=True):
@@ -190,9 +195,15 @@ class Global:
     @staticmethod
     def _process_href_regex(href, rel_prefix):
         if "Guide/login/register" in href:
-            return f"{rel_prefix}home/placeholder.html"
+            return (
+                f"{rel_prefix}home/unavailable_offline"
+                f"?url={urllib.parse.quote(href)}"
+            )
         if "Guide/new" in href:
-            return f"{rel_prefix}home/placeholder.html"
+            return (
+                f"{rel_prefix}home/unavailable_offline"
+                f"?url={urllib.parse.quote(href)}"
+            )
 
         match = Global.href_regex.search(href)
 
@@ -216,9 +227,15 @@ class Global:
             return f"{rel_prefix}{link}" f"{match.group('infoafter') or ''}"
         if match.group("kind"):
             if match.group("kind").lower() in ["user", "team", "wiki"]:
-                return f"{rel_prefix}home/placeholder.html"
+                return (
+                    f"{rel_prefix}home/not_yet_available"
+                    f"?url={urllib.parse.quote(href)}"
+                )
             if match.group("kind").lower() in ["store", "boutique", "tienda"]:
-                return f"{rel_prefix}home/placeholder.html"
+                return (
+                    f"{rel_prefix}home/unavailable_offline"
+                    f"?url={urllib.parse.quote(href)}"
+                )
             raise Exception(
                 f"Unsupported kind '{match.group('kind')}' in _process_href_regex"
             )

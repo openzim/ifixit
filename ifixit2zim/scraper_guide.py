@@ -68,12 +68,13 @@ class ScraperGuide(ScraperGeneric):
     def get_guide_link_from_props(
         self, guideid, guidetitle, guidelocale=UNKNOWN_LOCALE
     ):
+        guide_path = self._build_guide_path(guideid=guideid, guidetitle=guidetitle)
         if Global.conf.no_guide:
-            return "home/placeholder.html"
+            return f"home/not_scrapped?url={urllib.parse.quote(guide_path)}"
         if Global.conf.guides and str(guideid) not in Global.conf.guides:
-            return "home/placeholder.html"
+            return f"home/not_scrapped?url={urllib.parse.quote(guide_path)}"
         self._add_guide_to_scrape(guideid, guidelocale, False)
-        return self._build_guide_path(guideid=guideid, guidetitle=guidetitle)
+        return guide_path
 
     def build_expected_items(self):
         if Global.conf.no_guide:

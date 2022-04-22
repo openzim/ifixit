@@ -41,8 +41,9 @@ class ScraperCategory(ScraperGeneric):
         return self.get_category_link_from_props(category_title=category_title)
 
     def get_category_link_from_props(self, category_title):
+        category_path = self._build_category_path(category_title)
         if Global.conf.no_category:
-            return "home/placeholder.html"
+            return f"home/not_scrapped?url={urllib.parse.quote(category_path)}"
         category_key = self._get_category_key_from_title(category_title)
         if Global.conf.categories:
             is_not_included = True
@@ -51,9 +52,9 @@ class ScraperCategory(ScraperGeneric):
                 if other_category_key == category_key:
                     is_not_included = False
             if is_not_included:
-                return "home/placeholder.html"
+                return f"home/not_scrapped?url={urllib.parse.quote(category_path)}"
         self._add_category_to_scrape(category_key, category_title, False)
-        return self._build_category_path(category_title)
+        return category_path
 
     def _process_categories(self, categories):
         for category in categories:

@@ -40,8 +40,9 @@ class ScraperInfo(ScraperGeneric):
         return self.get_info_link_from_props(info_title=info_title)
 
     def get_info_link_from_props(self, info_title):
+        info_path = self._build_info_path(info_title)
         if Global.conf.no_info:
-            return "home/placeholder.html"
+            return f"home/not_scrapped?url={urllib.parse.quote(info_path)}"
         info_key = self._get_info_key_from_title(info_title)
         if Global.conf.infos:
             is_not_included = True
@@ -50,9 +51,9 @@ class ScraperInfo(ScraperGeneric):
                 if other_info_key == info_key:
                     is_not_included = False
             if is_not_included:
-                return "home/placeholder.html"
+                return f"home/not_scrapped?url={urllib.parse.quote(info_path)}"
         self._add_info_to_scrape(info_key, info_title, False)
-        return self._build_info_path(info_title)
+        return info_path
 
     def build_expected_items(self):
         if Global.conf.no_info:

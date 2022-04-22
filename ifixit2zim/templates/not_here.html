@@ -1,0 +1,88 @@
+{% set rel_prefix="../" %}{% extends "base.html" %} {% block title %}{{metadata['title']}}{% endblock title%}
+{% block specific_head %}
+<link type="text/css" href="{{rel_prefix}}assets/Wiki-topic-r_spN9srKqcGQAC8emdeTA.css" rel="stylesheet" as="style">
+<link type="text/css" href="{{rel_prefix}}assets/Wiki-common-Zf5O-KLmFhhZ0w9cRZYZoQ.css" rel="stylesheet" as="style">
+{% endblock specific_head%} {% block content %}
+
+<div id="page">
+   <div id="main">
+      <div id="mainBody">
+         <!-- MAIN BODY -->
+
+         <div id="contentFloat">
+            <div id="content">
+               <div class="container articleContainer wiki">
+
+                  <h1 class="pageTitle wikiTitle originalText bordered">
+                  {% if kind == 'not_scrapped' %}
+                  Oups 
+                  {% elif kind == 'external_content' %}
+                  External content
+                  {% elif kind == 'unavailable_offline' %}
+                  Oups 
+                  {% elif kind == 'not_yet_available' %}
+                  Oups 
+                  {% else %}
+                  {{ raise("unsupported kind: " + kind)}}
+                  {% endif %}
+                  </h1>
+
+                  <p class="summary originalText">
+                     {% if kind == 'not_scrapped' %}
+                     This content has not been scrapped. 
+                     {% elif kind == 'external_content' %}
+                     This link is targeting an EXTERNAL content, not available for offline browsing.
+                     {% elif kind == 'unavailable_offline' %}
+                     This content cannot be made available offline. 
+                     {% elif kind == 'not_yet_available' %}
+                     This content is not (yet) available offline. 
+                     {% endif %}
+                  </p>
+
+                  <div id="Wiki_Details">
+                     <div id="wikiRenderedText" class="wikiRenderedText renderedText originalText">
+                        <p>
+                           
+                     {% if kind == 'not_scrapped' %}
+                     Due to the scrapper configuration, only partial content has been scrapped and this content was not selected for this ZIM version.
+                     If you are interested in this content, please use another ZIM version.
+                     {% elif kind == 'external_content' %}
+                     If you want/can, you might go there by clicking on the following link:
+                        <a id="my_link"></a> 
+                     </p>
+                     <p>
+                  If you consider it is an essential item that should be part of the offline archive, please open an issue
+                  <a href="https://github.com/openzim/ifixit/issues">on Github</a> 
+                  when you are back online, or notify Kiwix team by any other mean.
+                     {% elif kind == 'unavailable_offline' %}
+                     Due to the dynamic nature of this content, it cannot be made available offline. 
+                     {% elif kind == 'not_yet_available' %}
+                     This content has unfortunately not yet been retrieved in the archive you are currently browsing. 
+                     Current scrapper does not yet support this kind of data.
+                        </p>
+                        <p>
+                     If you consider it is an essential item, please open an issue <a href="https://github.com/openzim/ifixit/issues">on Github</a> 
+                     when you are back online, or notify Kiwix team by any other mean.
+                     {% endif %}
+                        </p>
+                     {% if kind == 'not_scrapped' or kind == 'not_yet_available' or kind == 'unavailable_offline'%}
+                     Original link: <span id="my_link"></span>
+                     {% endif %}
+                        
+
+                  </div>
+
+                  <div class="clearer"></div>
+
+               </div>
+            </div>
+         </div>
+         <div class="clearer"></div>
+         <script type="text/javascript" src="{{rel_prefix}}assets/not_here.js"></script>
+
+      </div> <!-- /mainBody -->
+
+      <div class="clearer"></div>
+   </div> <!-- /main -->
+</div> <!-- /page -->
+{% endblock content%}

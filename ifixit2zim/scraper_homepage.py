@@ -16,10 +16,7 @@ class ScraperHomepage(ScraperGeneric):
 
     def setup(self):
         self.homepage_template = Global.env.get_template("home.html")
-        self.placeholder_template = Global.env.get_template("placeholder.html")
-        self.external_content_template = Global.env.get_template(
-            "external_content.html"
-        )
+        self.not_here_template = Global.env.get_template("not_here.html")
 
     def get_items_name(self):
         return "home"
@@ -63,39 +60,65 @@ class ScraperHomepage(ScraperGeneric):
             label=HOME_LABELS[Global.conf.lang_code],
         )
 
-        placeholder = self.placeholder_template.render(
+        not_scrapped = self.not_here_template.render(
             metadata=Global.metadata,
+            kind="not_scrapped",
         )
 
-        external_content = self.external_content_template.render(
+        external_content = self.not_here_template.render(
             metadata=Global.metadata,
+            kind="external_content",
+        )
+
+        unavailable_offline = self.not_here_template.render(
+            metadata=Global.metadata,
+            kind="unavailable_offline",
+        )
+
+        not_yet_available = self.not_here_template.render(
+            metadata=Global.metadata,
+            kind="not_yet_available",
         )
 
         with Global.lock:
             Global.creator.add_item_for(
-                path="home/home.html",
+                path="home/home",
                 title=Global.conf.title,
                 content=homepage,
                 mimetype="text/html",
                 is_front=True,
             )
 
-            Global.creator.add_redirect(
-                path=DEFAULT_HOMEPAGE, target_path="home/home.html"
-            )
+            Global.creator.add_redirect(path=DEFAULT_HOMEPAGE, target_path="home/home")
 
             Global.creator.add_item_for(
-                path="home/placeholder.html",
-                title="Placeholder",
-                content=placeholder,
+                path="home/not_scrapped",
+                title=Global.conf.title,
+                content=not_scrapped,
                 mimetype="text/html",
                 is_front=False,
             )
 
             Global.creator.add_item_for(
                 path="home/external_content",
-                title="External content",
+                title=Global.conf.title,
                 content=external_content,
+                mimetype="text/html",
+                is_front=False,
+            )
+
+            Global.creator.add_item_for(
+                path="home/unavailable_offline",
+                title=Global.conf.title,
+                content=unavailable_offline,
+                mimetype="text/html",
+                is_front=False,
+            )
+
+            Global.creator.add_item_for(
+                path="home/not_yet_available",
+                title=Global.conf.title,
+                content=not_yet_available,
                 mimetype="text/html",
                 is_front=False,
             )
