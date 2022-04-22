@@ -140,7 +140,17 @@ class Global:
 
     gbl_image_regex = r"<img(?P<image_before>.*?)src\s*=\s*\"(?P<image_url>.*?)\""
     gbl_href_regex = r"href\s*=\s*\"(?P<href_url>.*?)\""
-    gbl_regex = re.compile(f"{gbl_image_regex}|{gbl_href_regex}")
+    gbl_youtube_regex = (
+        r"<div(?P<part1>(?!.*<div.*).+?)youtube-player"
+        r"(?P<part2>.+?)src=[\\\"']+(?P<youtubesrc>.+?)\"(?P<part3>.+?)</div>"
+    )
+    gbl_bgd_image_regex = (
+        r"background-image:url\((?P<quote1>&quot;|\"|')"
+        r"(?P<bgdimgurl>.*?)(?P<quote2>&quot;|\"|')\)"
+    )
+    gbl_regex = re.compile(
+        f"{gbl_image_regex}|{gbl_href_regex}|{gbl_youtube_regex}|{gbl_bgd_image_regex}"
+    )
 
     href_anchor_regex = r"^(?P<anchor>#.*)$"
     href_object_kind_regex = (
@@ -195,6 +205,25 @@ class Global:
         raise Exception("Unsupported match in _process_href_regex")
 
     @staticmethod
+    def _process_youtube(match, rel_prefix):
+        return (
+            f"<a href=\"{match.group('youtubesrc')}\">"
+            f"<div{Global.cleanup_rendered_content(match.group('part1'), rel_prefix)}"
+            'youtube-player'
+            f"{Global.cleanup_rendered_content(match.group('part2'), rel_prefix)}"
+            f"{Global.cleanup_rendered_content(match.group('part3'), rel_prefix)}"
+            "</div></a>"
+        )
+
+    @staticmethod
+    def _process_bgdimgurl(match, rel_prefix):
+        return (
+            f"background-image:url({match.group('quote1')}{rel_prefix}"
+            f"{Global.get_image_path(match.group('bgdimgurl'))}"
+            f"{match.group('quote2')})"
+        )
+
+    @staticmethod
     def _process_gbl_regex(match, rel_prefix):
         if match.group("image_url"):
             return (
@@ -204,6 +233,10 @@ class Global:
         if match.group("href_url"):
             href = Global._process_href_regex(match.group("href_url"), rel_prefix)
             return f'href="{href}"'
+        if match.group("youtubesrc"):
+            return Global._process_youtube(match, rel_prefix)
+        if match.group("bgdimgurl"):
+            return Global._process_bgdimgurl(match, rel_prefix)
         raise Exception("Unsupported match in cleanup_rendered_content")
 
     @staticmethod
