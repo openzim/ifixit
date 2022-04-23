@@ -63,6 +63,8 @@ class Global:
     env = None
     lock = threading.Lock()
 
+    ifixit_external_content = set()
+
     @staticmethod
     def set_debug(value):
         Global.debug = value
@@ -209,6 +211,8 @@ class Global:
 
     @staticmethod
     def _process_external_url(url, rel_prefix):
+        if "ifixit" in url:
+            Global.ifixit_external_content.add(url)
         return f"{rel_prefix}home/external_content?url={urllib.parse.quote(url)}"
 
     @staticmethod
@@ -451,6 +455,10 @@ class GlobalMixin:
     @property
     def info_wiki_template(self):
         return Global.info_wiki_template
+
+    @property
+    def ifixit_external_content(self):
+        return Global.ifixit_external_content
 
 
 logger = Global.logger

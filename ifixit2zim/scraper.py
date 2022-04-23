@@ -258,6 +258,10 @@ class ifixit2zim(GlobalMixin):
 
             logger.info(stats)
 
+            logger.info("IFIXIT_EXTERNAL URLS:")
+            for exturl in sorted(Global.ifixit_external_content):
+                logger.info(f"\t{exturl}")
+
         except Exception as exc:
             # request Creator not to create a ZIM file on finish
             self.creator.can_finish = False
