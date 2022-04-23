@@ -4,3 +4,4 @@ kiwixstorage>=0.8.1,<0.9
 Jinja2==3.1.1
 backoff==1.11.1 
 pif>=0.8.2,<0.9
+schedule>=1.1.0,<1.2
