@@ -213,8 +213,14 @@ class Global:
         if not url.startswith("https://") and not url.startswith("http://"):
             return Global._process_external_url(url, rel_prefix)
         try:
-            resp = requests.head(url)
+            resp = requests.head(url, timeout = 5)
             headers = resp.headers
+        except requests.exceptions.ConnectionError:
+            logger.debug(f"Unable to HEAD unrecognized href (ConnectionError): {url}")
+            return Global._process_external_url(url, rel_prefix)
+        except requests.exceptions.ReadTimeout:
+            logger.debug(f"Unable to HEAD unrecognized href (ReadTimeout): {url}")
+            return Global._process_external_url(url, rel_prefix)
         except Exception as exc:
             logger.warning(f"Unable to HEAD unrecognized href: {url}")
             logger.exception(exc)
