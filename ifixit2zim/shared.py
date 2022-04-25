@@ -80,8 +80,8 @@ class Global:
         from .executor import Executor
 
         Global.img_executor = Executor(
-            queue_size=20,
-            nb_workers=10,
+            queue_size=100,
+            nb_workers=50,
             prefix="IMG-T-",
         )
 
