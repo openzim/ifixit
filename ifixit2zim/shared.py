@@ -190,8 +190,8 @@ class Global:
     href_anchor_regex = r"^(?P<anchor>#.*)$"
     href_object_kind_regex = (
         r"^(?:https*://[\w\.]*(?:ifixit)[\w\.]*)*/"
-        r"((?:(?P<kind>Team|Wiki|Store|Boutique|Tienda).*/(?P<object>[\w%_\.-]+)"
-        r"(?P<after>#.*)?.*)"
+        r"((?:(?P<kind>Team|Wiki|Store|Boutique|Tienda|products).*/"
+        r"(?P<object>[\w%_\.-]+)(?P<after>#.*)?.*)"
         r"|(?:(?P<guide>Guide|Anleitung|Guía|Guida|Tutoriel|Teardown)/"
         r"(?P<guidetitle>.+)/(?P<guideid>\d+)(?P<guideafter>#.*)?.*)"
         r"|(?:(?P<device>Device|Topic)/(?P<devicetitle>[\w%_\.-]+)"
@@ -213,7 +213,7 @@ class Global:
         if not url.startswith("https://") and not url.startswith("http://"):
             return Global._process_external_url(url, rel_prefix)
         try:
-            resp = requests.head(url, timeout = 5)
+            resp = requests.head(url, timeout=5)
             headers = resp.headers
         except requests.exceptions.ConnectionError:
             logger.debug(f"Unable to HEAD unrecognized href (ConnectionError): {url}")
@@ -287,7 +287,7 @@ class Global:
             return (
                 f"{rel_prefix}home/not_yet_available" f"?url={urllib.parse.quote(href)}"
             )
-        if match.group("kind").lower() in ["store", "boutique", "tienda"]:
+        if match.group("kind").lower() in ["store", "boutique", "tienda", "products"]:
             return (
                 f"{rel_prefix}home/unavailable_offline"
                 f"?url={urllib.parse.quote(href)}"

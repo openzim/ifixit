@@ -45,7 +45,7 @@
       <div id="contentFloat">
         <div id="content">
           <div
-            class="wrapper {% if guide['type'] == 'teardown' %}is-teardown{% endif %}"
+            class="wrapper articleContainer{% if guide['type'] == 'teardown' %} is-teardown{% endif %}"
           >
             <div
               id="guide-intro"
@@ -265,7 +265,70 @@
               </div>
             </div>
 
-            <!-- TODO: Handle tools and parts display  -->
+            <div id="tools-and-parts" class="tools-and-parts">
+              <div class="actionbar-portal"></div>
+              <div>
+                <div class="row item-list-container">
+                  {% if (guide['tools'] | length > 0) and (guide['parts'] | length > 0) %}
+                    {% set colclass = 'no-columns' %}
+                  {% else %}
+                    {% set colclass = 'three-columns' %}
+                  {% endif %}
+                  {% if guide['tools'] | length > 0 %}
+                  <div class="column one-half item-list-tools">
+                    <div class="item-list-header row">
+                      <h3 class="column full-width">{{label['tools']}}</h3>
+                    </div>
+                    <ul class="item-list-featured attachment-link-list {{colclass}}">
+                      {% for tool in guide['tools'] %}
+                      {% set urlhref = (('href="' + tool['url'] + '"') |  cleanup_rendered_content(rel_prefix) | safe) %}
+                      <li class="attachment-link">
+                        <div class="row attachment-container" itemprop="supply" itemscope=""
+                          itemtype="http://schema.org/HowToSupply">
+                          <a {{urlhref}}>
+                            <img src="{{rel_prefix}}{{tool['thumbnail'] | get_image_path}}"
+                              alt="" width="41" height="41">
+                          </a>
+                          <div class="column">
+                            <a {{urlhref}}>
+                              <p itemprop="name" class="title">{{tool['text']}}</p>
+                            </a>
+                          </div>
+                        </div>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  {% endif %}
+                  {% if guide['parts'] | length > 0 %}
+                  <div class="column one-half item-list-parts">
+                    <div class="item-list-header row">
+                      <h3 class="column full-width">{{label['parts']}}</h3>
+                    </div>
+                    <ul class="item-list-featured attachment-link-list {{colclass}}">
+                      {% for part in guide['parts'] %}
+                      {% set urlhref = (('href="' + part['url'] + '"') |  cleanup_rendered_content(rel_prefix) | safe) %}
+                      <li class="attachment-link">
+                        <div class="row attachment-container" itemprop="supply" itemscope=""
+                          itemtype="http://schema.org/HowToSupply">
+                          <a {{urlhref}}>
+                            <img src="{{rel_prefix}}{{part['thumbnail'] | get_image_path}}"
+                              alt="" width="41" height="41">
+                          </a>
+                          <div class="column">
+                            <a {{urlhref}}>
+                              <p itemprop="name" class="title">{{part['text']}}</p>
+                            </a>
+                          </div>
+                        </div>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
 
             <ol class="steps-container container">
               <!-- TODO: Handle sections display (for now we have only one section for simplicity)-->

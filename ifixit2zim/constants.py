@@ -174,6 +174,12 @@ CATEGORY_LABELS = {
         "replacement_guides": "Replacement Guides",
         "teardown_guides": "Teardowns",
         "disassembly_guides": "Disassembly Guides",
+        "tools": "Tools",
+        "parts": "Parts",
+        "tools_introduction": (
+            "These are some common tools used to work on this device. You might not "
+            "need every tool for every procedure."
+        ),
     },
     "fr": {
         "author": "Auteur: ",
@@ -187,6 +193,13 @@ CATEGORY_LABELS = {
         "replacement_guides": "Tutoriels de remplacement",
         "teardown_guides": "Vues éclatées",
         "disassembly_guides": "Tutoriels de démontage",
+        "tools": "Outils",
+        "parts": "Pièces",
+        "tools_introduction": (
+            "Voici quelques outils couramment utilisés pour travailler sur cet "
+            "appareil. Vous ne devriez pas avoir besoin de tous les outils pour chaque "
+            "procédure."
+        ),
     },
     "pt": {
         "author": "Autor: ",
@@ -200,6 +213,12 @@ CATEGORY_LABELS = {
         "replacement_guides": "Guias de reposição",
         "teardown_guides": "Teardowns",
         "disassembly_guides": "Guias de Desmontagem",
+        "tools": "Ferramentas",
+        "parts": "Peças",
+        "tools_introduction": (
+            "Estas são algumas ferramentas comuns usadas para executar trabalhos neste "
+            "dispositivo. Talvez você não precise usar todas elas em cada procedimento."
+        ),
     },
     "de": {
         "author": "Autor: ",
@@ -213,6 +232,12 @@ CATEGORY_LABELS = {
         "replacement_guides": "Reparaturanleitungen",
         "teardown_guides": "Teardowns",
         "disassembly_guides": "Demontageanleitungen",
+        "tools": "Werkzeuge",
+        "parts": "Ersatzteile",
+        "tools_introduction": (
+            "Es werden einige allgemeine Werkzeuge verwendet, um an diesem Gerät zu "
+            "arbeiten. Du wirst nicht jedes Werkzeug für jeden Vorgang benötigen."
+        ),
     },
     "ko": {
         "author": "작성자: ",
@@ -226,6 +251,9 @@ CATEGORY_LABELS = {
         "replacement_guides": "교체 가이드",
         "teardown_guides": "분해도",
         "disassembly_guides": "분해 안내서",
+        "tools": "도구",
+        "parts": "부품",
+        "tools_introduction": ("해당 기기를 고치는데 사용하는 일반 도구들 입니다. 매 단계에 모든 도구를 사용하지는 않습니다."),
     },
     "zh": {
         "author": "作者: ",
@@ -239,6 +267,9 @@ CATEGORY_LABELS = {
         "replacement_guides": "更换指南",
         "teardown_guides": "拆​解",
         "disassembly_guides": "拆卸指南",
+        "tools": "工具",
+        "parts": "配件",
+        "tools_introduction": ("这是用于在这个设备上工作的一些常用工具。你可能不需要在每个过程中使用到每个工具。"),
     },
     "ru": {
         "author": "Автор: ",
@@ -252,6 +283,13 @@ CATEGORY_LABELS = {
         "replacement_guides": "Инструкции по заменам",
         "teardown_guides": "Разбираем",
         "disassembly_guides": "Инструкции по демонтажу",
+        "tools": "Инструменты",
+        "parts": "Запчасти",
+        "tools_introduction": (
+            "Вот некоторые основные инструменты, используемые для работы на данном "
+            "устройстве. Вам, возможно, не понадобиться каждый инструмент для каждой "
+            "процедуры."
+        ),
     },
     "nl": {
         "author": "Auteur: ",
@@ -265,6 +303,13 @@ CATEGORY_LABELS = {
         "replacement_guides": "Vervangingshandleidingen",
         "teardown_guides": "Demontages",
         "disassembly_guides": "Demontagehandleidingen",
+        "tools": "Gereedschap",
+        "parts": "Onderdelen",
+        "tools_introduction": (
+            "Dit is een aantal algemene gereedschappen dat gebruikt wordt om aan dit"
+            " apparaat te werken. Je hebt niet elk stuk gereedschap voor elke procedure"
+            " nodig."
+        ),
     },
     "ja": {
         "author": "作成者: ",
@@ -278,6 +323,11 @@ CATEGORY_LABELS = {
         "replacement_guides": "交換ガイド",
         "teardown_guides": "分解",
         "disassembly_guides": "分解ガイド",
+        "tools": "ツール",
+        "parts": "パーツ",
+        "tools_introduction": (
+            "以前、このデバイスの修理に使われていた一般的な工具です。修理過程において全部の工具が必要" "とは限りません。"
+        ),
     },
     "tr": {
         "author": "Yazar: ",
@@ -291,6 +341,12 @@ CATEGORY_LABELS = {
         "replacement_guides": "Parça Değişim Kılavuzları",
         "teardown_guides": "Teardown'lar",
         "disassembly_guides": "Söküm Kılavuzları",
+        "tools": "Aletler",
+        "parts": "Parçalar",
+        "tools_introduction": (
+            "Bunlar, bu cihaz için yaygınca kullanılan bazı aletler. Her işlem için "
+            "her alete ihtiyacınız yoktur."
+        ),
     },
     "it": {
         "author": "Autore: ",
@@ -304,6 +360,13 @@ CATEGORY_LABELS = {
         "replacement_guides": "Guide Sostituzione",
         "teardown_guides": "Smontaggi",
         "disassembly_guides": "Guide di smontaggio",
+        "tools": "Strumenti",
+        "parts": "Ricambi",
+        "tools_introduction": (
+            "Questi sono alcuni strumenti di uso comune usati per lavorare su questo "
+            "dispositivo. Potrebbe non essere necessario ogni strumento per ogni "
+            "procedura."
+        ),
     },
     "es": {
         "author": "Autor/a: ",
@@ -317,6 +380,13 @@ CATEGORY_LABELS = {
         "replacement_guides": "Guías de reemplazo",
         "teardown_guides": "Desmontajes",
         "disassembly_guides": "Guías de Desmontaje",
+        "tools": "Herramientas",
+        "parts": "Partes",
+        "tools_introduction": (
+            "Estas son algunas de las herramientas comunes que se utilizaron para "
+            "trabajar en este dispositivo. Es posible que no necesites todas las "
+            "herramientas para cada procedimiento."
+        ),
     },
 }
 

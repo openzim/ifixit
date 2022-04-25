@@ -213,8 +213,56 @@
                         {% endif %}
 
                         <!-- TODO : retrieve questions if this makes sense -->
+                        {% if (category['tools'] | length) + category['parts']['total'] > 0 %}
+                        <div id="Section_tools_and_parts" class="js-dynamic-toc-section">
+                            {% if category['parts']['total'] > 0 %}
+                            <h2>{{label['parts']}}</h2>
+                            <div id="deviceToolsList" class="row">
+                                <ul class="attachment-link-list two-columns">
+                                    {% for part in category['parts']['categories'] %}
+                                    <li class="attachment-link">
+                                        <div class="row attachment-container">
+                                            <div class="column">
+                                                <a {{('href="' + part['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe}}>
+                                                    <span>{{part['tag']}}</span>
+                                                    ({{part['count']}})
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
 
-                        <!-- TODO : Retrieve tools -->
+                            {% if category['tools'] | length > 0 %}
+                            <h2 class="tools-header">{{label['tools']}}</h2>
+                            <div class="deviceToolsContainer">
+                                <p>{{label['tools_introduction']}}</p>
+                                <div class="deviceToolsList">
+                                    <ul class="attachment-link-list two-columns">
+                                        {% for tool in category['tools'] %}
+                                        <li class="attachment-link">
+                                            <div class="row attachment-container">
+                                                <a {{('href="' + tool['target_url'] + '"') | cleanup_rendered_content(rel_prefix) | safe}}>
+                                                <img src="{{rel_prefix}}{{tool['image_url'] | get_image_path}}"
+                                                    alt="" width="41" height="41">
+                                                </a>
+                                                <div class="column">
+                                                    <a {{('href="' + tool['target_url'] + '"') | cleanup_rendered_content(rel_prefix) | safe}}>
+                                                        <p class="title">{{tool['title']}}</p>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="clearer"></div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
 
                         <div id="Wiki_Details">
                             <div id="wikiRenderedText" class="wikiRenderedText renderedText originalText"
