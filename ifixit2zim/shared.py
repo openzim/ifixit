@@ -63,6 +63,7 @@ class Global:
     env = None
     lock = threading.Lock()
 
+    null_categories = set()
     ifixit_external_content = set()
 
     @staticmethod

@@ -258,6 +258,10 @@ class ifixit2zim(GlobalMixin):
 
             logger.info(stats)
 
+            logger.info("Null categories:")
+            for key in Global.null_categories:
+                logger.info(f"\t{key}")
+
             logger.info("IFIXIT_EXTERNAL URLS:")
             for exturl in sorted(Global.ifixit_external_content):
                 logger.info(f"\t{exturl}")

@@ -95,6 +95,8 @@ class ScraperGuide(ScraperGeneric):
                 # we ignore archived guides since they are not accessible anywayß
                 if "GUIDE_ARCHIVED" in guide["flags"]:
                     continue
+                if guide["revisionid"] == 0:
+                    logger.warning("Found one guide with revisionid=0")
                 guideid = guide["guideid"]
                 # Unfortunately for now iFixit API always returns "en" as language
                 # on this endpoint, so we consider it as unknown for now

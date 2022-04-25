@@ -1,6 +1,6 @@
 import urllib
 
-from .constants import CATEGORY_LABELS
+from .constants import CATEGORY_LABELS, URLS
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
 from .shared import Global, logger
@@ -83,6 +83,27 @@ class ScraperCategory(ScraperGeneric):
         category_content = get_api_content(
             f"/wikis/CATEGORY/{categoryid}", langid=Global.conf.lang_code
         )
+
+        if category_content and category_content["revisionid"] > 0:
+            return category_content
+
+        logger.warning("Falling back to category in EN")
+        category_content = get_api_content(f"/wikis/CATEGORY/{categoryid}", langid="en")
+
+        if category_content and category_content["revisionid"] > 0:
+            return category_content
+
+        for lang in URLS.keys():
+            logger.warning(f"Falling back to category in {lang}")
+            category_content = get_api_content(
+                f"/wikis/CATEGORY/{categoryid}", langid=lang
+            )
+
+            if category_content and category_content["revisionid"] > 0:
+                return category_content
+
+        logger.warning(f"Impossible to get category content: {item_key}")
+        Global.null_categories.add(item_key)
 
         return category_content
 
