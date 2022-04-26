@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 
+import hashlib
 import io
 import pathlib
 import re
@@ -27,6 +28,7 @@ class Imager:
         self.handled = set()
         self.nb_requested = 0
         self.nb_done = 0
+        self.dedup_items = dict()
 
         Global.img_executor.start()
 
@@ -102,6 +104,29 @@ class Imager:
         self.nb_done += 1
         logger.debug(f"Images {self.nb_done}/{self.nb_requested}")
 
+    def check_for_duplicate(self, path, content):
+        digest = hashlib.sha256(content).digest()
+        if digest in self.dedup_items:
+            return self.dedup_items[digest]
+        self.dedup_items[digest] = path
+        return None
+
+    def add_image_to_zim(self, path, content, mimetype):
+        duplicate_path = self.check_for_duplicate(path, content)
+        with Global.lock:
+            if duplicate_path:
+                Global.creator.add_redirect(
+                    path=path,
+                    target_path=duplicate_path,
+                )
+            else:
+                Global.creator.add_item_for(
+                    path=path,
+                    content=content,
+                    mimetype=mimetype,
+                    callback=self.once_done,
+                )
+
     def process_image(self, url: str, path: str, mimetype: str) -> str:
         """download image from url or S3 and add to Zim at path. Upload if req."""
 
@@ -110,13 +135,11 @@ class Imager:
 
         # just download, optimize and add to ZIM if not using S3
         if not Global.conf.s3_url:
-            with Global.lock:
-                Global.creator.add_item_for(
-                    path=path,
-                    content=self.get_image_data(url.geturl()).getvalue(),
-                    mimetype=mimetype,
-                    callback=self.once_done,
-                )
+            self.add_image_to_zim(
+                path=path,
+                content=self.get_image_data(url.geturl()).getvalue(),
+                mimetype=mimetype,
+            )
             return path
 
         # we are using S3 cache
@@ -142,13 +165,11 @@ class Imager:
             logger.exception(exc)
             download_failed = True
         else:
-            with Global.lock:
-                Global.creator.add_item_for(
-                    path=path,
-                    content=fileobj.getvalue(),
-                    mimetype=mimetype,
-                    callback=self.once_done,
-                )
+            self.add_image_to_zim(
+                path=path,
+                content=fileobj.getvalue(),
+                mimetype=mimetype,
+            )
             return path
 
         # we're using S3 but don't have it or failed to download
@@ -160,13 +181,11 @@ class Imager:
             logger.exception(exc)
             return path
 
-        with Global.lock:
-            Global.creator.add_item_for(
-                path=path,
-                content=fileobj.getvalue(),
-                mimetype=mimetype,
-                callback=self.once_done,
-            )
+        self.add_image_to_zim(
+            path=path,
+            content=fileobj.getvalue(),
+            mimetype=mimetype,
+        )
 
         # only upload it if we didn't have it in cache
         if not download_failed:
