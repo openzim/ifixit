@@ -757,6 +757,44 @@ USER_LABELS = {
     },
 }
 
+NOT_YET_AVAILABLE = [
+    "team",
+    "wiki",
+    "answers",
+    "contribute",
+    "document",
+    "help",
+    "aide",
+    "item",
+    "mac-parts",
+    "troubleshoot",
+    "userwiki",
+    "users",
+    "stories",
+    "blog",
+    "ewaste",
+    "pledge",
+    "right",
+    "manifesto",
+    "tools",
+    "user/contributions",
+    "guide/document",
+    "guide/first-look",
+    "guide/how+to+sold",
+    "news",
+    "kits",
+]
+
+UNAVAILABLE_OFFLINE = [
+    "store",
+    "boutique",
+    "tienda",
+    "products",
+    "game-console-parts",
+    "guide/survey",
+    "upgrade/laptop",
+    "search",
+]
 
 API_PREFIX = "/api/2.0"
 

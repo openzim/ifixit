@@ -23,7 +23,9 @@ from .constants import (
     DEFAULT_USER_IMAGE_URLS,
     DEFAULT_WIKI_IMAGE_URL,
     NAME,
+    NOT_YET_AVAILABLE,
     ROOT_DIR,
+    UNAVAILABLE_OFFLINE,
 )
 
 LOCALE_LOCK = threading.Lock()
@@ -190,8 +192,9 @@ class Global:
     href_anchor_regex = r"^(?P<anchor>#.*)$"
     href_object_kind_regex = (
         r"^(?:https*://[\w\.]*(?:ifixit)[\w\.]*)*/"
-        r"((?:(?P<kind>Team|Wiki|Store|Boutique|Tienda|products).*/"
-        r"(?P<object>[\w%_\.-]+)(?P<after>#.*)?.*)"
+        r"((?:(?P<kind>"
+        + "|".join(NOT_YET_AVAILABLE + UNAVAILABLE_OFFLINE)
+        + r")(?:/.+)?)"
         r"|(?:(?P<guide>Guide|Anleitung|Guía|Guida|Tutoriel|Teardown)/"
         r"(?P<guidetitle>.+)/(?P<guideid>\d+)(?P<guideafter>#.*)?.*)"
         r"|(?:(?P<device>Device|Topic)/(?P<devicetitle>[\w%_\.-]+)"
@@ -287,11 +290,11 @@ class Global:
     def _process_href_regex_kind(href, rel_prefix, match):
         if not match.group("kind"):
             return None
-        if match.group("kind").lower() in ["team", "wiki"]:
+        if match.group("kind").lower() in NOT_YET_AVAILABLE:
             return (
                 f"{rel_prefix}home/not_yet_available" f"?url={urllib.parse.quote(href)}"
             )
-        if match.group("kind").lower() in ["store", "boutique", "tienda", "products"]:
+        if match.group("kind").lower() in UNAVAILABLE_OFFLINE:
             return (
                 f"{rel_prefix}home/unavailable_offline"
                 f"?url={urllib.parse.quote(href)}"
