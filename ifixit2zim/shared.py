@@ -254,7 +254,8 @@ class Global:
         if not match.group("guide"):
             return None
         link = Global.get_guide_link_from_props(
-            guideid=match.group("guideid"), guidetitle=match.group("guidetitle")
+            guideid=match.group("guideid"),
+            guidetitle=urllib.parse.unquote_plus(match.group("guidetitle")),
         )
         return f"{rel_prefix}{link}{match.group('guideafter') or ''}"
 
@@ -262,21 +263,24 @@ class Global:
         if not match.group("device"):
             return None
         link = Global.get_category_link_from_props(
-            category_title=match.group("devicetitle")
+            category_title=urllib.parse.unquote_plus(match.group("devicetitle"))
         )
         return f"{rel_prefix}{link}{match.group('deviceafter') or ''}"
 
     def _process_href_regex_info(href, rel_prefix, match):
         if not match.group("info"):
             return None
-        link = Global.get_info_link_from_props(info_title=match.group("infotitle"))
+        link = Global.get_info_link_from_props(
+            info_title=urllib.parse.unquote_plus(match.group("infotitle"))
+        )
         return f"{rel_prefix}{link}" f"{match.group('infoafter') or ''}"
 
     def _process_href_regex_user(href, rel_prefix, match):
         if not match.group("user"):
             return None
         link = Global.get_user_link_from_props(
-            userid=match.group("userid"), usertitle=match.group("usertitle")
+            userid=match.group("userid"),
+            usertitle=urllib.parse.unquote_plus(match.group("usertitle")),
         )
         return f"{rel_prefix}{link}" f"{match.group('userafter') or ''}"
 
