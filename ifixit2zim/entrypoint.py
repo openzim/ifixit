@@ -248,6 +248,14 @@ def main():
         default=False,
     )
 
+    parser.add_argument(
+        "--no-cleanup",
+        help="Do not cleanup HTML content.",
+        dest="no_cleanup",
+        action="store_true",
+        default=False,
+    )
+
     args = parser.parse_args()
     Global.set_debug(args.debug)
 

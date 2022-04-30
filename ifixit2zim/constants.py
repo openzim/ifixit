@@ -829,6 +829,7 @@ class Conf:
     no_info: Optional[bool] = False
     users: Set[str] = field(default_factory=set)
     no_user: Optional[bool] = False
+    no_cleanup: Optional[bool] = False
 
     # filesystem
     _output_dir: Optional[str] = "."

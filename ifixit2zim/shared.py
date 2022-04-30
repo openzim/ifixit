@@ -358,6 +358,8 @@ class Global:
 
     @staticmethod
     def cleanup_rendered_content(content, rel_prefix="../"):
+        if Global.conf.no_cleanup:
+            return content
         return re.sub(
             Global.gbl_regex,
             lambda match: Global._process_gbl_regex(match, rel_prefix),
