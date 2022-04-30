@@ -285,10 +285,12 @@
                       <li class="attachment-link">
                         <div class="row attachment-container" itemprop="supply" itemscope=""
                           itemtype="http://schema.org/HowToSupply">
+                          {% if tool['thumbnail'] %}
                           <a {{urlhref}}>
                             <img src="{{rel_prefix}}{{tool['thumbnail'] | get_image_path}}"
                               alt="" width="41" height="41">
                           </a>
+                          {% endif %}
                           <div class="column">
                             <a {{urlhref}}>
                               <p itemprop="name" class="title">{{tool['text']}}</p>
@@ -311,10 +313,12 @@
                       <li class="attachment-link">
                         <div class="row attachment-container" itemprop="supply" itemscope=""
                           itemtype="http://schema.org/HowToSupply">
+                          {% if part['thumbnail'] %}
                           <a {{urlhref}}>
                             <img src="{{rel_prefix}}{{part['thumbnail'] | get_image_path}}"
                               alt="" width="41" height="41">
                           </a>
+                          {% endif %}
                           <div class="column">
                             <a {{urlhref}}>
                               <p itemprop="name" class="title">{{part['text']}}</p>
@@ -537,7 +541,7 @@
                         <a href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">
                           <img
                             alt=""
-                            src="{{rel_prefix}}{{guide['author'] | get_image_url | get_image_path }}"
+                            src="{{rel_prefix}}{{guide['author'] | get_image_url(for_user=True) | get_image_path }}"
                             width="100"
                             height="100"
                           />
