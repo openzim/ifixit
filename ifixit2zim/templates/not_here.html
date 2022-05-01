@@ -22,6 +22,10 @@
                   Oups 
                   {% elif kind == 'not_yet_available' %}
                   Oups 
+                  {% elif kind == 'missing' %}
+                  Missing item 
+                  {% elif kind == 'error' %}
+                  Oups 
                   {% else %}
                   {{ raise("unsupported kind: " + kind)}}
                   {% endif %}
@@ -36,6 +40,10 @@
                      This content cannot be made available offline. 
                      {% elif kind == 'not_yet_available' %}
                      This content is not (yet) available offline. 
+                     {% elif kind == 'missing' %}
+                     This content is missing. 
+                     {% elif kind == 'error' %}
+                     This content is missing due to an error. 
                      {% endif %}
                   </p>
 
@@ -56,6 +64,10 @@
                   when you are back online, or notify Kiwix team by any other mean.
                      {% elif kind == 'unavailable_offline' %}
                      Due to the dynamic nature of this content, it cannot be made available offline. 
+                     {% elif kind == 'missing' %}
+                     This item is not accessible since we failed to retrieve it at the time we built this ZIM archive, probably becuase it has been archived or moved. 
+                     {% elif kind == 'error' %}
+                     This item is not accessible due to an unexpected error at the time we built this ZIM archive. 
                      {% elif kind == 'not_yet_available' %}
                      This content has unfortunately not yet been retrieved in the archive you are currently browsing. 
                      Current scrapper does not yet support this kind of data.

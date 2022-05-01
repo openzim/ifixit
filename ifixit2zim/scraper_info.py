@@ -90,6 +90,13 @@ class ScraperInfo(ScraperGeneric):
         info_wiki_content = get_api_content(f"/wikis/INFO/{info_wiki_title}")
         return info_wiki_content
 
+    def add_item_redirect(self, item_key, item_data, redirect_kind):
+        path = self._build_info_path(item_data["info_title"])
+        Global.add_redirect(
+            path=path,
+            target_path=f"home/{redirect_kind}?url={urllib.parse.quote(path)}",
+        )
+
     def process_one_item(self, item_key, item_data, item_content):
         info_wiki_content = item_content
 

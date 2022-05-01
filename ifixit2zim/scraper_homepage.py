@@ -28,6 +28,10 @@ class ScraperHomepage(ScraperGeneric):
         soup, _ = get_soup("/Guide")
         return soup
 
+    def add_item_redirect(self, item_key, item_data, redirect_kind):
+        logger.warning("Not supposed to add a redirect for a home item")
+        return
+
     def process_one_item(self, item_key, item_data, item_content):
         soup = item_content
 
@@ -80,6 +84,16 @@ class ScraperHomepage(ScraperGeneric):
             kind="not_yet_available",
         )
 
+        missing = self.not_here_template.render(
+            metadata=Global.metadata,
+            kind="missing",
+        )
+
+        error_content = self.not_here_template.render(
+            metadata=Global.metadata,
+            kind="error",
+        )
+
         with Global.lock:
             Global.creator.add_item_for(
                 path="home/home",
@@ -119,6 +133,22 @@ class ScraperHomepage(ScraperGeneric):
                 path="home/not_yet_available",
                 title=Global.conf.title,
                 content=not_yet_available,
+                mimetype="text/html",
+                is_front=False,
+            )
+
+            Global.creator.add_item_for(
+                path="home/missing",
+                title=Global.conf.title,
+                content=missing,
+                mimetype="text/html",
+                is_front=False,
+            )
+
+            Global.creator.add_item_for(
+                path="home/error",
+                title=Global.conf.title,
+                content=error_content,
                 mimetype="text/html",
                 is_front=False,
             )

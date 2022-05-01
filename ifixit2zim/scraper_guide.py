@@ -8,6 +8,7 @@ from .constants import (
     DIFFICULTY_VERY_HARD,
     GUIDE_LABELS,
     UNKNOWN_LOCALE,
+    UNKNOWN_TITLE,
 )
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
@@ -25,11 +26,12 @@ class ScraperGuide(ScraperGeneric):
     def get_items_name(self):
         return "guide"
 
-    def _add_guide_to_scrape(self, guideid, locale, is_expected):
+    def _add_guide_to_scrape(self, guideid, guidetitle, locale, is_expected):
         self.add_item_to_scrape(
             guideid,
             {
                 "guideid": guideid,
+                "guidetitle": guidetitle,
                 "locale": locale,
             },
             is_expected,
@@ -60,6 +62,12 @@ class ScraperGuide(ScraperGeneric):
             and self.expected_items_keys[guideid]["locale"] == UNKNOWN_LOCALE
         ):
             self.expected_items_keys[guideid]["locale"] = locale
+        # override unknown title if needed
+        if (
+            guideid in self.expected_items_keys
+            and self.expected_items_keys[guideid]["guidetitle"] == UNKNOWN_TITLE
+        ):
+            self.expected_items_keys[guideid]["guidetitle"] = title
         return self.get_guide_link_from_props(
             guideid=guideid, guidetitle=title, guidelocale=locale
         )
@@ -72,7 +80,7 @@ class ScraperGuide(ScraperGeneric):
             return f"home/not_scrapped?url={urllib.parse.quote(guide_path)}"
         if Global.conf.guides and str(guideid) not in Global.conf.guides:
             return f"home/not_scrapped?url={urllib.parse.quote(guide_path)}"
-        self._add_guide_to_scrape(guideid, guidelocale, False)
+        self._add_guide_to_scrape(guideid, guidetitle, guidelocale, False)
         return guide_path
 
     def build_expected_items(self):
@@ -82,7 +90,7 @@ class ScraperGuide(ScraperGeneric):
         if Global.conf.guides:
             logger.info("Adding required guides as expected")
             for guide in Global.conf.guides:
-                self._add_guide_to_scrape(guide, UNKNOWN_LOCALE, True)
+                self._add_guide_to_scrape(guide, UNKNOWN_TITLE, UNKNOWN_LOCALE, True)
             return
         logger.info("Downloading list of guides")
         limit = 200
@@ -100,7 +108,7 @@ class ScraperGuide(ScraperGeneric):
                 guideid = guide["guideid"]
                 # Unfortunately for now iFixit API always returns "en" as language
                 # on this endpoint, so we consider it as unknown for now
-                self._add_guide_to_scrape(guideid, UNKNOWN_LOCALE, True)
+                self._add_guide_to_scrape(guideid, UNKNOWN_TITLE, UNKNOWN_LOCALE, True)
             offset += limit
             if Global.conf.scrape_only_first_items:
                 logger.warning(
@@ -125,6 +133,19 @@ class ScraperGuide(ScraperGeneric):
             guide_content = get_api_content(f"/guides/{guideid}", langid="en")
 
         return guide_content
+
+    def add_item_redirect(self, item_key, item_data, redirect_kind):
+        guideid = item_key
+        guide = item_data
+        guidetitle = guide["guidetitle"]
+        if guidetitle == UNKNOWN_TITLE:
+            logger.warning(f"Cannot add redirect for guide {guideid} in error")
+            return
+        path = self._build_guide_path(guideid, guidetitle)
+        Global.add_redirect(
+            path=path,
+            target_path=f"home/{redirect_kind}?url={urllib.parse.quote(path)}",
+        )
 
     def process_one_item(self, item_key, item_data, item_content):
         guide_content = item_content

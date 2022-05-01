@@ -399,6 +399,26 @@ class Global:
                 )
 
     @staticmethod
+    def add_redirect(path, target_path):
+        with Global.lock:
+            Global.creator.add_redirect(
+                path=path,
+                target_path=target_path,
+            )
+            alternate_path = path.replace(" ", "_")
+            if alternate_path != path:
+                Global.creator.add_redirect(
+                    path=alternate_path,
+                    target_path=path,
+                )
+            alternate_path = path.replace(" ", "+")
+            if alternate_path != path:
+                Global.creator.add_redirect(
+                    path=alternate_path,
+                    target_path=path,
+                )
+
+    @staticmethod
     def get_item_comments_count(item):
         if "comments" not in item:
             return 0

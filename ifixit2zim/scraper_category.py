@@ -105,7 +105,15 @@ class ScraperCategory(ScraperGeneric):
         logger.warning(f"Impossible to get category content: {item_key}")
         Global.null_categories.add(item_key)
 
-        return category_content
+        return None
+
+    def add_item_redirect(self, item_key, item_data, redirect_kind):
+        path = self._build_category_path(item_data["category_title"])
+        logger.warning(f"Addnig reditect {path}")
+        Global.add_redirect(
+            path=path,
+            target_path=f"home/{redirect_kind}",
+        )
 
     def process_one_item(self, item_key, item_data, item_content):
         category_content = item_content

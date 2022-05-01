@@ -1,6 +1,6 @@
 import urllib
 
-from .constants import USER_LABELS
+from .constants import UNKNOWN_TITLE, USER_LABELS
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
 from .shared import Global, logger
@@ -17,11 +17,12 @@ class ScraperUser(ScraperGeneric):
     def get_items_name(self):
         return "user"
 
-    def _add_user_to_scrape(self, userid, is_expected):
+    def _add_user_to_scrape(self, userid, usertitle, is_expected):
         self.add_item_to_scrape(
             userid,
             {
                 "userid": userid,
+                "usertitle": usertitle,
             },
             is_expected,
             False,
@@ -41,6 +42,12 @@ class ScraperUser(ScraperGeneric):
             )
         userid = user["userid"]
         usertitle = user["username"]
+        # override unknown title if needed
+        if (
+            userid in self.expected_items_keys
+            and self.expected_items_keys[userid]["usertitle"] == UNKNOWN_TITLE
+        ):
+            self.expected_items_keys[userid]["usertitle"] = usertitle
         return self.get_user_link_from_props(userid=userid, usertitle=usertitle)
 
     def get_user_link_from_props(self, userid, usertitle):
@@ -49,7 +56,7 @@ class ScraperUser(ScraperGeneric):
             return f"home/not_scrapped?url={urllib.parse.quote(user_path)}"
         if Global.conf.users and str(userid) not in Global.conf.users:
             return f"home/not_scrapped?url={urllib.parse.quote(user_path)}"
-        self._add_user_to_scrape(userid, False)
+        self._add_user_to_scrape(userid, usertitle, False)
         return user_path
 
     def build_expected_items(self):
@@ -59,7 +66,7 @@ class ScraperUser(ScraperGeneric):
         if Global.conf.users:
             logger.info("Adding required users as expected")
             for userid in Global.conf.users:
-                self._add_user_to_scrape(userid, True)
+                self._add_user_to_scrape(userid, UNKNOWN_TITLE, True)
             return
         # WE DO NOT BUILD A LIST OF EXPECTED USERS, THE LIST IS WAY TOO BIG WITH LOTS
         # OF USERS WHICH DID NOT CONTRIBUTED AND ARE HENCE NOT NEEDED IN THE ARCHIVE
@@ -82,6 +89,18 @@ class ScraperUser(ScraperGeneric):
         # other content is available in other endpoints, but not retrieved for now
         # (badges: not easy to process ; guides: does not seems to work properly)
         return user_content
+
+    def add_item_redirect(self, item_key, item_data, redirect_kind):
+        userid = item_data["userid"]
+        usertitle = item_data["usertitle"]
+        if usertitle == UNKNOWN_TITLE:
+            logger.warning(f"Cannot add redirect for user {userid} in error")
+            return
+        path = self._build_user_path(userid, usertitle)
+        Global.add_redirect(
+            path=path,
+            target_path=f"home/{redirect_kind}?url={urllib.parse.quote(path)}",
+        )
 
     def process_one_item(self, item_key, item_data, item_content):
         user_content = item_content

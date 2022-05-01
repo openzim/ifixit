@@ -33,6 +33,10 @@ class ScraperGeneric(ABC):
         pass
 
     @abstractmethod
+    def add_item_redirect(self, item_key, item_data, redirect_kind):
+        pass
+
+    @abstractmethod
     def process_one_item(self, item_key, item_data, item_content):
         pass
 
@@ -65,6 +69,12 @@ class ScraperGeneric(ABC):
             }
         )
 
+    def add_item_missing_redirect(self, item_key, item_data):
+        self.add_item_redirect(item_key, item_data, "missing")
+
+    def add_item_error_redirect(self, item_key, item_data):
+        self.add_item_redirect(item_key, item_data, "error")
+
     def scrape_one_item(self, item_key, item_data):
 
         item_content = self.get_one_item_content(item_key, item_data)
@@ -72,6 +82,7 @@ class ScraperGeneric(ABC):
         if item_content is None:
             logger.warning(f"Missing {self.get_items_name()} {item_key}")
             self.missing_items_keys.add(item_key)
+            self.add_item_missing_redirect(item_key, item_data)
             return
 
         logger.debug(f"Processing {self.get_items_name()} {item_key}")
