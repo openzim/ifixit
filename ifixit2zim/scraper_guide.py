@@ -92,9 +92,12 @@ class ScraperGuide(ScraperGeneric):
             if len(guides) == 0:
                 break
             for guide in guides:
+                # we ignore archived guides since they are not accessible anywayß
+                if "GUIDE_ARCHIVED" in guide["flags"]:
+                    continue
                 guideid = guide["guideid"]
-                # Unfortunately for now iFixit API always returns "en" as language on
-                # this endpoint, so we consider it as unknown
+                # Unfortunately for now iFixit API always returns "en" as language
+                # on this endpoint, so we consider it as unknown for now
                 self._add_guide_to_scrape(guideid, UNKNOWN_LOCALE, True)
             offset += limit
             if Global.conf.scrape_only_first_items:
