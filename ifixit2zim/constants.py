@@ -786,7 +786,6 @@ NOT_YET_AVAILABLE = [
     "kits",
     "teardown",
     "vue+%c3%89clat%c3%a9e",
-    "tutoriel",
     "r%c3%a9ponses",
     "article",
 ]

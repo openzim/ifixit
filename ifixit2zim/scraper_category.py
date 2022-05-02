@@ -30,7 +30,12 @@ class ScraperCategory(ScraperGeneric):
         return Global.convert_title_to_filename(category_title.lower())
 
     def _build_category_path(self, category_title):
-        return f"Device/{category_title}"
+        href = (
+            Global.conf.main_url.geturl()
+            + f"/Device/{category_title.replace('/', ' ')}"
+        )
+        final_href = Global.normalize_href(href)
+        return urllib.parse.urlparse(final_href).path[1:]
 
     def get_category_link_from_obj(self, category):
         if "title" not in category or not category["title"]:
@@ -41,9 +46,9 @@ class ScraperCategory(ScraperGeneric):
         return self.get_category_link_from_props(category_title=category_title)
 
     def get_category_link_from_props(self, category_title):
-        category_path = self._build_category_path(category_title)
+        category_path = urllib.parse.quote(self._build_category_path(category_title))
         if Global.conf.no_category:
-            return f"home/not_scrapped?url={urllib.parse.quote(category_path)}"
+            return f"home/not_scrapped?url={category_path}"
         category_key = self._get_category_key_from_title(category_title)
         if Global.conf.categories:
             is_not_included = True
@@ -52,7 +57,7 @@ class ScraperCategory(ScraperGeneric):
                 if other_category_key == category_key:
                     is_not_included = False
             if is_not_included:
-                return f"home/not_scrapped?url={urllib.parse.quote(category_path)}"
+                return f"home/not_scrapped?url={category_path}"
         self._add_category_to_scrape(category_key, category_title, False)
         return category_path
 

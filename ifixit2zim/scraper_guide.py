@@ -38,7 +38,12 @@ class ScraperGuide(ScraperGeneric):
         )
 
     def _build_guide_path(self, guideid, guidetitle):
-        return f"Guide/{guidetitle}/{guideid}"
+        href = (
+            Global.conf.main_url.geturl()
+            + f"/Guide/{guidetitle.replace('/', ' ')}/{guideid}"
+        )
+        final_href = Global.normalize_href(href)
+        return urllib.parse.urlparse(final_href).path[1:]
 
     def get_guide_link_from_obj(self, guide):
         if "guideid" not in guide or not guide["guideid"]:
@@ -75,11 +80,13 @@ class ScraperGuide(ScraperGeneric):
     def get_guide_link_from_props(
         self, guideid, guidetitle, guidelocale=UNKNOWN_LOCALE
     ):
-        guide_path = self._build_guide_path(guideid=guideid, guidetitle=guidetitle)
+        guide_path = urllib.parse.quote(
+            self._build_guide_path(guideid=guideid, guidetitle=guidetitle)
+        )
         if Global.conf.no_guide:
-            return f"home/not_scrapped?url={urllib.parse.quote(guide_path)}"
+            return f"home/not_scrapped?url={guide_path}"
         if Global.conf.guides and str(guideid) not in Global.conf.guides:
-            return f"home/not_scrapped?url={urllib.parse.quote(guide_path)}"
+            return f"home/not_scrapped?url={guide_path}"
         self._add_guide_to_scrape(guideid, guidetitle, guidelocale, False)
         return guide_path
 

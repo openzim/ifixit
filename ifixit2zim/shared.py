@@ -65,6 +65,7 @@ class Global:
 
     null_categories = set()
     ifixit_external_content = set()
+    final_hrefs = dict()
 
     @staticmethod
     def set_debug(value):
@@ -309,7 +310,29 @@ class Global:
         )
 
     @staticmethod
+    def normalize_href(href):
+        if href in Global.final_hrefs:
+            return Global.final_hrefs[href]
+        try:
+            logger.debug(f"Normalizing href {href}")
+            final_href = requests.head(href).headers.get("Location")
+            if final_href is None:
+                logger.debug(f"Failed to HEAD {href}, falling back to GET")
+                final_href = requests.get(href, stream=True).url
+            final_href = urllib.parse.unquote(final_href)
+        except Exception:
+            # this is quite expected for some missing items ; this will be taken care
+            # of at retrieval, no way to do something better
+            final_href = href
+        Global.final_hrefs[href] = final_href
+        return final_href
+
+    @staticmethod
     def _process_href_regex(href, rel_prefix):
+        if href.startswith("/"):
+            href = Global.conf.main_url.geturl() + href
+        if href.startswith("http") and "ifixit.com/" in href:
+            href = Global.normalize_href(href)
         match = Global.href_regex.search(href)
         res = (
             Global._process_href_regex_dynamics(href, rel_prefix)

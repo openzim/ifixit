@@ -29,7 +29,12 @@ class ScraperUser(ScraperGeneric):
         )
 
     def _build_user_path(self, userid, usertitle):
-        return f"Users/{userid}/{usertitle}"
+        href = (
+            Global.conf.main_url.geturl()
+            + f"/User/{userid}/{usertitle.replace('/', ' ')}"
+        )
+        final_href = Global.normalize_href(href)
+        return urllib.parse.urlparse(final_href).path[1:]
 
     def get_user_link_from_obj(self, user):
         if "userid" not in user or not user["userid"]:
@@ -51,11 +56,13 @@ class ScraperUser(ScraperGeneric):
         return self.get_user_link_from_props(userid=userid, usertitle=usertitle)
 
     def get_user_link_from_props(self, userid, usertitle):
-        user_path = self._build_user_path(userid=userid, usertitle=usertitle)
+        user_path = urllib.parse.quote(
+            self._build_user_path(userid=userid, usertitle=usertitle)
+        )
         if Global.conf.no_user:
-            return f"home/not_scrapped?url={urllib.parse.quote(user_path)}"
+            return f"home/not_scrapped?url={user_path}"
         if Global.conf.users and str(userid) not in Global.conf.users:
-            return f"home/not_scrapped?url={urllib.parse.quote(user_path)}"
+            return f"home/not_scrapped?url={user_path}"
         self._add_user_to_scrape(userid, usertitle, False)
         return user_path
 
