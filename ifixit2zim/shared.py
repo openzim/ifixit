@@ -189,8 +189,11 @@ class Global:
         r"background-image:url\((?P<quote1>&quot;|\"|')"
         r"(?P<bgdimgurl>.*?)(?P<quote2>&quot;|\"|')\)"
     )
+    gbl_video_regex = r"<video(?P<videostuff>.*)</video>"
+    gbl_iframe_regex = r"<iframe.*?src\s*=\s*\"(?P<iframe_url>.*?)\".*?</iframe>"
     gbl_regex = re.compile(
         f"{gbl_image_regex}|{gbl_href_regex}|{gbl_youtube_regex}|{gbl_bgd_image_regex}"
+        f"|{gbl_video_regex}|{gbl_iframe_regex}"
     )
 
     href_anchor_regex = r"^(?P<anchor>#.*)$"
@@ -369,6 +372,18 @@ class Global:
         )
 
     @staticmethod
+    def _process_video(match, rel_prefix):
+        return "<p>Video not scrapped</p>"
+
+    @staticmethod
+    def _process_iframe(match, rel_prefix):
+        return (
+            f'<a href="'
+            f"{Global._process_external_url(match.group('iframe_url'), rel_prefix)}"
+            f'">External content</a>'
+        )
+
+    @staticmethod
     def _process_gbl_regex(match, rel_prefix):
         if match.group("image_url"):
             return (
@@ -382,6 +397,10 @@ class Global:
             return Global._process_youtube(match, rel_prefix)
         if match.group("bgdimgurl"):
             return Global._process_bgdimgurl(match, rel_prefix)
+        if match.group("videostuff"):
+            return Global._process_video(match, rel_prefix)
+        if match.group("iframe_url"):
+            return Global._process_iframe(match, rel_prefix)
         raise Exception("Unsupported match in cleanup_rendered_content")
 
     @staticmethod

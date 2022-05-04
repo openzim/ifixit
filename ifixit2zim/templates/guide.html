@@ -400,7 +400,7 @@
                           id="stepEmbed-{{step['stepid']}}"
                           class="oembedContainer"
                         >
-                          {{step['media']['data']['html'] | safe}}
+                          {{step['media']['data']['html'] | cleanup_rendered_content(rel_prefix) | safe}}
                         </div>
                       </div>
                       <div class="column step-content">
