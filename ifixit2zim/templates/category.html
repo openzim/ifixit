@@ -213,9 +213,9 @@
                         {% endif %}
 
                         <!-- TODO : retrieve questions if this makes sense -->
-                        {% if (category['tools'] | length) + category['parts']['total'] > 0 %}
+                        {% if (category | category_count_tools) + (category | category_count_parts) > 0 %}
                         <div id="Section_tools_and_parts" class="js-dynamic-toc-section">
-                            {% if category['parts']['total'] > 0 %}
+                            {% if category | category_count_parts > 0 %}
                             <h2>{{label['parts']}}</h2>
                             <div id="deviceToolsList" class="row">
                                 <ul class="attachment-link-list two-columns">
@@ -235,7 +235,7 @@
                             </div>
                             {% endif %}
 
-                            {% if category['tools'] | length > 0 %}
+                            {% if category | category_count_tools > 0 %}
                             <h2 class="tools-header">{{label['tools']}}</h2>
                             <div class="deviceToolsContainer">
                                 <p>{{label['tools_introduction']}}</p>

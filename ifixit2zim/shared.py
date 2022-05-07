@@ -116,6 +116,8 @@ class Global:
         )
         Global.env.globals["raise"] = Global._raise_helper
         Global.env.filters["guides_in_progress"] = Global.guides_in_progress
+        Global.env.filters["category_count_parts"] = Global.category_count_parts
+        Global.env.filters["category_count_tools"] = Global.category_count_tools
         Global.env.filters["get_image_path"] = Global.get_image_path
         Global.env.filters["get_image_url"] = Global.get_image_url
         Global.env.filters["cleanup_rendered_content"] = Global.cleanup_rendered_content
@@ -136,6 +138,20 @@ class Global:
         if in_progress:
             return [guide for guide in guides if "GUIDE_IN_PROGRESS" in guide["flags"]]
         return [guide for guide in guides if "GUIDE_IN_PROGRESS" not in guide["flags"]]
+
+    @staticmethod
+    def category_count_parts(category):
+        if "parts" not in category:
+            return 0
+        if "total" not in category["parts"]:
+            return 0
+        return category["parts"]["total"]
+
+    @staticmethod
+    def category_count_tools(category):
+        if "tools" not in category:
+            return 0
+        return len(category["tools"])
 
     @staticmethod
     def get_image_path(image_url):
