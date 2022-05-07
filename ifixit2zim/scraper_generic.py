@@ -101,17 +101,18 @@ class ScraperGeneric(ABC):
             run_pending()
             if Global.conf.scrape_only_first_items and num_items > 5:
                 break
+            item = self.items_queue.get(block=False)
+            item_key = item["key"]
+            item_data = item["data"]
+            logger.info(
+                f"  Scraping {self.get_items_name()} {item_key}"
+                f" ({self.items_queue.qsize()} items remaining)"
+            )
             try:
-                item = self.items_queue.get(block=False)
-                item_key = item["key"]
-                item_data = item["data"]
-                logger.info(
-                    f"  Scraping {self.get_items_name()} {item_key}"
-                    f" ({self.items_queue.qsize()} items remaining)"
-                )
                 self.scrape_one_item(item_key, item_data)
             except Exception as ex:
                 self.error_items_keys.add(item_key)
+                self.add_item_error_redirect(item_key, item_data)
                 logger.warning(
                     f"Error while processing {self.get_items_name()} {item_key}: {ex}"
                 )
