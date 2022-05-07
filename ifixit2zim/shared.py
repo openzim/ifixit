@@ -427,6 +427,7 @@ class Global:
     @staticmethod
     def add_html_item(path, title, content):
         with Global.lock:
+            logger.debug(f"Adding item in ZIM at path '{path}'")
             Global.creator.add_item_for(
                 path=path,
                 title=title,
@@ -438,6 +439,7 @@ class Global:
     @staticmethod
     def add_redirect(path, target_path):
         with Global.lock:
+            logger.debug(f"Adding redirect in ZIM from '{path}' to '{target_path}'")
             Global.creator.add_redirect(
                 path=path,
                 target_path=target_path,
