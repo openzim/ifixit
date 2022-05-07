@@ -35,7 +35,7 @@ class ScraperCategory(ScraperGeneric):
             + f"/Device/{category_title.replace('/', ' ')}"
         )
         final_href = Global.normalize_href(href)
-        return urllib.parse.urlparse(final_href).path[1:]
+        return final_href[1:]
 
     def get_category_link_from_obj(self, category):
         if "title" not in category or not category["title"]:

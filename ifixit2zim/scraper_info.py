@@ -31,7 +31,7 @@ class ScraperInfo(ScraperGeneric):
     def _build_info_path(self, info_title):
         href = Global.conf.main_url.geturl() + f"/Info/{info_title.replace('/', ' ')}"
         final_href = Global.normalize_href(href)
-        return urllib.parse.urlparse(final_href).path[1:]
+        return final_href[1:]
 
     def get_info_link_from_obj(self, info):
         if "title" not in info or not info["title"]:

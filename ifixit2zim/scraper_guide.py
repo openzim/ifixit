@@ -38,12 +38,9 @@ class ScraperGuide(ScraperGeneric):
         )
 
     def _build_guide_path(self, guideid, guidetitle):
-        href = (
-            Global.conf.main_url.geturl()
-            + f"/Guide/{guidetitle.replace('/', ' ')}/{guideid}"
-        )
+        href = Global.conf.main_url.geturl() + f"/Guide/-/{guideid}"
         final_href = Global.normalize_href(href)
-        return urllib.parse.urlparse(final_href).path[1:]
+        return final_href[1:]
 
     def get_guide_link_from_obj(self, guide):
         if "guideid" not in guide or not guide["guideid"]:

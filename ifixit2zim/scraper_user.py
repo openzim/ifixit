@@ -34,7 +34,7 @@ class ScraperUser(ScraperGeneric):
             + f"/User/{userid}/{usertitle.replace('/', ' ')}"
         )
         final_href = Global.normalize_href(href)
-        return urllib.parse.urlparse(final_href).path[1:]
+        return final_href[1:]
 
     def get_user_link_from_obj(self, user):
         if "userid" not in user or not user["userid"]:

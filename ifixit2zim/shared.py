@@ -318,16 +318,23 @@ class Global:
             return Global.final_hrefs[href]
         try:
             logger.debug(f"Normalizing href {href}")
-            final_href = requests.head(href).headers.get("Location")
-            if final_href is None:
-                logger.debug(f"Failed to HEAD {href}, falling back to GET")
-                final_href = requests.get(href, stream=True).url
+            # final_href = requests.head(href).headers.get("Location")
+            # if final_href is None:
+            #     logger.debug(f"Failed to HEAD {href}, falling back to GET")
+            final_href = requests.get(href, stream=True).url
+            # parse final href and remove scheme + netloc + slash
+            parsed_final_href = urllib.parse.urlparse(final_href)
+            chars_to_remove = len(
+                parsed_final_href.scheme + "://" + parsed_final_href.netloc
+            )
+            final_href = final_href[chars_to_remove:]
             final_href = urllib.parse.unquote(final_href)
         except Exception:
             # this is quite expected for some missing items ; this will be taken care
             # of at retrieval, no way to do something better
             final_href = href
         Global.final_hrefs[href] = final_href
+        logger.debug(f"Result is {final_href}")
         return final_href
 
     @staticmethod
@@ -427,18 +434,6 @@ class Global:
                 mimetype="text/html",
                 is_front=True,
             )
-            alternate_path = path.replace(" ", "_")
-            if alternate_path != path:
-                Global.creator.add_redirect(
-                    path=alternate_path,
-                    target_path=path,
-                )
-            alternate_path = path.replace(" ", "+")
-            if alternate_path != path:
-                Global.creator.add_redirect(
-                    path=alternate_path,
-                    target_path=path,
-                )
 
     @staticmethod
     def add_redirect(path, target_path):
@@ -447,18 +442,6 @@ class Global:
                 path=path,
                 target_path=target_path,
             )
-            alternate_path = path.replace(" ", "_")
-            if alternate_path != path:
-                Global.creator.add_redirect(
-                    path=alternate_path,
-                    target_path=path,
-                )
-            alternate_path = path.replace(" ", "+")
-            if alternate_path != path:
-                Global.creator.add_redirect(
-                    path=alternate_path,
-                    target_path=path,
-                )
 
     @staticmethod
     def get_item_comments_count(item):
