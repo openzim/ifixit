@@ -27,8 +27,7 @@
                                 <img src="{{rel_prefix}}{{category | get_image_url(for_device=True) | get_image_path}}"
                                     width="252" height="189" alt="{{category['image']['display_title']}}">
                                 {% if category['repairability_score'] %}
-                                <!-- TODO: Retrieve the href of the teardown
-                                <a href="/Teardown/Apple+Watch+Teardown/40655#teardownConclusion"> -->
+                                <!-- TODO: Retrieve the href of the teardown of this device"> -->
                                 <a href="#" class="banner-repairability-score hidden-mobile repairability-score-{{category['repairability_score']}}"> {{label['repairability']}}  
                                     <strong>{{category['repairability_score']}}</strong> / 10
                                     </a>
