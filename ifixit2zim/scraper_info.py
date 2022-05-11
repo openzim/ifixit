@@ -96,7 +96,7 @@ class ScraperInfo(ScraperGeneric):
         path = self._build_info_path(item_data["info_title"])
         Global.add_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?url={urllib.parse.quote(path)}",
+            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url':path})}",
         )
 
     def process_one_item(self, item_key, item_data, item_content):

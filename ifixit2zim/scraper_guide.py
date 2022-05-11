@@ -148,7 +148,7 @@ class ScraperGuide(ScraperGeneric):
         path = self._build_guide_path(guideid, guidetitle)
         Global.add_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?url={urllib.parse.quote(path)}",
+            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url':path})}",
         )
 
     def process_one_item(self, item_key, item_data, item_content):

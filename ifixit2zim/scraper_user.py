@@ -106,7 +106,7 @@ class ScraperUser(ScraperGeneric):
         path = self._build_user_path(userid, usertitle)
         Global.add_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?url={urllib.parse.quote(path)}",
+            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url':path})}",
         )
 
     def process_one_item(self, item_key, item_data, item_content):
