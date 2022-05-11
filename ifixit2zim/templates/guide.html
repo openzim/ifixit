@@ -65,7 +65,7 @@
 
                     <div class="guide-author guide-title-subtext">
                       {{label['written_by']}} 
-                      <a class="guide-title-subtext-strong" href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">{{guide['author']['username']}}</a>
+                      <a class="guide-title-subtext-strong" href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">{{guide['author'] | get_user_display_name}}</a>
                       <!-- TODO: Display other contributors + Retrieve page history -->
                     </div>
                     {% if guide['type'] == 'teardown' %}
@@ -550,7 +550,7 @@
 
                       <div class="author-info column">
                         <h4>
-                          <a href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">{{guide['author']['username']}}</a>
+                          <a href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">{{guide['author'] | get_user_display_name}}</a>
                         </h4>
 
                         {% if guide['author']['join_date'] %}

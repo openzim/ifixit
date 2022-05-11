@@ -128,6 +128,7 @@ class Global:
         Global.env.filters[
             "get_guide_total_comments_count"
         ] = Global.get_guide_total_comments_count
+        Global.env.filters["get_user_display_name"] = Global.get_user_display_name
 
     @staticmethod
     def _raise_helper(msg):
@@ -485,6 +486,14 @@ class Global:
             if timestamp:
                 return datetime.strftime(datetime.fromtimestamp(timestamp), "%x")
             return ""
+
+    @staticmethod
+    def get_user_display_name(user):
+        if user["username"] and len(user["username"]) > 0:
+            return user["username"]
+        if user["unique_username"] and len(user["unique_username"]) > 0:
+            return f"@{user['unique_username']}"
+        return "Anonymous"
 
 
 class GlobalMixin:

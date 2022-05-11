@@ -41,12 +41,10 @@ class ScraperUser(ScraperGeneric):
             raise UnexpectedDataKindException(
                 f"Impossible to extract user id from {user}"
             )
-        if "username" not in user or not user["username"]:
-            raise UnexpectedDataKindException(
-                f"Impossible to extract user id from {user}"
-            )
         userid = user["userid"]
         usertitle = user["username"]
+        if not usertitle:
+            usertitle = "User"
         # override unknown title if needed
         if (
             userid in self.expected_items_keys
