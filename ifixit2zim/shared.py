@@ -223,7 +223,7 @@ class Global:
         r"(?P<guidetitle>.+)/(?P<guideid>\d+)(?P<guideafter>#.*)?.*)"
         r"|(?:(?P<device>Device|Topic)/(?P<devicetitle>[\w%_\.-]+)"
         r"(?P<deviceafter>#.*)?.*)"
-        r"|(?P<user>User)/(?P<userid>\d*)/(?P<usertitle>[\w%_\.+-]+)"
+        r"|(?P<user>User)/(?P<userid>\d*)/(?P<usertitle>[\w%_\.+'-]+)"
         r"(?P<userafter>#.*)?.*"
         r"|(?:(?P<info>Info)/(?P<infotitle>[\w%_\.-]+)(?P<infoafter>#.*)?.*))$"
     )
