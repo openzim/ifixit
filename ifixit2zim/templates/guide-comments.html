@@ -1,12 +1,12 @@
 {% for comment in curitem['comments'] %}
 {% if loop.index == 4 %}
-<div id="show_more_button" align="center">
+<div id="show-more-button-{{curitemid}}" align="center">
     <button class="button button-action-solid js-show-page-comments"
-        onclick="switchCommentsVisibility('hidden-main-comments');switchCommentsVisibility('show_more_button');">
+        onclick="switchCommentsVisibility('hidden-main-comments-{{curitemid}}');switchCommentsVisibility('show-more-button-{{curitemid}}');">
        <i class="fa fa-angle-down "></i>{{label['comments_show_more']}}</button>
 </div>
 </div>
-<div id="hidden-main-comments" class="readonly-disabled js-comments hide-comments">
+<div id="hidden-main-comments-{{curitemid}}" class="readonly-disabled js-comments hide-comments">
 {% endif %}
 <div class="comment-row comment-thread" id="container-{{ comment['commentid']}}">
     <i class="svg-icon" style="width: 24px; height: 24px;"><svg

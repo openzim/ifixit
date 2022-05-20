@@ -480,6 +480,7 @@
                         <div class="column column-card step-comments">
                           <div class="js-comments">
                             {% set curitem=step %}
+                            {% set curitemid="step-" + str(step["stepid"]) %}
                             {% include 'guide-comments.html' %}
                           </div>
                         </div>
@@ -591,6 +592,7 @@
                   </div>
                   <div id="comments" class="readonly-disabled js-comments">
                     {% set curitem=guide %}
+                    {% set curitemid="guide-" + str(guide["guideid"]) %}
                     {% include 'guide-comments.html' %}
                   </div>
                 </div>

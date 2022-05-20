@@ -115,6 +115,7 @@ class Global:
             autoescape=select_autoescape(),
         )
         Global.env.globals["raise"] = Global._raise_helper
+        Global.env.globals["str"] = lambda x: str(x)
         Global.env.filters["guides_in_progress"] = Global.guides_in_progress
         Global.env.filters["category_count_parts"] = Global.category_count_parts
         Global.env.filters["category_count_tools"] = Global.category_count_tools
