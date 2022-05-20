@@ -803,6 +803,8 @@ UNAVAILABLE_OFFLINE = [
 
 API_PREFIX = "/api/2.0"
 
+UNAVAILABLE_OFFLINE_INFOS = ["toolkits"]
+
 
 @dataclass
 class Conf:

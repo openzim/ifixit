@@ -1,5 +1,6 @@
 import urllib
 
+from .constants import UNAVAILABLE_OFFLINE_INFOS
 from .exceptions import UnexpectedDataKindException
 from .scraper_generic import ScraperGeneric
 from .shared import Global, logger
@@ -45,6 +46,8 @@ class ScraperInfo(ScraperGeneric):
         info_path = urllib.parse.quote(self._build_info_path(info_title))
         if Global.conf.no_info:
             return f"home/not_scrapped?url={info_path}"
+        if info_title in UNAVAILABLE_OFFLINE_INFOS:
+            return f"home/unavailable_offline?url={info_path}"
         info_key = self._get_info_key_from_title(info_title)
         if Global.conf.infos:
             is_not_included = True
