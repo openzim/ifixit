@@ -1,4 +1,13 @@
 {% for comment in curitem['comments'] %}
+{% if loop.index == 4 %}
+<div id="show_more_button" align="center">
+    <button class="button button-action-solid js-show-page-comments"
+        onclick="switchCommentsVisibility('hidden-main-comments');switchCommentsVisibility('show_more_button');">
+       <i class="fa fa-angle-down "></i>{{label['comments_show_more']}}</button>
+</div>
+</div>
+<div id="hidden-main-comments" class="readonly-disabled js-comments hide-comments">
+{% endif %}
 <div class="comment-row comment-thread" id="container-{{ comment['commentid']}}">
     <i class="svg-icon" style="width: 24px; height: 24px;"><svg
         xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -18,13 +27,4 @@
     {% endfor %}
     </div>
 </div>
-{% if loop.index == 3%}
-<div id="show_more_button" align="center">
-    <button class="button button-action-solid js-show-page-comments"
-        onclick="switchCommentsVisibility('hidden-main-comments');switchCommentsVisibility('show_more_button');">
-       <i class="fa fa-angle-down "></i>{{label['comments_show_more']}}</button>
-</div>
-</div>
-<div id="hidden-main-comments" class="readonly-disabled js-comments hide-comments">
-{% endif %}
 {% endfor %}
