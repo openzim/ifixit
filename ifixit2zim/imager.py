@@ -127,6 +127,13 @@ class Imager:
                     callback=self.once_done,
                 )
 
+    def add_missing_image_to_zim(self, path):
+        with Global.lock:
+            Global.creator.add_redirect(
+                path=path,
+                target_path="assets/NoImage_300x225.jpg",
+            )
+
     def process_image(self, url: str, path: str, mimetype: str) -> str:
         """download image from url or S3 and add to Zim at path. Upload if req."""
 
@@ -135,17 +142,33 @@ class Imager:
 
         # just download, optimize and add to ZIM if not using S3
         if not Global.conf.s3_url:
+            try:
+                fileobj = self.get_image_data(url.geturl())
+            except Exception as exc:
+                logger.error(
+                    f"Failed to download/convert/optim source  at {url.geturl()}"
+                )
+                logger.exception(exc)
+                self.add_missing_image_to_zim(
+                    path=path,
+                )
+                return path
+
             self.add_image_to_zim(
                 path=path,
-                content=self.get_image_data(url.geturl()).getvalue(),
+                content=fileobj.getvalue(),
                 mimetype=mimetype,
             )
+
             return path
 
         # we are using S3 cache
         ident = get_version_ident_for(url.geturl())
         if ident is None:
             logger.error(f"Unable to query {url.geturl()}. Skipping")
+            self.add_missing_image_to_zim(
+                path=path,
+            )
             return path
 
         # key = self.get_s3_key_for(url.geturl())
@@ -179,6 +202,9 @@ class Imager:
         except Exception as exc:
             logger.error(f"Failed to download/convert/optim source  at {url.geturl()}")
             logger.exception(exc)
+            self.add_missing_image_to_zim(
+                path=path,
+            )
             return path
 
         self.add_image_to_zim(
