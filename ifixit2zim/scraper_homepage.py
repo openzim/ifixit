@@ -46,14 +46,6 @@ class ScraperHomepage(ScraperGeneric):
             "sub_categories": self._extract_sub_categories_from_page(soup),
         }
 
-        for fc in home_content["featured_categories"]:
-            image_path = Global.imager.defer(url=fc["img_url"])
-            fc["img_path"] = image_path
-
-        home_content["callout"]["img_path"] = Global.imager.defer(
-            url=home_content["callout"]["img_url"]
-        )
-
         logger.debug(
             "Content extracted from /Guide:\n" f"{json.dumps(home_content,indent=2)}"
         )
