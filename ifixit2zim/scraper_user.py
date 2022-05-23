@@ -10,6 +10,7 @@ from .utils import get_api_content
 class ScraperUser(ScraperGeneric):
     def __init__(self):
         super().__init__()
+        self.user_id_to_titles = dict()
 
     def setup(self):
         self.user_template = Global.env.get_template("user.html")
@@ -27,6 +28,10 @@ class ScraperUser(ScraperGeneric):
             is_expected,
             False,
         )
+        if userid in self.user_id_to_titles:
+            self.user_id_to_titles[userid].append(usertitle)
+        else:
+            self.user_id_to_titles[userid] = [usertitle]
 
     def _build_user_path(self, userid, usertitle):
         href = (
@@ -108,6 +113,8 @@ class ScraperUser(ScraperGeneric):
         )
 
     def process_one_item(self, item_key, item_data, item_content):
+        userid = item_data["userid"]
+        usertitle = item_data["usertitle"]
         user_content = item_content
 
         user_rendered = self.user_template.render(
@@ -116,11 +123,30 @@ class ScraperUser(ScraperGeneric):
             metadata=Global.metadata,
         )
 
+        normal_path = self._build_user_path(
+            userid=user_content["userid"],
+            usertitle=user_content["username"],
+        )
         Global.add_html_item(
-            path=self._build_user_path(
-                userid=user_content["userid"],
-                usertitle=user_content["username"],
-            ),
+            path=normal_path,
             title=user_content["username"],
             content=user_rendered,
         )
+
+        for other_user_title in self.user_id_to_titles[userid]:
+            if other_user_title == UNKNOWN_TITLE:
+                continue
+            if other_user_title == usertitle:
+                continue
+            alternate_path = self._build_user_path(
+                userid=userid,
+                usertitle=other_user_title,
+            )
+            logger.debug(
+                "Adding user redirect for alternate user path from "
+                f"{alternate_path} to {normal_path}"
+            )
+            Global.add_redirect(
+                path=alternate_path,
+                target_path=normal_path,
+            )
