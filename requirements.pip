@@ -1,7 +1,7 @@
-requests>=2.26.0,<2.27
-zimscraperlib>=1.4.0,<1.5
-kiwixstorage>=0.8.1,<0.9
-Jinja2==3.1.1
-backoff==1.11.1 
+requests>=2.27.0,<2.28
+zimscraperlib>=1.6.0,<1.7
+kiwixstorage>=0.8.2,<0.9
+Jinja2>=3.1.2,<3.2
+backoff>=2.0.1,<2.1 
 pif>=0.8.2,<0.9
 schedule>=1.1.0,<1.2
