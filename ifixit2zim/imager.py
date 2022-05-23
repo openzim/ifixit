@@ -7,7 +7,6 @@ import io
 import pathlib
 import re
 import urllib.parse
-from typing import Optional
 
 from kiwixstorage import KiwixStorage, NotFoundError
 from PIL import Image
@@ -59,13 +58,18 @@ class Imager:
         )
 
     def get_path_for(self, url: urllib.parse.ParseResult) -> str:
-        return "images/{}".format(re.sub(r"^(https?)://", r"\1/", url.geturl()))
+        url_with_only_path = urllib.parse.ParseResult(
+            scheme=url.scheme,
+            netloc=url.netloc,
+            path=url.path,
+            query="",
+            params="",
+            fragment="",
+        )
+        unquoted_url = urllib.parse.unquote(url_with_only_path.geturl())
+        return "images/{}".format(re.sub(r"^(https?)://", r"\1/", unquoted_url))
 
-    def defer(
-        self,
-        url: str,
-        path: Optional[str] = None,
-    ) -> str:
+    def defer(self, url: str) -> str:
         """request full processing of url, returning in-zim path immediately"""
 
         # find actual URL should it be from a provider
@@ -79,8 +83,7 @@ class Imager:
             logger.warning(f"Not supporting image URL `{url.geturl()}`. Skipping")
             return
 
-        # skip processing if we already processed it or have it in pipe
-        path = self.get_path_for(url) if path is None else path
+        path = self.get_path_for(url)
 
         if path in self.handled:
             return path
