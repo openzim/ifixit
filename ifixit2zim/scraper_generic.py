@@ -73,7 +73,11 @@ class ScraperGeneric(ABC):
         self.add_item_redirect(item_key, item_data, "missing")
 
     def add_item_error_redirect(self, item_key, item_data):
-        self.add_item_redirect(item_key, item_data, "error")
+        try:
+            self.add_item_redirect(item_key, item_data, "error")
+        except Exception:
+            logger.warning("Failed to add redirect for item in error")
+            pass  # ignore exceptions, we are already inside an exception handling
 
     def scrape_one_item(self, item_key, item_data):
 
@@ -112,11 +116,11 @@ class ScraperGeneric(ABC):
                 self.scrape_one_item(item_key, item_data)
             except Exception as ex:
                 self.error_items_keys.add(item_key)
-                self.add_item_error_redirect(item_key, item_data)
                 logger.warning(
                     f"Error while processing {self.get_items_name()} {item_key}: {ex}"
                 )
                 traceback.print_exc()
+                self.add_item_error_redirect(item_key, item_data)
             finally:
                 if (
                     len(self.missing_items_keys)
