@@ -254,7 +254,7 @@ class ifixit2zim(GlobalMixin):
                     f"{len(scraper.error_items_keys)} {scraper.get_items_name()}"
                     " in error, "
                 )
-            stats += f"{self.imager.nb_requested} images"
+            stats += f"{len(self.imager.handled)} images"
 
             logger.info(stats)
 
