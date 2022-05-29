@@ -25,8 +25,6 @@ class Imager:
         self.aborted = False
         # list of source URLs that we've processed and added to ZIM
         self.handled = set()
-        self.nb_requested = 0
-        self.nb_done = 0
         self.dedup_items = dict()
 
         Global.img_executor.start()
@@ -90,7 +88,6 @@ class Imager:
 
         # record that we are processing this one
         self.handled.add(path)
-        self.nb_requested += 1
 
         Global.img_executor.submit(
             self.process_image,
@@ -101,11 +98,6 @@ class Imager:
         )
 
         return path
-
-    def once_done(self):
-        """default callback for single image processing"""
-        self.nb_done += 1
-        logger.debug(f"Images {self.nb_done}/{self.nb_requested}")
 
     def check_for_duplicate(self, path, content):
         digest = hashlib.sha256(content).digest()
@@ -127,7 +119,6 @@ class Imager:
                     path=path,
                     content=content,
                     mimetype=mimetype,
-                    callback=self.once_done,
                 )
 
     def add_missing_image_to_zim(self, path):
