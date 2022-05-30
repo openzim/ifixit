@@ -361,6 +361,7 @@ class Global:
             href = Global.conf.main_url.geturl() + href
         if href.startswith("http") and "ifixit.com/" in href:
             href = Global.normalize_href(href)
+            href = urllib.parse.quote(href)
         match = Global.href_regex.search(href)
         res = (
             Global._process_href_regex_dynamics(href, rel_prefix)
