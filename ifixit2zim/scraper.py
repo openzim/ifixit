@@ -278,18 +278,20 @@ class ifixit2zim(GlobalMixin):
             Global.img_executor.shutdown(wait=False)
             return 1
         else:
-            logger.info("Finishing ZIM file")
-            # we need to release libzim's resources.
-            # currently does nothing but crash if can_finish=False
-            # but that's awaiting impl. at libkiwix level
-            with self.lock:
-                self.creator.finish()
-            logger.info(
-                f"Finished Zim {self.creator.filename.name} "
-                f"in {self.creator.filename.parent}"
-            )
+            if self.creator.can_finish:
+                logger.info("Finishing ZIM file")
+                with self.lock:
+                    self.creator.finish()
+                logger.info(
+                    f"Finished Zim {self.creator.filename.name} "
+                    f"in {self.creator.filename.parent}"
+                )
         finally:
-            self.cleanup()
+            logger.info("Cleaning up")
+            with self.lock:
+                self.cleanup()
+
+        logger.info("Scraper has finished normally")
 
     def report_progress(self):
         if not Global.conf.stats_filename:
