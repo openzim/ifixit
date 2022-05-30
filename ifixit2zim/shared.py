@@ -100,6 +100,7 @@ class Global:
             main_path=DEFAULT_HOMEPAGE,
             favicon_path="illustration",
             language=Global.conf.language["iso-639-3"],
+            workaround_nocancel=False,
             title=Global.conf.title,
             description=Global.conf.description,
             creator=Global.conf.author,
