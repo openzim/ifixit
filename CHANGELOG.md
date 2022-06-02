@@ -1,4 +1,18 @@
 
+# 0.2.1
+See [milestone](https://github.com/openzim/ifixit/milestone/3) for advanced details.
+
+Small bugs fixes:
+- Report more clearly in the log when no ZIM is produced on-purpose + produce the ZIM even if some error occured
+- Remove unused log about number of images scrapped 
+- Fix issue with unquoted normalized URLs before regex matching 
+- Some users have changed their username 
+- Some users have a quote in their username 
+- Ignore irelevant info pages
+- Some users do not have a username 
+- URLs of missing items are not encoded properly
+- Issues with the "Load more comments" button in guides 
+
 # 0.2.0
 See [milestone](https://github.com/openzim/ifixit/milestone/1) for advanced details.
 
