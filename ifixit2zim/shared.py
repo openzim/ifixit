@@ -343,9 +343,13 @@ class Global:
             final_href = requests.get(href, stream=True).url
             # parse final href and remove scheme + netloc + slash
             parsed_final_href = urllib.parse.urlparse(final_href)
-            chars_to_remove = len(
-                parsed_final_href.scheme + "://" + parsed_final_href.netloc
-            )
+            parsed_href = urllib.parse.urlparse(href)
+            chars_to_remove = len(parsed_final_href.scheme + "://")
+
+            # remove domain if redirect is on same domain (almost always)
+            if parsed_final_href.netloc == parsed_href.netloc:
+                chars_to_remove += len(parsed_final_href.netloc)
+
             final_href = final_href[chars_to_remove:]
             final_href = urllib.parse.unquote(final_href)
         except Exception:

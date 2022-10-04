@@ -1,3 +1,6 @@
+# 0.2.2
+
+- Fixed URL normalization on articles redirecting outside domain (help.ifixit.com)
 
 # 0.2.1
 See [milestone](https://github.com/openzim/ifixit/milestone/3) for advanced details.
