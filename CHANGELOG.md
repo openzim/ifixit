@@ -1,3 +1,7 @@
+# 0.2.3
+
+- Do not process unrecognized href, i.e. pointing outside iFixit
+
 # 0.2.2
 
 - Fixed URL normalization on articles redirecting outside domain (help.ifixit.com)
