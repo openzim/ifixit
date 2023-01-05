@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import json
 import re
 
@@ -509,32 +510,6 @@ class ScraperHomepage(ScraperGeneric):
                 f"Failed to convert text '{stat_number}' to integer for stat"
             )
 
-    def _extract_footer_copyright_from_page(self, soup):
-        footer_copyright_css_selector = "div.footer-container div.copyright"
-        footer_copyright = soup.select(footer_copyright_css_selector)
-        if len(footer_copyright) == 0:
-            raise CategoryHomePageContentError(
-                "No footer copyright found with selector "
-                f"'{footer_copyright_css_selector}'"
-            )
-        main_footer_copyright = None
-        for fc in footer_copyright:
-            if len(fc.text.strip()) > 0:
-                if main_footer_copyright is None:
-                    main_footer_copyright = fc
-                else:
-                    raise CategoryHomePageContentError(
-                        "Too many footer copyright with selector "
-                        f"'{footer_copyright_css_selector}'"
-                    )
-        if main_footer_copyright is None:
-            raise CategoryHomePageContentError(
-                "Empty footer copyright found with selector "
-                f"'{footer_copyright_css_selector}'"
-            )
-
-        return f"{main_footer_copyright}"
-
     def get_online_metadata(self):
         """metadata from online website, looking at homepage source code"""
         logger.info("Fetching website metadata")
@@ -547,5 +522,5 @@ class ScraperHomepage(ScraperGeneric):
                 "content"
             ),
             "stats": self._extract_stats_from_page(soup),
-            "footer_copyright": self._extract_footer_copyright_from_page(soup),
+            "current_year": datetime.date.today().year,
         }

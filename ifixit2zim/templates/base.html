@@ -55,7 +55,11 @@
             </div>
 
             <!-- Ifixit Org Blog & Copyright -->
-            {{metadata['footer_copyright'] | cleanup_rendered_content(rel_prefix) | safe}}
+            <div class="footer-row centered copyright">
+                <p>
+                    ©&nbsp;<time class="js-absolute-date">{{metadata['current_year']}}</time> iFixit — Creative Commons
+                </p>
+            </div>
 
         </div>
 

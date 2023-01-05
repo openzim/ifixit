@@ -170,7 +170,6 @@ class ifixit2zim(GlobalMixin):
             f"title: {self.metadata['title']}\n"
             f"description: {self.metadata['description']}\n"
             f"stats: {self.metadata['stats']}\n"
-            f"footer_copyright: {self.metadata['footer_copyright']}\n"
         )
         self.sanitize_inputs()
 
