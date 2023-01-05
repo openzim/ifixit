@@ -1,3 +1,7 @@
+# 0.2.4
+
+- Adapt to changes in upstream iFixit main page HTML content
+
 # 0.2.3
 
 - Do not process unrecognized href, i.e. pointing outside iFixit
