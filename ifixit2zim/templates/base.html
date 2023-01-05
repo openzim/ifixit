@@ -46,10 +46,10 @@
 
             <!-- Site Stats -->
             <div class="footer-row footer-stats footer-container-width">
-                {%for stat in metadata['footer_stats']%}
+                {%for stat in metadata['stats']%}
                 <div class="footer-col-4">
                     <p class="footer-stat">{{stat['value']}}</p>
-                    <p>{{stat['text']}}</p>
+                    <p>{{stat['label']}}</p>
                 </div>
                 {%endfor%}
             </div>

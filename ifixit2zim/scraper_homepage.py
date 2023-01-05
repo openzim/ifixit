@@ -421,61 +421,92 @@ class ScraperHomepage(ScraperGeneric):
             )
         return title
 
-    def _extract_footer_stats_from_page(self, soup):
-        footer_stats_css_selector = "div.footer-stats div"
-        footer_stats = [
-            self._extract_details_from_footer_stats(fc)
-            for fc in soup.select(footer_stats_css_selector)
-        ]
-        if len(footer_stats) == 0:
-            raise CategoryHomePageContentError(
-                "No footer stats found with selector " f"'{footer_stats_css_selector}'"
-            )
-        return footer_stats
+    def _extract_stats_from_page(self, soup):
+        results = soup.findAll("div", {"data-name": "KPIDisplay"})
+        if len(results) == 0:
+            raise CategoryHomePageContentError("No KPIs found")
+        if len(results) > 1:
+            raise CategoryHomePageContentError("Too many KPIs found")
+        kpi = results[0].get("data-props")
+        if kpi is None:
+            raise CategoryHomePageContentError("KPIs not found in data-props")
 
-    def _extract_details_from_footer_stats(self, fs):
-        footer_stats_text_css_selector = "p"
-        p = fs.select(footer_stats_text_css_selector)
+        try:
+            kpi_d = json.loads(kpi)
+        except json.decoder.JSONDecodeError as e:
+            raise CategoryHomePageContentError(
+                "Failed to decode stats from '{}' to integer for stat {}".format(kpi, e)
+            )
+
+        if "stats" not in kpi_d:
+            raise CategoryHomePageContentError(
+                "Stats not found in KPIs '{}'".format(kpi)
+            )
+
+        stats = kpi_d["stats"]
+
+        if len(stats) == 0:
+            raise CategoryHomePageContentError("Stats array is empty")
+        for stat in stats:
+            if "value" not in stat:
+                raise CategoryHomePageContentError(
+                    "No value found in stat '{}'".format(json.dump(stat))
+                )
+            if "label" not in stat:
+                raise CategoryHomePageContentError(
+                    "No label found in stat '{}'".format(json.dump(stat))
+                )
+
+        return stats
+
+    def _extract_details_from_single_stat(self, fs):
+        stat_text_css_selector = "chakra-stat__help-text"
+        p = fs.select(stat_text_css_selector)
         if len(p) == 0:
             raise CategoryHomePageContentError(
-                "No text found in footer stat with selector "
-                f"'{footer_stats_text_css_selector}'"
+                "No text found in stat with selector " f"'{stat_text_css_selector}'"
             )
-        if len(p) == 1:
+        if len(p) > 1:
             raise CategoryHomePageContentError(
-                "Insufficient text found in footer stat with selector "
-                f"'{footer_stats_text_css_selector}'"
+                "Too much text found in stat with selector "
+                f"'{stat_text_css_selector}'"
             )
-        if len(p) > 2:
+        stat_text = p[0].text
+        if len(stat_text) == 0:
             raise CategoryHomePageContentError(
-                "Too many text found in footer stat with selector "
-                f"'{footer_stats_text_css_selector}'"
+                "Empty text found in stat with selector " f"'{stat_text_css_selector}'"
             )
-        text0 = p[0].text
-        if len(text0) == 0:
+
+        stat_number_css_selector = "chakra-stat__number"
+        p = fs.select(stat_number_css_selector)
+        if len(p) == 0:
             raise CategoryHomePageContentError(
-                "Empty text found first paragraph of footer stat "
-                f"'{footer_stats_text_css_selector}'"
+                "No number found in stat with selector " f"'{stat_number_css_selector}'"
             )
-        text0digits = re.sub("[^0-9]", "", text0)
-        if len(text0digits) == 0:
+        if len(p) > 1:
             raise CategoryHomePageContentError(
-                f"No digits found in text '{text0}' of footer stat"
+                "Too much number found in stat with selector "
+                f"'{stat_number_css_selector}'"
             )
-        text1 = p[1].text
-        if len(text1) == 0:
+        stat_number_str = p[0].text
+        if len(stat_number_str) == 0:
             raise CategoryHomePageContentError(
-                "Empty text found second paragraph of footer stat "
-                f"'{footer_stats_text_css_selector}'"
+                "Empty text found in stat with selector "
+                f"'{stat_number_css_selector}'"
+            )
+        stat_number = re.sub("[^0-9]", "", stat_number_str)
+        if len(stat_number) == 0:
+            raise CategoryHomePageContentError(
+                f"No digits found in number '{stat_number_str}' of stat"
             )
         try:
             return {
-                "value": int(text0digits),
-                "text": text1,
+                "value": int(stat_number),
+                "text": stat_text,
             }
         except ValueError:
             raise CategoryHomePageContentError(
-                f"Failed to convert text '{text0digits}' to integer for footer " "stat"
+                f"Failed to convert text '{stat_number}' to integer for stat"
             )
 
     def _extract_footer_copyright_from_page(self, soup):
@@ -515,6 +546,6 @@ class ScraperHomepage(ScraperGeneric):
             "description": soup.find("meta", attrs={"name": "description"}).attrs.get(
                 "content"
             ),
-            "footer_stats": self._extract_footer_stats_from_page(soup),
+            "stats": self._extract_stats_from_page(soup),
             "footer_copyright": self._extract_footer_copyright_from_page(soup),
         }

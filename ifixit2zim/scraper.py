@@ -169,7 +169,7 @@ class ifixit2zim(GlobalMixin):
             f"Additional metadata scrapped online:\n"
             f"title: {self.metadata['title']}\n"
             f"description: {self.metadata['description']}\n"
-            f"footer_stats: {self.metadata['footer_stats']}\n"
+            f"stats: {self.metadata['stats']}\n"
             f"footer_copyright: {self.metadata['footer_copyright']}\n"
         )
         self.sanitize_inputs()
