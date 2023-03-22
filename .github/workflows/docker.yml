@@ -14,19 +14,18 @@ jobs:
 
     steps:
       - name: Retrieve the source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.4.0
 
       - name: Build and push
-        uses: openzim/docker-publish-action@v8
+        uses: openzim/docker-publish-action@v10
         with:
           image-name: openzim/ifixit
           on-master: dev
           tag-pattern: /^v([0-9.]+)$/
           latest-on-tag: true
           restrict-to: openzim/ifixit
+          registries: ghcr.io
           credentials:
-            DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
             GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
             GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
           repo_description: auto

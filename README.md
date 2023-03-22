@@ -3,7 +3,7 @@
 `ifixit2zim` is an [openZIM](https://openzim.org) scraper to create offline versions of [iFixit](https://www.ifixit.com/) website, in all its supported languages.
 
 [![CodeFactor](https://www.codefactor.io/repository/github/openzim/ifixit/badge)](https://www.codefactor.io/repository/github/openzim/ifixit)
-[![Docker](https://img.shields.io/docker/v/openzim/ifixit?label=docker&sort=semver)](https://hub.docker.com/r/openzim/ifixit)
+[![Docker](https://ghcr-badge.deta.dev/openzim/ifixit/latest_tag?label=docker)](https://ghcr.io/openzim/ifixit)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/ifixit2zim.svg)](https://pypi.org/project/ifixit2zim/)
 
@@ -16,7 +16,7 @@ This scraper downloads the iFixit resources (categories, guides, ...) and puts t
 ### Docker
 
 ```bash
-docker run -v my_dir:/output openzim/ifixit ifixit2zim --help
+docker run -v my_dir:/output ghcr.io/openzim/ifixit ifixit2zim --help
 ```
 
 ### Python
@@ -77,7 +77,7 @@ Docker container as explained below.
 
 First, build the Docker image (to be ran in the main folder of this repo):
 ```
-docker build -t openzim/ifixit:local .
+docker build -t ghcr.io/openzim/ifixit:local .
 ```
 
 Then run the scraper with CLI arguments needed for your test (everything after `ifixit2zim` in the example below).
@@ -85,7 +85,7 @@ Then run the scraper with CLI arguments needed for your test (everything after `
 For instance, if you want to run a scrape of only the `Apple_PDA` category, including its guides,
 in French :
 ```
-docker run -it -v $(pwd)/output:/output --rm openzim/fixit:local ifixit2zim --language fr --output /output --tmp-dir /tmp --category Apple_PDA
+docker run -it -v $(pwd)/output:/output --rm ghcr.io/openzim/fixit:local ifixit2zim --language fr --output /output --tmp-dir /tmp --category Apple_PDA
 ```
 
 This will produce a ZIM in the output folder of your current directory.
@@ -97,7 +97,7 @@ To test if the ZIM produced is OK, you should run kiwix-serve, once more with Do
 For instance, if you produced a file named `ifixit_fr_selection_2022-04.zim` in the 
 `output` subfolder, and port 1256 is unused on your machine, you might run:
 ```
-docker run -it --rm -v $(pwd)/output:/data -p 1256:80 kiwix/kiwix-tools kiwix-serve /data/ifixit_fr_selection_2022-04.zim
+docker run -it --rm -v $(pwd)/output:/data -p 1256:80 ghcr.io/kiwix/kiwix-tools kiwix-serve /data/ifixit_fr_selection_2022-04.zim
 ```
 And then navigate to (https://localhost:1256) on your favorite browser.
 
