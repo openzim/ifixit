@@ -65,7 +65,8 @@ class ScraperCategory(ScraperGeneric):
         for category in categories:
             category_key = self._get_category_key_from_title(category)
             self._add_category_to_scrape(category_key, category, True)
-            self._process_categories(categories[category])
+            if categories[category]:
+                self._process_categories(categories[category])
 
     def build_expected_items(self):
         if Global.conf.no_category:
