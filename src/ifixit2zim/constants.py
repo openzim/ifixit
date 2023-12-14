@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import pathlib
 import tempfile
 import urllib.parse
@@ -8,16 +6,15 @@ from typing import List, Optional, Set
 
 from zimscraperlib.i18n import get_language_details
 
+from ifixit2zim.__about__ import __version__
+
 ROOT_DIR = pathlib.Path(__file__).parent
 NAME = ROOT_DIR.name
 DEFAULT_HOMEPAGE = "Main-Page"
 UNKNOWN_LOCALE = "unknown"
 UNKNOWN_TITLE = "unknown_title"
 
-with open(ROOT_DIR.joinpath("VERSION"), "r") as fh:
-    VERSION = fh.read().strip()
-
-SCRAPER = f"{NAME} {VERSION}"
+SCRAPER = f"{NAME} {__version__}"
 
 IMAGES_ENCODER_VERSION = 1
 URLS = {
@@ -158,7 +155,7 @@ HOME_LABELS = {
     "ru": {"top_title": "Руководства по ремонту всего, от всех."},
     "nl": {"top_title": "Reparatiehandleidingen voor alles, door iedereen."},
     "ja": {"top_title": "修理を愛する人たちが作った、あらゆるモノへの修理ガイド"},
-    "tr": {"top_title": "Herkes tarafından, her şey için yazılmış tamir kılavuzları."},
+    "tr": {"top_title": "Herkes tarafindan, her şey için yazilmiş tamir kilavuzlari."},
     "es": {"top_title": "Guías de reparación para todo, escritas por todos."},
     "it": {"top_title": "Guide di riparazione per ogni cosa, scritte da tutti."},
 }
@@ -266,7 +263,7 @@ CATEGORY_LABELS = {
         "in_progress_guides": "正在编写中的指南",
         "repairability": "可修复性:",
         "replacement_guides": "更换指南",
-        "teardown_guides": "拆​解",
+        "teardown_guides": "拆\u200b解",
         "disassembly_guides": "拆卸指南",
         "tools": "工具",
         "parts": "配件",
@@ -326,9 +323,7 @@ CATEGORY_LABELS = {
         "disassembly_guides": "分解ガイド",
         "tools": "ツール",
         "parts": "パーツ",
-        "tools_introduction": (
-            "以前、このデバイスの修理に使われていた一般的な工具です。修理過程において全部の工具が必要" "とは限りません。"
-        ),
+        "tools_introduction": ("以前、このデバイスの修理に使われていた一般的な工具です。修理過程において全部の工具が必要とは限りません。"),
     },
     "tr": {
         "author": "Yazar: ",
@@ -337,16 +332,16 @@ CATEGORY_LABELS = {
         "featured_guides": "Featured Guides",  # not present for now on website ...
         "technique_guides": "Teknikler",
         "related_pages": "İlgili Sayfalar",
-        "in_progress_guides": "Yapım Aşamasındaki Kılavuzlar",
-        "repairability": "Onarılabilirlik:",
-        "replacement_guides": "Parça Değişim Kılavuzları",
+        "in_progress_guides": "Yapim Aşamasindaki Kilavuzlar",
+        "repairability": "Onarilabilirlik:",
+        "replacement_guides": "Parça Değişim Kilavuzlari",
         "teardown_guides": "Teardown'lar",
-        "disassembly_guides": "Söküm Kılavuzları",
+        "disassembly_guides": "Söküm Kilavuzlari",
         "tools": "Aletler",
         "parts": "Parçalar",
         "tools_introduction": (
-            "Bunlar, bu cihaz için yaygınca kullanılan bazı aletler. Her işlem için "
-            "her alete ihtiyacınız yoktur."
+            "Bunlar, bu cihaz için yayginca kullanilan bazi aletler. Her işlem için "
+            "her alete ihtiyaciniz yoktur."
         ),
     },
     "it": {
@@ -518,7 +513,7 @@ GUIDE_LABELS = {
         "parts": "부품",
     },
     "zh": {
-        "written_by": "撰写者：",
+        "written_by": "撰写者:",
         "difficulty": "难度",
         "steps": "步骤",
         "time_required": "所需时间",
@@ -532,7 +527,7 @@ GUIDE_LABELS = {
         "reputation": "信誉积分",
         "member_since_before": "",
         "member_since_after": "日注册",
-        "published": "发布于：",
+        "published": "发布于:",
         "teardown": " 拆解",
         "comments_count_before": "",
         "comments_count_after": "条评论",
@@ -555,7 +550,7 @@ GUIDE_LABELS = {
         "conclusion": "Заключение",
         "author": "Автор",
         "reputation": "Репутация",
-        "member_since_before": "Участник с: ",
+        "member_since_before": "Участник c: ",
         "member_since_after": "",
         "published": "Опубликовано: ",
         "teardown": "Разбираем",
@@ -593,7 +588,7 @@ GUIDE_LABELS = {
         "parts": "Onderdelen",
     },
     "ja": {
-        "written_by": "作成者：",
+        "written_by": "作成者:",
         "difficulty": "難易度",
         "steps": "手順",
         "time_required": "所要時間",
@@ -620,19 +615,19 @@ GUIDE_LABELS = {
     "tr": {
         "written_by": "Yazan:",
         "difficulty": "Zorluk",
-        "steps": " Adımlar",
+        "steps": " Adimlar",
         "time_required": "Gerekli Süre",
         "sections": "Bölümler",
         "flags": "İşaretler",
         "introduction": "Giriş",
-        "step_no_before": "Adım ",
+        "step_no_before": "Adim ",
         "step_no_after": "",
         "conclusion": "Sonuç",
         "author": "Yazar",
         "reputation": "İtibar",
         "member_since_before": "Üyelik tarihi: ",
         "member_since_after": "",
-        "published": "Yayımlama: ",
+        "published": "Yayimlama: ",
         "teardown": "Teardown",
         "comments_count_before": "",
         "comments_count_after": " yorum",
@@ -728,7 +723,7 @@ USER_LABELS = {
     },
     "ru": {
         "reputation": "Репутация",
-        "member_since_before": "Пользователь с ",
+        "member_since_before": "Пользователь c ",
         "member_since_after": "",
     },
     "nl": {

@@ -1,10 +1,10 @@
 import urllib
 
-from .constants import UNAVAILABLE_OFFLINE_INFOS
-from .exceptions import UnexpectedDataKindException
-from .scraper_generic import ScraperGeneric
-from .shared import Global, logger
-from .utils import get_api_content
+from ifixit2zim.constants import UNAVAILABLE_OFFLINE_INFOS
+from ifixit2zim.exceptions import UnexpectedDataKindException
+from ifixit2zim.scraper_generic import ScraperGeneric
+from ifixit2zim.shared import Global, logger
+from ifixit2zim.utils import get_api_content
 
 
 class ScraperInfo(ScraperGeneric):
@@ -88,7 +88,7 @@ class ScraperInfo(ScraperGeneric):
                     " will be scraped anyway"
                 )
                 break
-        logger.info("{} info found".format(len(self.expected_items_keys)))
+        logger.info(f"{len(self.expected_items_keys)} info found")
 
     def get_one_item_content(self, item_key, item_data):
         info_wiki_title = item_key

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 # pylint: disable=cyclic-import
 
@@ -16,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from zimscraperlib.logging import getLogger as lib_getLogger
 from zimscraperlib.zim.creator import Creator
 
-from .constants import (
+from ifixit2zim.constants import (
     DEFAULT_DEVICE_IMAGE_URL,
     DEFAULT_GUIDE_IMAGE_URL,
     DEFAULT_HOMEPAGE,
@@ -65,7 +64,7 @@ class Global:
 
     null_categories = set()
     ifixit_external_content = set()
-    final_hrefs = dict()
+    final_hrefs = {}
 
     @staticmethod
     def set_debug(value):
@@ -83,7 +82,7 @@ class Global:
         # mostly network I/O to retrieve and/or upload image.
         # if not in S3 bucket, convert/optimize webp image
         # svg images, stored but not optimized
-        from .executor import Executor
+        from ifixit2zim.executor import Executor
 
         Global.img_executor = Executor(
             queue_size=100,
@@ -91,7 +90,7 @@ class Global:
             prefix="IMG-T-",
         )
 
-        from .imager import Imager
+        from ifixit2zim.imager import Imager
 
         Global.imager = Imager()
 
@@ -284,7 +283,7 @@ class Global:
         link = Global.get_info_link_from_props(
             info_title=urllib.parse.unquote_plus(match.group("infotitle"))
         )
-        return f"{rel_prefix}{link}" f"{match.group('infoafter') or ''}"
+        return f"{rel_prefix}{link}{match.group('infoafter') or ''}"
 
     def _process_href_regex_user(href, rel_prefix, match):
         if not match.group("user"):
@@ -293,15 +292,13 @@ class Global:
             userid=match.group("userid"),
             usertitle=urllib.parse.unquote_plus(match.group("usertitle")),
         )
-        return f"{rel_prefix}{link}" f"{match.group('userafter') or ''}"
+        return f"{rel_prefix}{link}{match.group('userafter') or ''}"
 
     def _process_href_regex_kind(href, rel_prefix, match):
         if not match.group("kind"):
             return None
         if match.group("kind").lower() in NOT_YET_AVAILABLE:
-            return (
-                f"{rel_prefix}home/not_yet_available" f"?url={urllib.parse.quote(href)}"
-            )
+            return f"{rel_prefix}home/not_yet_available?url={urllib.parse.quote(href)}"
         if match.group("kind").lower() in UNAVAILABLE_OFFLINE:
             return (
                 f"{rel_prefix}home/unavailable_offline"

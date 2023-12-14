@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 
 import io
@@ -15,8 +14,8 @@ from kiwixstorage import KiwixStorage
 from pif import get_public_ip
 from zimscraperlib.download import _get_retry_adapter, stream_file
 
-from .constants import API_PREFIX
-from .shared import Global, logger
+from ifixit2zim.constants import API_PREFIX
+from ifixit2zim.shared import Global, logger
 
 
 def to_path(url: str) -> str:
@@ -80,7 +79,7 @@ def fetch(path: str, **params) -> str:
     if params and resp.history:
         return fetch(only_path_of(resp.url), **params)
     return resp.text, [
-        no_leading_slash(only_path_of(r.url)) for r in resp.history + [resp]
+        no_leading_slash(only_path_of(r.url)) for r in [*resp.history, resp]
     ]
 
 

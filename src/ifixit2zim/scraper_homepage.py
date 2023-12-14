@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
-
 import datetime
 import json
 import re
 
-from .constants import DEFAULT_HOMEPAGE, HOME_LABELS
-from .exceptions import CategoryHomePageContentError
-from .scraper_generic import ScraperGeneric
-from .shared import Global, logger
-from .utils import get_soup
+from ifixit2zim.constants import DEFAULT_HOMEPAGE, HOME_LABELS
+from ifixit2zim.exceptions import CategoryHomePageContentError
+from ifixit2zim.scraper_generic import ScraperGeneric
+from ifixit2zim.shared import Global, logger
+from ifixit2zim.utils import get_soup
 
 
 class ScraperHomepage(ScraperGeneric):
@@ -31,7 +29,6 @@ class ScraperHomepage(ScraperGeneric):
 
     def add_item_redirect(self, item_key, item_data, redirect_kind):
         logger.warning("Not supposed to add a redirect for a home item")
-        return
 
     def process_one_item(self, item_key, item_data, item_content):
         soup = item_content
@@ -436,13 +433,11 @@ class ScraperHomepage(ScraperGeneric):
             kpi_d = json.loads(kpi)
         except json.decoder.JSONDecodeError as e:
             raise CategoryHomePageContentError(
-                "Failed to decode stats from '{}' to integer for stat {}".format(kpi, e)
+                f"Failed to decode stats from '{kpi}' to integer for stat {e}"
             )
 
         if "stats" not in kpi_d:
-            raise CategoryHomePageContentError(
-                "Stats not found in KPIs '{}'".format(kpi)
-            )
+            raise CategoryHomePageContentError(f"Stats not found in KPIs '{kpi}'")
 
         stats = kpi_d["stats"]
 
@@ -451,11 +446,11 @@ class ScraperHomepage(ScraperGeneric):
         for stat in stats:
             if "value" not in stat:
                 raise CategoryHomePageContentError(
-                    "No value found in stat '{}'".format(json.dump(stat))
+                    f"No value found in stat '{json.dump(stat)}'"
                 )
             if "label" not in stat:
                 raise CategoryHomePageContentError(
-                    "No label found in stat '{}'".format(json.dump(stat))
+                    f"No label found in stat '{json.dump(stat)}'"
                 )
 
         return stats

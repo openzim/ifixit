@@ -1,16 +1,16 @@
 import urllib
 
-from .constants import UNKNOWN_TITLE, USER_LABELS
-from .exceptions import UnexpectedDataKindException
-from .scraper_generic import ScraperGeneric
-from .shared import Global, logger
-from .utils import get_api_content
+from ifixit2zim.constants import UNKNOWN_TITLE, USER_LABELS
+from ifixit2zim.exceptions import UnexpectedDataKindException
+from ifixit2zim.scraper_generic import ScraperGeneric
+from ifixit2zim.shared import Global, logger
+from ifixit2zim.utils import get_api_content
 
 
 class ScraperUser(ScraperGeneric):
     def __init__(self):
         super().__init__()
-        self.user_id_to_titles = dict()
+        self.user_id_to_titles = {}
 
     def setup(self):
         self.user_template = Global.env.get_template("user.html")

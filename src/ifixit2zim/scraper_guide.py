@@ -1,6 +1,6 @@
 import urllib
 
-from .constants import (
+from ifixit2zim.constants import (
     DIFFICULTY_EASY,
     DIFFICULTY_HARD,
     DIFFICULTY_MODERATE,
@@ -10,10 +10,10 @@ from .constants import (
     UNKNOWN_LOCALE,
     UNKNOWN_TITLE,
 )
-from .exceptions import UnexpectedDataKindException
-from .scraper_generic import ScraperGeneric
-from .shared import Global, logger
-from .utils import get_api_content
+from ifixit2zim.exceptions import UnexpectedDataKindException
+from ifixit2zim.scraper_generic import ScraperGeneric
+from ifixit2zim.shared import Global, logger
+from ifixit2zim.utils import get_api_content
 
 
 class ScraperGuide(ScraperGeneric):
@@ -120,7 +120,7 @@ class ScraperGuide(ScraperGeneric):
                     " will be scraped anyway"
                 )
                 break
-        logger.info("{} guides found".format(len(self.expected_items_keys)))
+        logger.info(f"{len(self.expected_items_keys)} guides found")
 
     def get_one_item_content(self, item_key, item_data):
         guideid = item_key
@@ -232,7 +232,7 @@ class ScraperGuide(ScraperGeneric):
                         )
                     )
             for line in step["lines"]:
-                if not line["bullet"] in [
+                if line["bullet"] not in [
                     "black",
                     "red",
                     "orange",

@@ -1,8 +1,10 @@
 {
-    "files.exclude": {
-        "cache": true,
-        "dist": true,
-        "venv": true
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
     },
-    "editor.rulers": [88]
+    "python.analysis.typeCheckingMode": "strict",
 }

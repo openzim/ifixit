@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import json
 import pathlib
 import shutil
@@ -8,19 +6,18 @@ from datetime import datetime
 from schedule import every
 from zimscraperlib.image.transformation import resize_image
 
-from .constants import ROOT_DIR, Conf
-from .scraper_category import ScraperCategory
-from .scraper_guide import ScraperGuide
-from .scraper_homepage import ScraperHomepage
-from .scraper_info import ScraperInfo
-from .scraper_user import ScraperUser
-from .shared import Global, GlobalMixin, logger
-from .utils import setup_s3_and_check_credentials
+from ifixit2zim.constants import ROOT_DIR, Conf
+from ifixit2zim.scraper_category import ScraperCategory
+from ifixit2zim.scraper_guide import ScraperGuide
+from ifixit2zim.scraper_homepage import ScraperHomepage
+from ifixit2zim.scraper_info import ScraperInfo
+from ifixit2zim.scraper_user import ScraperUser
+from ifixit2zim.shared import Global, GlobalMixin, logger
+from ifixit2zim.utils import setup_s3_and_check_credentials
 
 
 class ifixit2zim(GlobalMixin):
     def __init__(self, **kwargs):
-
         Global.conf = Conf(**kwargs)
         for option in Global.conf.required:
             if getattr(Global.conf, option) is None:
@@ -93,10 +90,13 @@ class ifixit2zim(GlobalMixin):
         self.conf.publisher = self.conf.publisher.strip()
 
         self.conf.tags = list(
-            set(
-                self.conf.tag
-                + ["_category:iFixit", "iFixit", "_videos:yes", "_pictures:yes"]
-            )
+            {
+                *self.conf.tag,
+                "_category:iFixit",
+                "iFixit",
+                "_videos:yes",
+                "_pictures:yes",
+            }
         )
 
         logger.debug(
@@ -210,7 +210,6 @@ class ifixit2zim(GlobalMixin):
         self.creator.start()
 
         try:
-
             self.add_assets()
             self.add_illustrations()
 

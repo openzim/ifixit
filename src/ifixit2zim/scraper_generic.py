@@ -4,14 +4,14 @@ from queue import Queue
 
 from schedule import run_pending
 
-from .exceptions import FinalScrapingFailure
-from .shared import Global, logger
+from ifixit2zim.exceptions import FinalScrapingFailure
+from ifixit2zim.shared import Global, logger
 
 
 class ScraperGeneric(ABC):
     def __init__(self):
-        self.expected_items_keys = dict()
-        self.unexpected_items_keys = dict()
+        self.expected_items_keys = {}
+        self.unexpected_items_keys = {}
         self.items_queue = Queue()
         self.missing_items_keys = set()
         self.error_items_keys = set()
@@ -80,7 +80,6 @@ class ScraperGeneric(ABC):
             pass  # ignore exceptions, we are already inside an exception handling
 
     def scrape_one_item(self, item_key, item_data):
-
         item_content = self.get_one_item_content(item_key, item_data)
 
         if item_content is None:
@@ -94,7 +93,6 @@ class ScraperGeneric(ABC):
         self.process_one_item(item_key, item_data, item_content)
 
     def scrape_items(self):
-
         logger.info(
             f"Scraping {self.get_items_name()} items ({self.items_queue.qsize()}"
             " items remaining)"

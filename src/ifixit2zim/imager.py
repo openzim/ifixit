@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 
 import hashlib
@@ -13,9 +12,9 @@ from PIL import Image
 from zimscraperlib.download import stream_file
 from zimscraperlib.image.optimization import optimize_webp
 
-from .constants import IMAGES_ENCODER_VERSION
-from .shared import Global
-from .utils import get_version_ident_for, to_url
+from ifixit2zim.constants import IMAGES_ENCODER_VERSION
+from ifixit2zim.shared import Global
+from ifixit2zim.utils import get_version_ident_for, to_url
 
 logger = Global.logger
 
@@ -25,7 +24,7 @@ class Imager:
         self.aborted = False
         # list of source URLs that we've processed and added to ZIM
         self.handled = set()
-        self.dedup_items = dict()
+        self.dedup_items = {}
 
         Global.img_executor.start()
 

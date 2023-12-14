@@ -1,10 +1,10 @@
 import urllib
 
-from .constants import CATEGORY_LABELS, URLS
-from .exceptions import UnexpectedDataKindException
-from .scraper_generic import ScraperGeneric
-from .shared import Global, logger
-from .utils import get_api_content
+from ifixit2zim.constants import CATEGORY_LABELS, URLS
+from ifixit2zim.exceptions import UnexpectedDataKindException
+from ifixit2zim.scraper_generic import ScraperGeneric
+from ifixit2zim.shared import Global, logger
+from ifixit2zim.utils import get_api_content
 
 
 class ScraperCategory(ScraperGeneric):
@@ -81,7 +81,7 @@ class ScraperCategory(ScraperGeneric):
         logger.info("Downloading list of categories")
         categories = get_api_content("/categories", includeStubs=True)
         self._process_categories(categories)
-        logger.info("{} categories found".format(len(self.expected_items_keys)))
+        logger.info(f"{len(self.expected_items_keys)} categories found")
 
     def get_one_item_content(self, item_key, item_data):
         categoryid = item_key

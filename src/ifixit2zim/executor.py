@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 
 import queue
 import threading
 from typing import Callable
 
-from .shared import logger
+from ifixit2zim.shared import logger
 
 _shutdown = False
 # Lock that ensures that new workers are not created while the interpreter is
@@ -58,7 +57,7 @@ class Executor(queue.Queue):
             if not self.alive:
                 raise RuntimeError("cannot submit task to dead executor")
             if _shutdown:
-                raise RuntimeError("cannot submit task after " "interpreter shutdown")
+                raise RuntimeError("cannot submit task after interpreter shutdown")
 
         while True:
             try:

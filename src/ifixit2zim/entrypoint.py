@@ -4,8 +4,8 @@ import argparse
 import os
 import sys
 
-from .constants import NAME, SCRAPER, URLS
-from .shared import Global, logger
+from ifixit2zim.constants import NAME, SCRAPER, URLS
+from ifixit2zim.shared import Global, logger
 
 
 def main():
@@ -48,7 +48,7 @@ def main():
 
     parser.add_argument(
         "--icon",
-        help="Custom icon for your ZIM (path or URL). " "iFixit square logo otherwise",
+        help="Custom icon for your ZIM (path or URL). iFixit square logo otherwise",
     )
 
     parser.add_argument(
@@ -259,7 +259,7 @@ def main():
     args = parser.parse_args()
     Global.set_debug(args.debug)
 
-    from .scraper import ifixit2zim
+    from ifixit2zim.scraper import ifixit2zim
 
     try:
         scraper = ifixit2zim(**dict(args._get_kwargs()))
