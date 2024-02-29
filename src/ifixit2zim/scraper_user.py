@@ -1,19 +1,19 @@
-import urllib
+import urllib.parse
 
 from ifixit2zim.constants import UNKNOWN_TITLE, USER_LABELS
-from ifixit2zim.exceptions import UnexpectedDataKindException
+from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
+from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.scraper_generic import ScraperGeneric
-from ifixit2zim.shared import Global, logger
-from ifixit2zim.utils import get_api_content
+from ifixit2zim.shared import logger
 
 
 class ScraperUser(ScraperGeneric):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, scraper: IFixit2Zim):
+        super().__init__(scraper)
         self.user_id_to_titles = {}
 
     def setup(self):
-        self.user_template = Global.env.get_template("user.html")
+        self.user_template = self.env.get_template("user.html")
 
     def get_items_name(self):
         return "user"
@@ -26,7 +26,7 @@ class ScraperUser(ScraperGeneric):
                 "usertitle": usertitle,
             },
             is_expected,
-            False,
+            warn_unexpected=False,
         )
         if userid in self.user_id_to_titles:
             self.user_id_to_titles[userid].append(usertitle)
@@ -35,15 +35,15 @@ class ScraperUser(ScraperGeneric):
 
     def _build_user_path(self, userid, usertitle):
         href = (
-            Global.conf.main_url.geturl()
+            self.configuration.main_url.geturl()
             + f"/User/{userid}/{usertitle.replace('/', ' ')}"
         )
-        final_href = Global.normalize_href(href)
+        final_href = self.processor.normalize_href(href)
         return final_href[1:]
 
     def get_user_link_from_obj(self, user):
         if "userid" not in user or not user["userid"]:
-            raise UnexpectedDataKindException(
+            raise UnexpectedDataKindExceptionError(
                 f"Impossible to extract user id from {user}"
             )
         userid = user["userid"]
@@ -62,20 +62,20 @@ class ScraperUser(ScraperGeneric):
         user_path = urllib.parse.quote(
             self._build_user_path(userid=userid, usertitle=usertitle)
         )
-        if Global.conf.no_user:
+        if self.configuration.no_user:
             return f"home/not_scrapped?url={user_path}"
-        if Global.conf.users and str(userid) not in Global.conf.users:
+        if self.configuration.users and str(userid) not in self.configuration.users:
             return f"home/not_scrapped?url={user_path}"
         self._add_user_to_scrape(userid, usertitle, False)
         return user_path
 
     def build_expected_items(self):
-        if Global.conf.no_user:
+        if self.configuration.no_user:
             logger.info("No user required")
             return
-        if Global.conf.users:
+        if self.configuration.users:
             logger.info("Adding required users as expected")
-            for userid in Global.conf.users:
+            for userid in self.configuration.users:
                 self._add_user_to_scrape(userid, UNKNOWN_TITLE, True)
             return
         # WE DO NOT BUILD A LIST OF EXPECTED USERS, THE LIST IS WAY TOO BIG WITH LOTS
@@ -93,41 +93,41 @@ class ScraperUser(ScraperGeneric):
         #     offset += limit
         # logger.info("{} user found".format(len(self.expected_items_keys)))
 
-    def get_one_item_content(self, item_key, item_data):
+    def get_one_item_content(self, item_key, _):  # ARG002
         userid = item_key
-        user_content = get_api_content(f"/users/{userid}")
+        user_content = self.utils.get_api_content(f"/users/{userid}")
         # other content is available in other endpoints, but not retrieved for now
         # (badges: not easy to process ; guides: does not seems to work properly)
         return user_content
 
-    def add_item_redirect(self, item_key, item_data, redirect_kind):
+    def add_item_redirect(self, _, item_data, redirect_kind):
         userid = item_data["userid"]
         usertitle = item_data["usertitle"]
         if usertitle == UNKNOWN_TITLE:
             logger.warning(f"Cannot add redirect for user {userid} in error")
             return
         path = self._build_user_path(userid, usertitle)
-        Global.add_redirect(
+        self.processor.add_redirect(
             path=path,
             target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url':path})}",
         )
 
-    def process_one_item(self, item_key, item_data, item_content):
+    def process_one_item(self, _, item_data, item_content):
         userid = item_data["userid"]
         usertitle = item_data["usertitle"]
         user_content = item_content
 
         user_rendered = self.user_template.render(
             user=user_content,
-            label=USER_LABELS[Global.conf.lang_code],
-            metadata=Global.metadata,
+            label=USER_LABELS[self.configuration.lang_code],
+            metadata=self.metadata,
         )
 
         normal_path = self._build_user_path(
             userid=user_content["userid"],
             usertitle=user_content["username"],
         )
-        Global.add_html_item(
+        self.processor.add_html_item(
             path=normal_path,
             title=user_content["username"],
             content=user_rendered,
@@ -146,7 +146,7 @@ class ScraperUser(ScraperGeneric):
                 "Adding user redirect for alternate user path from "
                 f"{alternate_path} to {normal_path}"
             )
-            Global.add_redirect(
+            self.processor.add_redirect(
                 path=alternate_path,
                 target_path=normal_path,
             )

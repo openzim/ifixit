@@ -1,10 +1,14 @@
-class FinalScrapingFailure(Exception):
+class FinalScrapingFailureError(Exception):
     pass
 
 
-class UnexpectedDataKindException(Exception):
+class UnexpectedDataKindExceptionError(Exception):
     pass
 
 
 class CategoryHomePageContentError(Exception):
+    pass
+
+
+class ImageUrlNotFoundError(Exception):
     pass

@@ -140,7 +140,7 @@ class Executor(queue.Queue):
         """release the `no_more` flag preventing workers from taking up tasks"""
         self.no_more = False
 
-    def shutdown(self, wait=True):
+    def shutdown(self, *, wait=True):
         """stop the executor, either somewhat immediately or awaiting completion"""
         logger.debug(f"shutting down executor {self.prefix} with {wait=}")
         with self._shutdown_lock:

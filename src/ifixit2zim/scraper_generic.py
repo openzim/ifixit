@@ -4,17 +4,49 @@ from queue import Queue
 
 from schedule import run_pending
 
-from ifixit2zim.exceptions import FinalScrapingFailure
-from ifixit2zim.shared import Global, logger
+from ifixit2zim.exceptions import FinalScrapingFailureError
+from ifixit2zim.scraper import IFixit2Zim
+from ifixit2zim.shared import logger
+
+FIRST_ITEMS_COUNT = 5
 
 
 class ScraperGeneric(ABC):
-    def __init__(self):
+    def __init__(self, scraper: IFixit2Zim):
+        self.scraper = scraper
         self.expected_items_keys = {}
         self.unexpected_items_keys = {}
         self.items_queue = Queue()
         self.missing_items_keys = set()
         self.error_items_keys = set()
+
+    @property
+    def configuration(self):
+        return self.scraper.configuration
+
+    @property
+    def utils(self):
+        return self.scraper.utils
+
+    @property
+    def metadata(self):
+        return self.scraper.metadata
+
+    @property
+    def env(self):
+        return self.scraper.env
+
+    @property
+    def lock(self):
+        return self.scraper.lock
+
+    @property
+    def creator(self):
+        return self.scraper.creator
+
+    @property
+    def processor(self):
+        return self.scraper.processor
 
     @abstractmethod
     def setup(self):
@@ -41,7 +73,7 @@ class ScraperGeneric(ABC):
         pass
 
     def add_item_to_scrape(
-        self, item_key, item_data, is_expected, warn_unexpected=True
+        self, item_key, item_data, is_expected, *, warn_unexpected=True
     ):
         item_key = str(item_key)  # just in case it's an int
         if (
@@ -101,7 +133,10 @@ class ScraperGeneric(ABC):
         num_items = 1
         while not self.items_queue.empty():
             run_pending()
-            if Global.conf.scrape_only_first_items and num_items > 5:
+            if (
+                self.configuration.scrape_only_first_items
+                and num_items > FIRST_ITEMS_COUNT
+            ):
                 break
             item = self.items_queue.get(block=False)
             item_key = item["key"]
@@ -124,9 +159,9 @@ class ScraperGeneric(ABC):
                     len(self.missing_items_keys)
                     * 100
                     / (len(self.expected_items_keys) + len(self.unexpected_items_keys))
-                    > Global.conf.max_missing_items_percent
+                    > self.configuration.max_missing_items_percent
                 ):
-                    raise FinalScrapingFailure(
+                    raise FinalScrapingFailureError(
                         f"Too many {self.get_items_name()}s found missing: "
                         f"{len(self.missing_items_keys)}"
                     )
@@ -134,9 +169,9 @@ class ScraperGeneric(ABC):
                     len(self.error_items_keys)
                     * 100
                     / (len(self.expected_items_keys) + len(self.unexpected_items_keys))
-                    > Global.conf.max_error_items_percent
+                    > self.configuration.max_error_items_percent
                 ):
-                    raise FinalScrapingFailure(
+                    raise FinalScrapingFailureError(
                         f"Too many {self.get_items_name()}s failed to be processed: "
                         f"{len(self.error_items_keys)}"
                     )

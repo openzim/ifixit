@@ -1,7 +1,7 @@
 import pathlib
 import tempfile
 import urllib.parse
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional, Set
 
 from zimscraperlib.i18n import get_language_details
@@ -251,7 +251,7 @@ CATEGORY_LABELS = {
         "disassembly_guides": "분해 안내서",
         "tools": "도구",
         "parts": "부품",
-        "tools_introduction": ("해당 기기를 고치는데 사용하는 일반 도구들 입니다. 매 단계에 모든 도구를 사용하지는 않습니다."),
+        "tools_introduction": "해당 기기를 고치는데 사용하는 일반 도구들 입니다. 매 단계에 모든 도구를 사용하지는 않습니다.",  # noqa E501
     },
     "zh": {
         "author": "作者: ",
@@ -267,7 +267,7 @@ CATEGORY_LABELS = {
         "disassembly_guides": "拆卸指南",
         "tools": "工具",
         "parts": "配件",
-        "tools_introduction": ("这是用于在这个设备上工作的一些常用工具。你可能不需要在每个过程中使用到每个工具。"),
+        "tools_introduction": "这是用于在这个设备上工作的一些常用工具。你可能不需要在每个过程中使用到每个工具。",  # noqa E501
     },
     "ru": {
         "author": "Автор: ",
@@ -323,7 +323,7 @@ CATEGORY_LABELS = {
         "disassembly_guides": "分解ガイド",
         "tools": "ツール",
         "parts": "パーツ",
-        "tools_introduction": ("以前、このデバイスの修理に使われていた一般的な工具です。修理過程において全部の工具が必要とは限りません。"),
+        "tools_introduction": "以前、このデバイスの修理に使われていた一般的な工具です。修理過程において全部の工具が必要とは限りません。",  # noqa E501
     },
     "tr": {
         "author": "Yazar: ",
@@ -802,61 +802,63 @@ UNAVAILABLE_OFFLINE_INFOS = ["toolkits"]
 
 
 @dataclass
-class Conf:
-    required = [
-        "lang_code",
-        "output_dir",
-    ]
-
-    lang_code: str = ""
-    language: dict = field(default_factory=dict)
-    main_url: str = ""
+class Configuration:
+    fpath: pathlib.Path
 
     # zim params
-    name: str = ""
-    title: Optional[str] = ""
-    description: Optional[str] = ""
-    author: Optional[str] = ""
-    publisher: Optional[str] = ""
-    fname: Optional[str] = ""
-    tag: List[str] = field(default_factory=list)
-
-    # customization
-    icon: Optional[str] = ""
-    categories: Set[str] = field(default_factory=set)
-    no_category: Optional[bool] = False
-    guides: Set[str] = field(default_factory=set)
-    no_guide: Optional[bool] = False
-    infos: Set[str] = field(default_factory=set)
-    no_info: Optional[bool] = False
-    users: Set[str] = field(default_factory=set)
-    no_user: Optional[bool] = False
-    no_cleanup: Optional[bool] = False
+    name: str
+    title: str
+    description: str
+    long_description: Optional[str]
+    author: str
+    publisher: str
+    fname: str
+    tag: List[str]
 
     # filesystem
-    _output_dir: Optional[str] = "."
-    _tmp_dir: Optional[str] = "."
-    output_dir: Optional[pathlib.Path] = None
-    tmp_dir: Optional[pathlib.Path] = None
+    _output_dir: str  # TODO: rename output_name
+    _tmp_dir: str  # IDEM
+    output_dir: pathlib.Path  # TODO: rename output_path
+    tmp_dir: pathlib.Path  # IDEM
+
+    required = (
+        "lang_code",
+        "output_dir",
+    )
+
+    lang_code: str
+    language: dict
+    main_url: urllib.parse.ParseResult
+
+    # customization
+    icon: str
+    categories: Set[str]
+    no_category: bool
+    guides: Set[str]
+    no_guide: bool
+    infos: Set[str]
+    no_info: bool
+    users: Set[str]
+    no_user: bool
+    no_cleanup: bool
 
     # performances
-    nb_threads: Optional[int] = -1
-    s3_url_with_credentials: Optional[str] = ""
+    s3_url_with_credentials: Optional[str]
 
     # error handling
-    max_missing_items_percent: Optional[int] = 0
-    max_error_items_percent: Optional[int] = 0
+    max_missing_items_percent: int
+    max_error_items_percent: int
 
     # debug/devel
-    build_dir_is_tmp_dir: Optional[bool] = False
-    keep_build_dir: Optional[bool] = False
-    scrape_only_first_items: Optional[bool] = False
-    debug: Optional[bool] = False
-    delay: Optional[float] = 0
-    api_delay: Optional[float] = 0
-    cdn_delay: Optional[float] = 0
-    stats_filename: Optional[str] = None
-    skip_checks: Optional[bool] = False
+    build_dir_is_tmp_dir: bool
+    keep_build_dir: bool
+    scrape_only_first_items: bool
+    debug: bool
+    delay: float
+    api_delay: float
+    cdn_delay: float
+    stats_filename: Optional[str]
+    skip_checks: bool
 
     @staticmethod
     def get_url(lang_code: str) -> urllib.parse.ParseResult:
@@ -868,14 +870,14 @@ class Conf:
 
     @property
     def api_url(self) -> str:
-        return self.main_url + API_PREFIX
+        return self.main_url.geturl() + API_PREFIX
 
     @property
-    def s3_url(self) -> str:
+    def s3_url(self) -> Optional[str]:
         return self.s3_url_with_credentials
 
     def __post_init__(self):
-        self.main_url = Conf.get_url(self.lang_code)
+        self.main_url = Configuration.get_url(self.lang_code)
         self.language = get_language_details(self.lang_code)
         self.output_dir = pathlib.Path(self._output_dir).expanduser().resolve()
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -889,9 +891,10 @@ class Conf:
                 tempfile.mkdtemp(prefix=f"ifixit_{self.lang_code}_", dir=self.tmp_dir)
             )
 
+        self.stats_path = None
         if self.stats_filename:
-            self.stats_filename = pathlib.Path(self.stats_filename).expanduser()
-            self.stats_filename.parent.mkdir(parents=True, exist_ok=True)
+            self.stats_path = pathlib.Path(self.stats_filename).expanduser()
+            self.stats_path.parent.mkdir(parents=True, exist_ok=True)
 
         # support semi-colon separated tags as well
         if self.tag:

@@ -5,7 +5,7 @@ import os
 import sys
 
 from ifixit2zim.constants import NAME, SCRAPER, URLS
-from ifixit2zim.shared import Global, logger
+from ifixit2zim.shared import logger, set_debug
 
 
 def main():
@@ -37,13 +37,19 @@ def main():
 
     parser.add_argument(
         "--title",
-        help="Custom title for your ZIM. iFixit homepage title otherwise",
+        help="Custom title for your ZIM (30 chars max).",
     )
 
     parser.add_argument(
         "--description",
-        help="Custom description for your ZIM. "
-        "iFixit homepage description (meta) otherwise",
+        help="Custom description for your ZIM (80 chars max). "
+        "Based on iFixit homepage description (meta) otherwise",
+    )
+
+    parser.add_argument(
+        "--long-description",
+        help="Custom long description for your ZIM (4000 chars max). "
+        "Based on iFixit homepage description (meta) otherwise",
     )
 
     parser.add_argument(
@@ -55,11 +61,13 @@ def main():
         "--creator",
         help="Name of content creator. “iFixit” otherwise",
         dest="author",
+        default="iFixit",
     )
 
     parser.add_argument(
         "--publisher",
         help="Custom publisher name (ZIM metadata). “openZIM” otherwise",
+        default="openZIM",
     )
 
     parser.add_argument(
@@ -87,6 +95,7 @@ def main():
         "--debug",
         help="Enable verbose output",
         action="store_true",
+        dest="debug",
         default=False,
     )
 
@@ -257,18 +266,18 @@ def main():
     )
 
     args = parser.parse_args()
-    Global.set_debug(args.debug)
+    set_debug(args.debug)
 
-    from ifixit2zim.scraper import ifixit2zim
+    from ifixit2zim.scraper import IFixit2Zim
 
     try:
-        scraper = ifixit2zim(**dict(args._get_kwargs()))
+        scraper = IFixit2Zim(**dict(args._get_kwargs()))
         sys.exit(scraper.run())
     except Exception as exc:
         logger.error(f"FAILED. An error occurred: {exc}")
         if args.debug:
             logger.exception(exc)
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":

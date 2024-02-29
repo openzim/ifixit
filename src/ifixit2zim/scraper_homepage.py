@@ -4,18 +4,18 @@ import re
 
 from ifixit2zim.constants import DEFAULT_HOMEPAGE, HOME_LABELS
 from ifixit2zim.exceptions import CategoryHomePageContentError
+from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.scraper_generic import ScraperGeneric
-from ifixit2zim.shared import Global, logger
-from ifixit2zim.utils import get_soup
+from ifixit2zim.shared import logger
 
 
 class ScraperHomepage(ScraperGeneric):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, scraper: IFixit2Zim):
+        super().__init__(scraper)
 
     def setup(self):
-        self.homepage_template = Global.env.get_template("home.html")
-        self.not_here_template = Global.env.get_template("not_here.html")
+        self.homepage_template = self.env.get_template("home.html")
+        self.not_here_template = self.env.get_template("not_here.html")
 
     def get_items_name(self):
         return "home"
@@ -23,14 +23,14 @@ class ScraperHomepage(ScraperGeneric):
     def build_expected_items(self):
         self.add_item_to_scrape(1, 1, True)
 
-    def get_one_item_content(self, item_key, item_data):
-        soup, _ = get_soup("/Guide")
+    def get_one_item_content(self, item_key, item_data):  # noqa ARG002
+        soup, _ = self.scraper.utils.get_soup("/Guide")
         return soup
 
-    def add_item_redirect(self, item_key, item_data, redirect_kind):
+    def add_item_redirect(self, item_key, item_data, redirect_kind):  # noqa ARG002
         logger.warning("Not supposed to add a redirect for a home item")
 
-    def process_one_item(self, item_key, item_data, item_content):
+    def process_one_item(self, item_key, item_data, item_content):  # noqa ARG002
         soup = item_content
 
         # extract and clean main content
@@ -45,99 +45,102 @@ class ScraperHomepage(ScraperGeneric):
         }
 
         logger.debug(
-            "Content extracted from /Guide:\n" f"{json.dumps(home_content,indent=2)}"
+            f"Content extracted from /Guide:\n {json.dumps(home_content,indent=2)}"
         )
 
         homepage = self.homepage_template.render(
             home_content=home_content,
-            metadata=Global.metadata,
-            label=HOME_LABELS[Global.conf.lang_code],
+            metadata=self.metadata,
+            label=HOME_LABELS[self.configuration.lang_code],
         )
 
         not_scrapped = self.not_here_template.render(
-            metadata=Global.metadata,
+            metadata=self.metadata,
             kind="not_scrapped",
         )
 
         external_content = self.not_here_template.render(
-            metadata=Global.metadata,
+            metadata=self.metadata,
             kind="external_content",
         )
 
         unavailable_offline = self.not_here_template.render(
-            metadata=Global.metadata,
+            metadata=self.metadata,
             kind="unavailable_offline",
         )
 
         not_yet_available = self.not_here_template.render(
-            metadata=Global.metadata,
+            metadata=self.metadata,
             kind="not_yet_available",
         )
 
         missing = self.not_here_template.render(
-            metadata=Global.metadata,
+            metadata=self.metadata,
             kind="missing",
         )
 
         error_content = self.not_here_template.render(
-            metadata=Global.metadata,
+            metadata=self.metadata,
             kind="error",
         )
 
-        with Global.lock:
-            Global.creator.add_item_for(
+        with self.lock:
+            if not self.creator:
+                raise Exception("Please set creator first")
+
+            self.creator.add_item_for(
                 path="home/home",
-                title=Global.conf.title,
+                title=self.configuration.title,
                 content=homepage,
                 mimetype="text/html",
                 is_front=True,
             )
 
-            Global.creator.add_redirect(path=DEFAULT_HOMEPAGE, target_path="home/home")
+            self.creator.add_redirect(path=DEFAULT_HOMEPAGE, target_path="home/home")
 
-            Global.creator.add_item_for(
+            self.creator.add_item_for(
                 path="home/not_scrapped",
-                title=Global.conf.title,
+                title=self.configuration.title,
                 content=not_scrapped,
                 mimetype="text/html",
                 is_front=False,
             )
 
-            Global.creator.add_item_for(
+            self.creator.add_item_for(
                 path="home/external_content",
-                title=Global.conf.title,
+                title=self.configuration.title,
                 content=external_content,
                 mimetype="text/html",
                 is_front=False,
             )
 
-            Global.creator.add_item_for(
+            self.creator.add_item_for(
                 path="home/unavailable_offline",
-                title=Global.conf.title,
+                title=self.configuration.title,
                 content=unavailable_offline,
                 mimetype="text/html",
                 is_front=False,
             )
 
-            Global.creator.add_item_for(
+            self.creator.add_item_for(
                 path="home/not_yet_available",
-                title=Global.conf.title,
+                title=self.configuration.title,
                 content=not_yet_available,
                 mimetype="text/html",
                 is_front=False,
             )
 
-            Global.creator.add_item_for(
+            self.creator.add_item_for(
                 path="home/missing",
-                title=Global.conf.title,
+                title=self.configuration.title,
                 content=missing,
                 mimetype="text/html",
                 is_front=False,
             )
 
-            Global.creator.add_item_for(
+            self.creator.add_item_for(
                 path="home/error",
-                title=Global.conf.title,
+                title=self.configuration.title,
                 content=error_content,
                 mimetype="text/html",
                 is_front=False,
@@ -150,16 +153,16 @@ class ScraperHomepage(ScraperGeneric):
         p = soup.select(page_title_selector)
         if len(p) == 0:
             raise CategoryHomePageContentError(
-                "No text found in page with selector " f"'{page_title_selector}'"
+                f"No text found in page with selector '{page_title_selector}'"
             )
         if len(p) > 1:
             raise CategoryHomePageContentError(
-                "Too many text found in page with selector " f"'{page_title_selector}'"
+                f"Too many text found in page with selector '{page_title_selector}'"
             )
         text = p[0].text
         if len(text) == 0:
             raise CategoryHomePageContentError(
-                "Empty text found in page with selector " f"'{page_title_selector}'"
+                f"Empty text found in page with selector '{page_title_selector}'"
             )
         return text
 
@@ -168,7 +171,7 @@ class ScraperHomepage(ScraperGeneric):
         p = soup.select(primary_title_selector)
         if len(p) == 0:
             raise CategoryHomePageContentError(
-                "No text found in page with selector " f"'{primary_title_selector}'"
+                f"No text found in page with selector '{primary_title_selector}'"
             )
         if len(p) > 1:
             raise CategoryHomePageContentError(
@@ -178,7 +181,7 @@ class ScraperHomepage(ScraperGeneric):
         text = p[0].text
         if len(text) == 0:
             raise CategoryHomePageContentError(
-                "Empty text found in page with selector " f"'{primary_title_selector}'"
+                f"Empty text found in page with selector '{primary_title_selector}'"
             )
         return text
 
@@ -187,7 +190,7 @@ class ScraperHomepage(ScraperGeneric):
         p = soup.select(secondary_title_selector)
         if len(p) == 0:
             raise CategoryHomePageContentError(
-                "No text found in page with selector " f"'{secondary_title_selector}'"
+                f"No text found in page with selector '{secondary_title_selector}'"
             )
         if len(p) > 1:
             raise CategoryHomePageContentError(
@@ -395,8 +398,8 @@ class ScraperHomepage(ScraperGeneric):
             return int(text)
         except ValueError:
             raise CategoryHomePageContentError(
-                f"Failed to convert span text '{text}' to integer for " "sub-category"
-            )
+                f"Failed to convert span text '{text}' to integer for sub-category"
+            ) from None
 
     def _extract_title_from_sub_category(self, sc):
         sub_category_img_css_selector = "span.overflow-slide-in"
@@ -433,8 +436,8 @@ class ScraperHomepage(ScraperGeneric):
             kpi_d = json.loads(kpi)
         except json.decoder.JSONDecodeError as e:
             raise CategoryHomePageContentError(
-                f"Failed to decode stats from '{kpi}' to integer for stat {e}"
-            )
+                f"Failed to decode stats from '{kpi}' to integer"
+            ) from e
 
         if "stats" not in kpi_d:
             raise CategoryHomePageContentError(f"Stats not found in KPIs '{kpi}'")
@@ -446,11 +449,11 @@ class ScraperHomepage(ScraperGeneric):
         for stat in stats:
             if "value" not in stat:
                 raise CategoryHomePageContentError(
-                    f"No value found in stat '{json.dump(stat)}'"
+                    f"No value found in stat '{json.dumps(stat)}'"
                 )
             if "label" not in stat:
                 raise CategoryHomePageContentError(
-                    f"No label found in stat '{json.dump(stat)}'"
+                    f"No label found in stat '{json.dumps(stat)}'"
                 )
 
         return stats
@@ -460,7 +463,7 @@ class ScraperHomepage(ScraperGeneric):
         p = fs.select(stat_text_css_selector)
         if len(p) == 0:
             raise CategoryHomePageContentError(
-                "No text found in stat with selector " f"'{stat_text_css_selector}'"
+                f"No text found in stat with selector '{stat_text_css_selector}'"
             )
         if len(p) > 1:
             raise CategoryHomePageContentError(
@@ -470,14 +473,14 @@ class ScraperHomepage(ScraperGeneric):
         stat_text = p[0].text
         if len(stat_text) == 0:
             raise CategoryHomePageContentError(
-                "Empty text found in stat with selector " f"'{stat_text_css_selector}'"
+                f"Empty text found in stat with selector '{stat_text_css_selector}'"
             )
 
         stat_number_css_selector = "chakra-stat__number"
         p = fs.select(stat_number_css_selector)
         if len(p) == 0:
             raise CategoryHomePageContentError(
-                "No number found in stat with selector " f"'{stat_number_css_selector}'"
+                f"No number found in stat with selector '{stat_number_css_selector}'"
             )
         if len(p) > 1:
             raise CategoryHomePageContentError(
@@ -503,19 +506,23 @@ class ScraperHomepage(ScraperGeneric):
         except ValueError:
             raise CategoryHomePageContentError(
                 f"Failed to convert text '{stat_number}' to integer for stat"
-            )
+            ) from None
 
     def get_online_metadata(self):
         """metadata from online website, looking at homepage source code"""
         logger.info("Fetching website metadata")
 
-        soup, _ = get_soup("/")
+        soup, _ = self.scraper.utils.get_soup("/")
 
         return {
-            "title": soup.find("title").string,
-            "description": soup.find("meta", attrs={"name": "description"}).attrs.get(
+            "title": soup.find(
+                "title"
+            ).string,  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+            "description": soup.find(
+                "meta", attrs={"name": "description"}
+            ).attrs.get(  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
                 "content"
             ),
             "stats": self._extract_stats_from_page(soup),
-            "current_year": datetime.date.today().year,
+            "current_year": datetime.datetime.now(tz=datetime.timezone.utc).year,
         }
