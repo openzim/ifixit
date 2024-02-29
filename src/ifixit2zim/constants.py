@@ -2,7 +2,6 @@ import pathlib
 import tempfile
 import urllib.parse
 from dataclasses import dataclass
-from typing import List, Optional, Set
 
 from zimscraperlib.i18n import get_language_details
 
@@ -809,11 +808,11 @@ class Configuration:
     name: str
     title: str
     description: str
-    long_description: Optional[str]
+    long_description: str | None
     author: str
     publisher: str
     fname: str
-    tag: List[str]
+    tag: list[str]
 
     # filesystem
     _output_dir: str  # TODO: rename output_name
@@ -832,18 +831,18 @@ class Configuration:
 
     # customization
     icon: str
-    categories: Set[str]
+    categories: set[str]
     no_category: bool
-    guides: Set[str]
+    guides: set[str]
     no_guide: bool
-    infos: Set[str]
+    infos: set[str]
     no_info: bool
-    users: Set[str]
+    users: set[str]
     no_user: bool
     no_cleanup: bool
 
     # performances
-    s3_url_with_credentials: Optional[str]
+    s3_url_with_credentials: str | None
 
     # error handling
     max_missing_items_percent: int
@@ -857,7 +856,7 @@ class Configuration:
     delay: float
     api_delay: float
     cdn_delay: float
-    stats_filename: Optional[str]
+    stats_filename: str | None
     skip_checks: bool
 
     @staticmethod
@@ -873,7 +872,7 @@ class Configuration:
         return self.main_url.geturl() + API_PREFIX
 
     @property
-    def s3_url(self) -> Optional[str]:
+    def s3_url(self) -> str | None:
         return self.s3_url_with_credentials
 
     def __post_init__(self):

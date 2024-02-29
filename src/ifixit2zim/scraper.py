@@ -80,7 +80,7 @@ class IFixit2Zim:
                 selection="selection" if is_selection else "all",
             )
 
-        period = datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m")
+        period = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m")
         if self.configuration.fname:
             # make sure we were given a filename and not a path
             self.configuration.fpath = pathlib.Path(
@@ -190,7 +190,7 @@ class IFixit2Zim:
             Publisher=self.configuration.publisher,
             Name=self.configuration.name,
             Tags=";".join(self.configuration.tag),
-            Date=datetime.datetime.now(tz=datetime.timezone.utc).date(),
+            Date=datetime.datetime.now(tz=datetime.UTC).date(),
         )
 
         # jinja2 environment setup

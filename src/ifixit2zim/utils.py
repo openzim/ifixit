@@ -3,7 +3,6 @@ import re
 import urllib.parse
 import zlib
 from http import HTTPStatus
-from typing import List, Optional, Tuple, Union
 
 import backoff
 import bs4
@@ -49,7 +48,7 @@ class Utils:
         """resolved potentially relative url from in-source link"""
         return value if value.startswith("http") else self.get_url_raw(value)
 
-    def to_rel(self, url: str) -> Union[None, str]:
+    def to_rel(self, url: str) -> None | str:
         """path from URL if on our main domain, else None"""
         uri = urllib.parse.urlparse(url)
         if uri.netloc != self.configuration.domain:
@@ -68,7 +67,7 @@ class Utils:
         """normalized path part of an url"""
         return self.normalize_ident(urllib.parse.urlparse(url).path)
 
-    def fetch(self, path: str, **params) -> Tuple[str, List[str]]:
+    def fetch(self, path: str, **params) -> tuple[str, list[str]]:
         """(source text, actual_paths) of a path from source website
 
         actual_paths is amn ordered list of paths that were traversed to get to content.
@@ -97,7 +96,7 @@ class Utils:
                 getattr(soup, elem).unwrap()
         return soup
 
-    def get_soup(self, path: str, **params) -> Tuple[bs4.BeautifulSoup, List[str]]:
+    def get_soup(self, path: str, **params) -> tuple[bs4.BeautifulSoup, list[str]]:
         """an lxml soup of a path on source website"""
         content, paths = self.fetch(path, **params)
         return self.get_soup_of(content), paths
@@ -110,7 +109,7 @@ class Utils:
         """URL-decoded category identifier"""
         return urllib.parse.unquote(ident)
 
-    def get_version_ident_for(self, url: str) -> Optional[str]:
+    def get_version_ident_for(self, url: str) -> str | None:
         """~version~ of the URL data to use for comparisons. Built from headers"""
         try:
             resp = requests.head(url, timeout=10)

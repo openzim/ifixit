@@ -6,7 +6,6 @@ import io
 import pathlib
 import re
 import urllib.parse
-from typing import Optional
 
 from kiwixstorage import KiwixStorage, NotFoundError
 from PIL import Image
@@ -66,7 +65,7 @@ class Imager:
         unquoted_url = urllib.parse.unquote(url_with_only_path.geturl())
         return "images/{}".format(re.sub(r"^(https?)://", r"\1/", unquoted_url))
 
-    def defer(self, url: str) -> Optional[str]:
+    def defer(self, url: str) -> str | None:
         """request full processing of url, returning in-zim path immediately"""
 
         # find actual URL should it be from a provider
@@ -131,7 +130,7 @@ class Imager:
 
     def process_image(
         self, url: urllib.parse.ParseResult, path: str, mimetype: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """download image from url or S3 and add to Zim at path. Upload if req."""
 
         if self.aborted:

@@ -255,7 +255,8 @@ class Processor:
     def _process_youtube(self, match, rel_prefix):
         return (
             f'<a href="'
-            f"{self._process_external_url(match.group('youtubesrc'), rel_prefix)}\">"
+            f"{self._process_external_url(match.group('youtubesrc'), rel_prefix)}"
+            f'">'
             f"<div{self.cleanup_rendered_content(match.group('part1'), rel_prefix)}"
             "youtube-player"
             f"{self.cleanup_rendered_content(match.group('part2'), rel_prefix)}"
@@ -283,8 +284,10 @@ class Processor:
     def _process_gbl_regex(self, match, rel_prefix):
         if match.group("image_url"):
             return (
-                f"<img{match.group('image_before')}src=\"{rel_prefix}"
-                f"{self.get_image_path(match.group('image_url'))}\""
+                f"<img{match.group('image_before')}"
+                f'src="{rel_prefix}'
+                f"{self.get_image_path(match.group('image_url'))}"
+                '"'
             )
         if match.group("href_url"):
             href = self._process_href_regex(match.group("href_url"), rel_prefix)
@@ -350,9 +353,7 @@ class Processor:
         with setlocale("en_GB"):
             if timestamp:
                 return datetime.datetime.strftime(
-                    datetime.datetime.fromtimestamp(
-                        timestamp, tz=datetime.timezone.utc
-                    ),
+                    datetime.datetime.fromtimestamp(timestamp, tz=datetime.UTC),
                     "%x",
                 )
             return ""

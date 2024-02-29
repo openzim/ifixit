@@ -8,23 +8,23 @@ authors = [
   { name = "Kiwix", email = "dev@kiwix.org" },
 ]
 keywords = ["kiwix","zim","offline","ifixit"]
-requires-python = ">=3.8,<3.9"
+requires-python = ">=3.12,<3.13"
 description = "Make ZIM file from iFixit guides"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
 ]
 dependencies = [
-    "requests>=2.27.0,<2.28",
+    "requests==2.31.0",
     "zimscraperlib==3.3.1",
-    "kiwixstorage>=0.8.2,<0.9",
-    "Jinja2>=3.1.2,<3.2",
-    "backoff>=2.0.1,<2.1",
-    "pif>=0.8.2,<0.9",
-    "schedule>=1.1.0,<1.2",
+    "kiwixstorage==0.8.3",
+    "Jinja2==3.1.3",
+    "backoff==2.2.1",
+    "pif==0.8.2",
+    "schedule==1.2.1",
 ]
 dynamic = ["version"]
 
@@ -40,12 +40,12 @@ check = [
   "pyright==1.1.352",
 ]
 test = [
-  "pytest==7.4.0",
-  "coverage==7.2.7",
+  "pytest==8.0.2",
+  "coverage==7.4.3",
 ]
 dev = [
-  "pre-commit==3.3.3",
-  "debugpy==1.6.7",
+  "pre-commit==3.6.2",
+  "debugpy==1.8.1",
   "ifixit2zim[scripts]",
   "ifixit2zim[lint]",
   "ifixit2zim[test]",
@@ -105,10 +105,10 @@ all = "inv checkall --args '{args}'"
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py312']
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py312"
 line-length = 88
 src = ["src"]
 
@@ -231,5 +231,5 @@ exclude_lines = [
 include = ["src", "tests", "tasks.py"]
 exclude = [".env/**", ".venv/**"]
 extraPaths = ["src"]
-pythonVersion = "3.8"
+pythonVersion = "3.12"
 typeCheckingMode="basic"

@@ -524,5 +524,5 @@ class ScraperHomepage(ScraperGeneric):
                 "content"
             ),
             "stats": self._extract_stats_from_page(soup),
-            "current_year": datetime.datetime.now(tz=datetime.timezone.utc).year,
+            "current_year": datetime.datetime.now(tz=datetime.UTC).year,
         }
