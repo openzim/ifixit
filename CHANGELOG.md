@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2024-03-02
+
+### Changed
+
+- Migrate to Python 3.12
+- Upgrade Python dependencies, including zimscraperlib 3.3.1 (#92)
+- Adopt Python bootstrap conventions
+- ZIM Title is not sourced from online website anymore to match 30 chars limit
+- Description and Long Description are set and match openZIM convention
+- User pages are not part of search / suggestion results anymore (#85)
 
 ### Fixed
 
@@ -34,14 +43,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Report more clearly in the log when no ZIM is produced on-purpose + produce the ZIM even if some error occured
-- Remove unused log about number of images scrapped 
-- Fix issue with unquoted normalized URLs before regex matching 
-- Some users have changed their username 
-- Some users have a quote in their username 
+- Remove unused log about number of images scrapped
+- Fix issue with unquoted normalized URLs before regex matching
+- Some users have changed their username
+- Some users have a quote in their username
 - Ignore irelevant info pages
-- Some users do not have a username 
+- Some users do not have a username
 - URLs of missing items are not encoded properly
-- Issues with the "Load more comments" button in guides 
+- Issues with the "Load more comments" button in guides
 
 ## [0.2.0] - 2022-05-04
 
