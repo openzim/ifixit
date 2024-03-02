@@ -1,33 +1,46 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 
 import hashlib
 import io
 import pathlib
 import re
+import threading
 import urllib.parse
 
 from kiwixstorage import KiwixStorage, NotFoundError
 from PIL import Image
 from zimscraperlib.download import stream_file
 from zimscraperlib.image.optimization import optimize_webp
+from zimscraperlib.zim.creator import Creator
 
-from .constants import IMAGES_ENCODER_VERSION
-from .shared import Global
-from .utils import get_version_ident_for, to_url
-
-logger = Global.logger
+from ifixit2zim.constants import IMAGES_ENCODER_VERSION
+from ifixit2zim.executor import Executor
+from ifixit2zim.scraper import Configuration
+from ifixit2zim.shared import logger
+from ifixit2zim.utils import Utils
 
 
 class Imager:
-    def __init__(self):
+    def __init__(
+        self,
+        img_executor: Executor,
+        lock: threading.Lock,
+        creator: Creator,
+        utils: Utils,
+        configuration: Configuration,
+    ):
         self.aborted = False
         # list of source URLs that we've processed and added to ZIM
         self.handled = set()
-        self.dedup_items = dict()
+        self.dedup_items = {}
+        self.img_executor = img_executor
+        self.lock = lock
+        self.creator = creator
+        self.utils = utils
+        self.configuration = configuration
 
-        Global.img_executor.start()
+        self.img_executor.start()
 
     def abort(self):
         """request imager to cancel processing of futures"""
@@ -53,7 +66,7 @@ class Imager:
             lossless=False,
             quality=60,
             method=6,
-        )
+        )  # pyright: ignore[reportReturnType]
 
     def get_path_for(self, url: urllib.parse.ParseResult) -> str:
         url_with_only_path = urllib.parse.ParseResult(
@@ -67,21 +80,23 @@ class Imager:
         unquoted_url = urllib.parse.unquote(url_with_only_path.geturl())
         return "images/{}".format(re.sub(r"^(https?)://", r"\1/", unquoted_url))
 
-    def defer(self, url: str) -> str:
+    def defer(self, url: str) -> str | None:
         """request full processing of url, returning in-zim path immediately"""
 
         # find actual URL should it be from a provider
         try:
-            url = urllib.parse.urlparse(to_url(url))
+            parsed_url = urllib.parse.urlparse(self.utils.to_url(url))
         except Exception:
             logger.warning(f"Can't parse image URL `{url}`. Skipping")
             return
 
-        if url.scheme not in ("http", "https"):
-            logger.warning(f"Not supporting image URL `{url.geturl()}`. Skipping")
+        if parsed_url.scheme not in ("http", "https"):
+            logger.warning(
+                f"Not supporting image URL `{parsed_url.geturl()}`. Skipping"
+            )
             return
 
-        path = self.get_path_for(url)
+        path = self.get_path_for(parsed_url)
 
         if path in self.handled:
             return path
@@ -89,9 +104,9 @@ class Imager:
         # record that we are processing this one
         self.handled.add(path)
 
-        Global.img_executor.submit(
+        self.img_executor.submit(
             self.process_image,
-            url=url,
+            url=parsed_url,
             path=path,
             mimetype="image/svg+xml" if path.endswith(".svg") else "image/webp",
             dont_release=True,
@@ -108,34 +123,36 @@ class Imager:
 
     def add_image_to_zim(self, path, content, mimetype):
         duplicate_path = self.check_for_duplicate(path, content)
-        with Global.lock:
+        with self.lock:
             if duplicate_path:
-                Global.creator.add_redirect(
+                self.creator.add_redirect(
                     path=path,
                     target_path=duplicate_path,
                 )
             else:
-                Global.creator.add_item_for(
+                self.creator.add_item_for(
                     path=path,
                     content=content,
                     mimetype=mimetype,
                 )
 
     def add_missing_image_to_zim(self, path):
-        with Global.lock:
-            Global.creator.add_redirect(
+        with self.lock:
+            self.creator.add_redirect(
                 path=path,
                 target_path="assets/NoImage_300x225.jpg",
             )
 
-    def process_image(self, url: str, path: str, mimetype: str) -> str:
+    def process_image(
+        self, url: urllib.parse.ParseResult, path: str, mimetype: str
+    ) -> str | None:
         """download image from url or S3 and add to Zim at path. Upload if req."""
 
         if self.aborted:
             return
 
         # just download, optimize and add to ZIM if not using S3
-        if not Global.conf.s3_url:
+        if not self.configuration.s3_url:
             try:
                 fileobj = self.get_image_data(url.geturl())
             except Exception as exc:
@@ -157,7 +174,7 @@ class Imager:
             return path
 
         # we are using S3 cache
-        ident = get_version_ident_for(url.geturl())
+        ident = self.utils.get_version_ident_for(url.geturl())
         if ident is None:
             logger.error(f"Unable to query {url.geturl()}. Skipping")
             self.add_missing_image_to_zim(
@@ -166,7 +183,7 @@ class Imager:
             return path
 
         # key = self.get_s3_key_for(url.geturl())
-        s3_storage = KiwixStorage(Global.conf.s3_url)
+        s3_storage = KiwixStorage(self.configuration.s3_url)
         meta = {"ident": ident, "encoder_version": str(IMAGES_ENCODER_VERSION)}
 
         download_failed = False  # useful to trigger reupload or not

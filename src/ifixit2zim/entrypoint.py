@@ -4,8 +4,8 @@ import argparse
 import os
 import sys
 
-from .constants import NAME, SCRAPER, URLS
-from .shared import Global, logger
+from ifixit2zim.constants import NAME, SCRAPER, URLS
+from ifixit2zim.shared import logger, set_debug
 
 
 def main():
@@ -26,7 +26,7 @@ def main():
         "--output",
         help="Output folder for ZIM file",
         default="/output",
-        dest="_output_dir",
+        dest="_output_name",
     )
 
     parser.add_argument(
@@ -37,29 +37,37 @@ def main():
 
     parser.add_argument(
         "--title",
-        help="Custom title for your ZIM. iFixit homepage title otherwise",
+        help="Custom title for your ZIM (30 chars max).",
     )
 
     parser.add_argument(
         "--description",
-        help="Custom description for your ZIM. "
-        "iFixit homepage description (meta) otherwise",
+        help="Custom description for your ZIM (80 chars max). "
+        "Based on iFixit homepage description (meta) otherwise",
+    )
+
+    parser.add_argument(
+        "--long-description",
+        help="Custom long description for your ZIM (4000 chars max). "
+        "Based on iFixit homepage description (meta) otherwise",
     )
 
     parser.add_argument(
         "--icon",
-        help="Custom icon for your ZIM (path or URL). " "iFixit square logo otherwise",
+        help="Custom icon for your ZIM (path or URL). iFixit square logo otherwise",
     )
 
     parser.add_argument(
         "--creator",
         help="Name of content creator. “iFixit” otherwise",
         dest="author",
+        default="iFixit",
     )
 
     parser.add_argument(
         "--publisher",
         help="Custom publisher name (ZIM metadata). “openZIM” otherwise",
+        default="openZIM",
     )
 
     parser.add_argument(
@@ -87,6 +95,7 @@ def main():
         "--debug",
         help="Enable verbose output",
         action="store_true",
+        dest="debug",
         default=False,
     )
 
@@ -94,7 +103,7 @@ def main():
         "--tmp-dir",
         help="Path to create temp folder in. Used for building ZIM file.",
         default=os.getenv("TMPDIR", "."),
-        dest="_tmp_dir",
+        dest="_tmp_name",
     )
 
     parser.add_argument(
@@ -257,18 +266,18 @@ def main():
     )
 
     args = parser.parse_args()
-    Global.set_debug(args.debug)
+    set_debug(args.debug)
 
-    from .scraper import ifixit2zim
+    from ifixit2zim.scraper import IFixit2Zim
 
     try:
-        scraper = ifixit2zim(**dict(args._get_kwargs()))
+        scraper = IFixit2Zim(**dict(args._get_kwargs()))
         sys.exit(scraper.run())
     except Exception as exc:
-        logger.error(f"FAILED. An error occurred: {exc}")
+        logger.error("FAILED. An error occurred", exc_info=exc)
         if args.debug:
             logger.exception(exc)
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":

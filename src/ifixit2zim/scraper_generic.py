@@ -4,17 +4,49 @@ from queue import Queue
 
 from schedule import run_pending
 
-from .exceptions import FinalScrapingFailure
-from .shared import Global, logger
+from ifixit2zim.context import Context
+from ifixit2zim.exceptions import FinalScrapingFailureError
+from ifixit2zim.shared import logger
+
+FIRST_ITEMS_COUNT = 5
 
 
 class ScraperGeneric(ABC):
-    def __init__(self):
-        self.expected_items_keys = dict()
-        self.unexpected_items_keys = dict()
+    def __init__(self, context: Context):
+        self.context = context
+        self.expected_items_keys = {}
+        self.unexpected_items_keys = {}
         self.items_queue = Queue()
         self.missing_items_keys = set()
         self.error_items_keys = set()
+
+    @property
+    def configuration(self):
+        return self.context.configuration
+
+    @property
+    def utils(self):
+        return self.context.utils
+
+    @property
+    def metadata(self):
+        return self.context.metadata
+
+    @property
+    def env(self):
+        return self.context.env
+
+    @property
+    def lock(self):
+        return self.context.lock
+
+    @property
+    def creator(self):
+        return self.context.creator
+
+    @property
+    def processor(self):
+        return self.context.processor
 
     @abstractmethod
     def setup(self):
@@ -41,7 +73,7 @@ class ScraperGeneric(ABC):
         pass
 
     def add_item_to_scrape(
-        self, item_key, item_data, is_expected, warn_unexpected=True
+        self, item_key, item_data, is_expected, *, warn_unexpected=True
     ):
         item_key = str(item_key)  # just in case it's an int
         if (
@@ -80,7 +112,6 @@ class ScraperGeneric(ABC):
             pass  # ignore exceptions, we are already inside an exception handling
 
     def scrape_one_item(self, item_key, item_data):
-
         item_content = self.get_one_item_content(item_key, item_data)
 
         if item_content is None:
@@ -94,7 +125,6 @@ class ScraperGeneric(ABC):
         self.process_one_item(item_key, item_data, item_content)
 
     def scrape_items(self):
-
         logger.info(
             f"Scraping {self.get_items_name()} items ({self.items_queue.qsize()}"
             " items remaining)"
@@ -103,7 +133,10 @@ class ScraperGeneric(ABC):
         num_items = 1
         while not self.items_queue.empty():
             run_pending()
-            if Global.conf.scrape_only_first_items and num_items > 5:
+            if (
+                self.configuration.scrape_only_first_items
+                and num_items > FIRST_ITEMS_COUNT
+            ):
                 break
             item = self.items_queue.get(block=False)
             item_key = item["key"]
@@ -126,9 +159,9 @@ class ScraperGeneric(ABC):
                     len(self.missing_items_keys)
                     * 100
                     / (len(self.expected_items_keys) + len(self.unexpected_items_keys))
-                    > Global.conf.max_missing_items_percent
+                    > self.configuration.max_missing_items_percent
                 ):
-                    raise FinalScrapingFailure(
+                    raise FinalScrapingFailureError(
                         f"Too many {self.get_items_name()}s found missing: "
                         f"{len(self.missing_items_keys)}"
                     )
@@ -136,9 +169,9 @@ class ScraperGeneric(ABC):
                     len(self.error_items_keys)
                     * 100
                     / (len(self.expected_items_keys) + len(self.unexpected_items_keys))
-                    > Global.conf.max_error_items_percent
+                    > self.configuration.max_error_items_percent
                 ):
-                    raise FinalScrapingFailure(
+                    raise FinalScrapingFailureError(
                         f"Too many {self.get_items_name()}s failed to be processed: "
                         f"{len(self.error_items_keys)}"
                     )

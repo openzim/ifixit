@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
-
 import pathlib
 import tempfile
 import urllib.parse
-from dataclasses import dataclass, field
-from typing import List, Optional, Set
 
 from zimscraperlib.i18n import get_language_details
+
+from ifixit2zim.__about__ import __version__
 
 ROOT_DIR = pathlib.Path(__file__).parent
 NAME = ROOT_DIR.name
@@ -14,10 +12,7 @@ DEFAULT_HOMEPAGE = "Main-Page"
 UNKNOWN_LOCALE = "unknown"
 UNKNOWN_TITLE = "unknown_title"
 
-with open(ROOT_DIR.joinpath("VERSION"), "r") as fh:
-    VERSION = fh.read().strip()
-
-SCRAPER = f"{NAME} {VERSION}"
+SCRAPER = f"{NAME} {__version__}"
 
 IMAGES_ENCODER_VERSION = 1
 URLS = {
@@ -148,6 +143,24 @@ DIFFICULTY_VERY_HARD = [
 # https://www.ifixit.com/Guide/MacBook+Air+11-Inch+Late+2010+Battery+Replacement/4384
 # https://www.ifixit.com/Teardown/Apple+Watch+Teardown/40655
 
+TITLE = {
+    "en": {
+        "title_en": "iFixit in English",
+        "title_fr": "iFixit in French",
+        "title_pt": "iFixit in Portuguese",
+        "title_de": "iFixit in German",
+        "title_ko": "iFixit in Korean",
+        "title_zh": "iFixit in Chinese",
+        "title_ru": "iFixit in Russian",
+        "title_nl": "iFixit in Dutch",
+        "title_ja": "iFixit in Japanese",
+        "title_tr": "iFixit in Turkish",
+        "title_es": "iFixit in Spanish",
+        "title_it": "iFixit in Italian",
+    },
+    "fr": {"title_fr": "iFixit en Français"},
+}
+
 HOME_LABELS = {
     "en": {"top_title": "Repair guides for every thing, written by everyone."},
     "fr": {"top_title": "Tutoriels de réparation pour tout, écrits par tous."},
@@ -158,7 +171,7 @@ HOME_LABELS = {
     "ru": {"top_title": "Руководства по ремонту всего, от всех."},
     "nl": {"top_title": "Reparatiehandleidingen voor alles, door iedereen."},
     "ja": {"top_title": "修理を愛する人たちが作った、あらゆるモノへの修理ガイド"},
-    "tr": {"top_title": "Herkes tarafından, her şey için yazılmış tamir kılavuzları."},
+    "tr": {"top_title": "Herkes tarafindan, her şey için yazilmiş tamir kilavuzlari."},
     "es": {"top_title": "Guías de reparación para todo, escritas por todos."},
     "it": {"top_title": "Guide di riparazione per ogni cosa, scritte da tutti."},
 }
@@ -254,7 +267,7 @@ CATEGORY_LABELS = {
         "disassembly_guides": "분해 안내서",
         "tools": "도구",
         "parts": "부품",
-        "tools_introduction": ("해당 기기를 고치는데 사용하는 일반 도구들 입니다. 매 단계에 모든 도구를 사용하지는 않습니다."),
+        "tools_introduction": "해당 기기를 고치는데 사용하는 일반 도구들 입니다. 매 단계에 모든 도구를 사용하지는 않습니다.",  # noqa E501
     },
     "zh": {
         "author": "作者: ",
@@ -266,11 +279,11 @@ CATEGORY_LABELS = {
         "in_progress_guides": "正在编写中的指南",
         "repairability": "可修复性:",
         "replacement_guides": "更换指南",
-        "teardown_guides": "拆​解",
+        "teardown_guides": "拆\u200b解",
         "disassembly_guides": "拆卸指南",
         "tools": "工具",
         "parts": "配件",
-        "tools_introduction": ("这是用于在这个设备上工作的一些常用工具。你可能不需要在每个过程中使用到每个工具。"),
+        "tools_introduction": "这是用于在这个设备上工作的一些常用工具。你可能不需要在每个过程中使用到每个工具。",  # noqa E501
     },
     "ru": {
         "author": "Автор: ",
@@ -326,9 +339,7 @@ CATEGORY_LABELS = {
         "disassembly_guides": "分解ガイド",
         "tools": "ツール",
         "parts": "パーツ",
-        "tools_introduction": (
-            "以前、このデバイスの修理に使われていた一般的な工具です。修理過程において全部の工具が必要" "とは限りません。"
-        ),
+        "tools_introduction": "以前、このデバイスの修理に使われていた一般的な工具です。修理過程において全部の工具が必要とは限りません。",  # noqa E501
     },
     "tr": {
         "author": "Yazar: ",
@@ -337,16 +348,16 @@ CATEGORY_LABELS = {
         "featured_guides": "Featured Guides",  # not present for now on website ...
         "technique_guides": "Teknikler",
         "related_pages": "İlgili Sayfalar",
-        "in_progress_guides": "Yapım Aşamasındaki Kılavuzlar",
-        "repairability": "Onarılabilirlik:",
-        "replacement_guides": "Parça Değişim Kılavuzları",
+        "in_progress_guides": "Yapim Aşamasindaki Kilavuzlar",
+        "repairability": "Onarilabilirlik:",
+        "replacement_guides": "Parça Değişim Kilavuzlari",
         "teardown_guides": "Teardown'lar",
-        "disassembly_guides": "Söküm Kılavuzları",
+        "disassembly_guides": "Söküm Kilavuzlari",
         "tools": "Aletler",
         "parts": "Parçalar",
         "tools_introduction": (
-            "Bunlar, bu cihaz için yaygınca kullanılan bazı aletler. Her işlem için "
-            "her alete ihtiyacınız yoktur."
+            "Bunlar, bu cihaz için yayginca kullanilan bazi aletler. Her işlem için "
+            "her alete ihtiyaciniz yoktur."
         ),
     },
     "it": {
@@ -518,7 +529,7 @@ GUIDE_LABELS = {
         "parts": "부품",
     },
     "zh": {
-        "written_by": "撰写者：",
+        "written_by": "撰写者:",
         "difficulty": "难度",
         "steps": "步骤",
         "time_required": "所需时间",
@@ -532,7 +543,7 @@ GUIDE_LABELS = {
         "reputation": "信誉积分",
         "member_since_before": "",
         "member_since_after": "日注册",
-        "published": "发布于：",
+        "published": "发布于:",
         "teardown": " 拆解",
         "comments_count_before": "",
         "comments_count_after": "条评论",
@@ -555,7 +566,7 @@ GUIDE_LABELS = {
         "conclusion": "Заключение",
         "author": "Автор",
         "reputation": "Репутация",
-        "member_since_before": "Участник с: ",
+        "member_since_before": "Участник c: ",
         "member_since_after": "",
         "published": "Опубликовано: ",
         "teardown": "Разбираем",
@@ -593,7 +604,7 @@ GUIDE_LABELS = {
         "parts": "Onderdelen",
     },
     "ja": {
-        "written_by": "作成者：",
+        "written_by": "作成者:",
         "difficulty": "難易度",
         "steps": "手順",
         "time_required": "所要時間",
@@ -620,19 +631,19 @@ GUIDE_LABELS = {
     "tr": {
         "written_by": "Yazan:",
         "difficulty": "Zorluk",
-        "steps": " Adımlar",
+        "steps": " Adimlar",
         "time_required": "Gerekli Süre",
         "sections": "Bölümler",
         "flags": "İşaretler",
         "introduction": "Giriş",
-        "step_no_before": "Adım ",
+        "step_no_before": "Adim ",
         "step_no_after": "",
         "conclusion": "Sonuç",
         "author": "Yazar",
         "reputation": "İtibar",
         "member_since_before": "Üyelik tarihi: ",
         "member_since_after": "",
-        "published": "Yayımlama: ",
+        "published": "Yayimlama: ",
         "teardown": "Teardown",
         "comments_count_before": "",
         "comments_count_after": " yorum",
@@ -728,7 +739,7 @@ USER_LABELS = {
     },
     "ru": {
         "reputation": "Репутация",
-        "member_since_before": "Пользователь с ",
+        "member_since_before": "Пользователь c ",
         "member_since_after": "",
     },
     "nl": {
@@ -806,62 +817,92 @@ API_PREFIX = "/api/2.0"
 UNAVAILABLE_OFFLINE_INFOS = ["toolkits"]
 
 
-@dataclass
-class Conf:
-    required = [
-        "lang_code",
-        "output_dir",
-    ]
-
-    lang_code: str = ""
-    language: dict = field(default_factory=dict)
-    main_url: str = ""
+class Configuration:
+    fpath: pathlib.Path
 
     # zim params
-    name: str = ""
-    title: Optional[str] = ""
-    description: Optional[str] = ""
-    author: Optional[str] = ""
-    publisher: Optional[str] = ""
-    fname: Optional[str] = ""
-    tag: List[str] = field(default_factory=list)
-
-    # customization
-    icon: Optional[str] = ""
-    categories: Set[str] = field(default_factory=set)
-    no_category: Optional[bool] = False
-    guides: Set[str] = field(default_factory=set)
-    no_guide: Optional[bool] = False
-    infos: Set[str] = field(default_factory=set)
-    no_info: Optional[bool] = False
-    users: Set[str] = field(default_factory=set)
-    no_user: Optional[bool] = False
-    no_cleanup: Optional[bool] = False
+    name: str
+    title: str
+    description: str
+    long_description: str | None
+    author: str
+    publisher: str
+    fname: str
+    tag: list[str]
 
     # filesystem
-    _output_dir: Optional[str] = "."
-    _tmp_dir: Optional[str] = "."
-    output_dir: Optional[pathlib.Path] = None
-    tmp_dir: Optional[pathlib.Path] = None
+    _output_name: str
+    _tmp_name: str
+    output_path: pathlib.Path
+    tmp_path: pathlib.Path
+
+    required = (
+        "lang_code",
+        "output_path",
+    )
+
+    lang_code: str
+    language: dict
+    main_url: urllib.parse.ParseResult
+
+    # customization
+    icon: str
+    categories: set[str]
+    no_category: bool
+    guides: set[str]
+    no_guide: bool
+    infos: set[str]
+    no_info: bool
+    users: set[str]
+    no_user: bool
+    no_cleanup: bool
 
     # performances
-    nb_threads: Optional[int] = -1
-    s3_url_with_credentials: Optional[str] = ""
+    s3_url_with_credentials: str | None
 
     # error handling
-    max_missing_items_percent: Optional[int] = 0
-    max_error_items_percent: Optional[int] = 0
+    max_missing_items_percent: int
+    max_error_items_percent: int
 
     # debug/devel
-    build_dir_is_tmp_dir: Optional[bool] = False
-    keep_build_dir: Optional[bool] = False
-    scrape_only_first_items: Optional[bool] = False
-    debug: Optional[bool] = False
-    delay: Optional[float] = 0
-    api_delay: Optional[float] = 0
-    cdn_delay: Optional[float] = 0
-    stats_filename: Optional[str] = None
-    skip_checks: Optional[bool] = False
+    build_dir_is_tmp_dir: bool
+    keep_build_dir: bool
+    scrape_only_first_items: bool
+    debug: bool
+    delay: float
+    api_delay: float
+    cdn_delay: float
+    stats_filename: str | None
+    skip_checks: bool
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            self.__setattr__(key, value)
+        self.main_url = Configuration.get_url(self.lang_code)
+        self.language = get_language_details(self.lang_code)
+        self.output_path = pathlib.Path(self._output_name).expanduser().resolve()
+        self.output_path.mkdir(parents=True, exist_ok=True)
+
+        self.tmp_path = pathlib.Path(self._tmp_name).expanduser().resolve()
+        self.tmp_path.mkdir(parents=True, exist_ok=True)
+        if self.build_dir_is_tmp_dir:
+            self.build_path = self.tmp_path
+        else:
+            self.build_path = pathlib.Path(
+                tempfile.mkdtemp(prefix=f"ifixit_{self.lang_code}_", dir=self.tmp_path)
+            )
+
+        self.stats_path = None
+        if self.stats_filename:
+            self.stats_path = pathlib.Path(self.stats_filename).expanduser()
+            self.stats_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # support semi-colon separated tags as well
+        if self.tag:
+            for tag in self.tag.copy():
+                if ";" in tag:
+                    self.tag += [p.strip() for p in tag.split(";")]
+                    self.tag.remove(tag)
 
     @staticmethod
     def get_url(lang_code: str) -> urllib.parse.ParseResult:
@@ -873,34 +914,8 @@ class Conf:
 
     @property
     def api_url(self) -> str:
-        return self.main_url + API_PREFIX
+        return self.main_url.geturl() + API_PREFIX
 
     @property
-    def s3_url(self) -> str:
+    def s3_url(self) -> str | None:
         return self.s3_url_with_credentials
-
-    def __post_init__(self):
-        self.main_url = Conf.get_url(self.lang_code)
-        self.language = get_language_details(self.lang_code)
-        self.output_dir = pathlib.Path(self._output_dir).expanduser().resolve()
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-
-        self.tmp_dir = pathlib.Path(self._tmp_dir).expanduser().resolve()
-        self.tmp_dir.mkdir(parents=True, exist_ok=True)
-        if self.build_dir_is_tmp_dir:
-            self.build_dir = self.tmp_dir
-        else:
-            self.build_dir = pathlib.Path(
-                tempfile.mkdtemp(prefix=f"ifixit_{self.lang_code}_", dir=self.tmp_dir)
-            )
-
-        if self.stats_filename:
-            self.stats_filename = pathlib.Path(self.stats_filename).expanduser()
-            self.stats_filename.parent.mkdir(parents=True, exist_ok=True)
-
-        # support semi-colon separated tags as well
-        if self.tag:
-            for tag in self.tag.copy():
-                if ";" in tag:
-                    self.tag += [p.strip() for p in tag.split(";")]
-                    self.tag.remove(tag)

@@ -1,6 +1,6 @@
-import urllib
+import urllib.parse
 
-from .constants import (
+from ifixit2zim.constants import (
     DIFFICULTY_EASY,
     DIFFICULTY_HARD,
     DIFFICULTY_MODERATE,
@@ -10,18 +10,18 @@ from .constants import (
     UNKNOWN_LOCALE,
     UNKNOWN_TITLE,
 )
-from .exceptions import UnexpectedDataKindException
-from .scraper_generic import ScraperGeneric
-from .shared import Global, logger
-from .utils import get_api_content
+from ifixit2zim.context import Context
+from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
+from ifixit2zim.scraper_generic import ScraperGeneric
+from ifixit2zim.shared import logger
 
 
 class ScraperGuide(ScraperGeneric):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, context: Context):
+        super().__init__(context)
 
     def setup(self):
-        self.guide_template = Global.env.get_template("guide.html")
+        self.guide_template = self.env.get_template("guide.html")
 
     def get_items_name(self):
         return "guide"
@@ -37,22 +37,22 @@ class ScraperGuide(ScraperGeneric):
             is_expected,
         )
 
-    def _build_guide_path(self, guideid, guidetitle):
-        href = Global.conf.main_url.geturl() + f"/Guide/-/{guideid}"
-        final_href = Global.normalize_href(href)
+    def _build_guide_path(self, guideid, guidetitle):  # noqa ARG002
+        href = self.configuration.main_url.geturl() + f"/Guide/-/{guideid}"
+        final_href = self.processor.normalize_href(href)
         return final_href[1:]
 
     def get_guide_link_from_obj(self, guide):
         if "guideid" not in guide or not guide["guideid"]:
-            raise UnexpectedDataKindException(
+            raise UnexpectedDataKindExceptionError(
                 f"Impossible to extract guide id from {guide}"
             )
         if "locale" not in guide or not guide["locale"]:
-            raise UnexpectedDataKindException(
+            raise UnexpectedDataKindExceptionError(
                 f"Impossible to extract guide locale from {guide}"
             )
         if "title" not in guide or not guide["title"]:
-            raise UnexpectedDataKindException(
+            raise UnexpectedDataKindExceptionError(
                 f"Impossible to extract guide title from {guide}"
             )
         guideid = guide["guideid"]
@@ -80,28 +80,28 @@ class ScraperGuide(ScraperGeneric):
         guide_path = urllib.parse.quote(
             self._build_guide_path(guideid=guideid, guidetitle=guidetitle)
         )
-        if Global.conf.no_guide:
+        if self.configuration.no_guide:
             return f"home/not_scrapped?url={guide_path}"
-        if Global.conf.guides and str(guideid) not in Global.conf.guides:
+        if self.configuration.guides and str(guideid) not in self.configuration.guides:
             return f"home/not_scrapped?url={guide_path}"
         self._add_guide_to_scrape(guideid, guidetitle, guidelocale, False)
         return guide_path
 
     def build_expected_items(self):
-        if Global.conf.no_guide:
+        if self.configuration.no_guide:
             logger.info("No guide required")
             return
-        if Global.conf.guides:
+        if self.configuration.guides:
             logger.info("Adding required guides as expected")
-            for guide in Global.conf.guides:
+            for guide in self.configuration.guides:
                 self._add_guide_to_scrape(guide, UNKNOWN_TITLE, UNKNOWN_LOCALE, True)
             return
         logger.info("Downloading list of guides")
         limit = 200
         offset = 0
         while True:
-            guides = get_api_content("/guides", limit=limit, offset=offset)
-            if len(guides) == 0:
+            guides = self.utils.get_api_content("/guides", limit=limit, offset=offset)
+            if not guides or len(guides) == 0:
                 break
             for guide in guides:
                 # we ignore archived guides since they are not accessible anywayß
@@ -114,27 +114,29 @@ class ScraperGuide(ScraperGeneric):
                 # on this endpoint, so we consider it as unknown for now
                 self._add_guide_to_scrape(guideid, UNKNOWN_TITLE, UNKNOWN_LOCALE, True)
             offset += limit
-            if Global.conf.scrape_only_first_items:
+            if self.configuration.scrape_only_first_items:
                 logger.warning(
                     "Aborting the retrieval of all guides since only first items"
                     " will be scraped anyway"
                 )
                 break
-        logger.info("{} guides found".format(len(self.expected_items_keys)))
+        logger.info(f"{len(self.expected_items_keys)} guides found")
 
     def get_one_item_content(self, item_key, item_data):
         guideid = item_key
         guide = item_data
         locale = guide["locale"]
         if locale == UNKNOWN_LOCALE:
-            locale = Global.conf.lang_code  # fallback value
+            locale = self.configuration.lang_code  # fallback value
         if locale == "ja":
             locale = "jp"  # Unusual iFixit convention
 
-        guide_content = get_api_content(f"/guides/{guideid}", langid=locale)
+        guide_content = self.utils.get_api_content(f"/guides/{guideid}", langid=locale)
         if guide_content is None and locale != "en":
             # guide is most probably available in English anyway
-            guide_content = get_api_content(f"/guides/{guideid}", langid="en")
+            guide_content = self.utils.get_api_content(
+                f"/guides/{guideid}", langid="en"
+            )
 
         return guide_content
 
@@ -146,12 +148,12 @@ class ScraperGuide(ScraperGeneric):
             logger.warning(f"Cannot add redirect for guide {guideid} in error")
             return
         path = self._build_guide_path(guideid, guidetitle)
-        Global.add_redirect(
+        self.processor.add_redirect(
             path=path,
             target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url':path})}",
         )
 
-    def process_one_item(self, item_key, item_data, item_content):
+    def process_one_item(self, item_key, item_data, item_content):  # noqa ARG002
         guide_content = item_content
 
         if guide_content["type"] != "teardown":
@@ -166,7 +168,7 @@ class ScraperGuide(ScraperGeneric):
             elif guide_content["difficulty"] in DIFFICULTY_VERY_HARD:
                 guide_content["difficulty_class"] = "difficulty-5"
             else:
-                raise UnexpectedDataKindException(
+                raise UnexpectedDataKindExceptionError(
                     "Unknown guide difficulty: '{}' in guide {}".format(
                         guide_content["difficulty"],
                         guide_content["guideid"],
@@ -175,7 +177,7 @@ class ScraperGuide(ScraperGeneric):
 
         for step in guide_content["steps"]:
             if not step["media"]:
-                raise UnexpectedDataKindException(
+                raise UnexpectedDataKindExceptionError(
                     "Missing media attribute in step {} of guide {}".format(
                         step["stepid"], guide_content["guideid"]
                     )
@@ -185,14 +187,14 @@ class ScraperGuide(ScraperGeneric):
                 "video",
                 "embed",
             ]:
-                raise UnexpectedDataKindException(
+                raise UnexpectedDataKindExceptionError(
                     "Unrecognized media type in step {} of guide {}".format(
                         step["stepid"], guide_content["guideid"]
                     )
                 )
             if step["media"]["type"] == "video":
                 if "data" not in step["media"] or not step["media"]["data"]:
-                    raise UnexpectedDataKindException(
+                    raise UnexpectedDataKindExceptionError(
                         "Missing 'data' in step {} of guide {}".format(
                             step["stepid"], guide_content["guideid"]
                         )
@@ -201,7 +203,7 @@ class ScraperGuide(ScraperGeneric):
                     "image" not in step["media"]["data"]
                     or not step["media"]["data"]["image"]
                 ):
-                    raise UnexpectedDataKindException(
+                    raise UnexpectedDataKindExceptionError(
                         "Missing outer 'image' in step {} of guide {}".format(
                             step["stepid"], guide_content["guideid"]
                         )
@@ -210,14 +212,14 @@ class ScraperGuide(ScraperGeneric):
                     "image" not in step["media"]["data"]["image"]
                     or not step["media"]["data"]["image"]["image"]
                 ):
-                    raise UnexpectedDataKindException(
+                    raise UnexpectedDataKindExceptionError(
                         "Missing inner 'image' in step {} of guide {}".format(
                             step["stepid"], guide_content["guideid"]
                         )
                     )
             if step["media"]["type"] == "embed":
                 if "data" not in step["media"] or not step["media"]["data"]:
-                    raise UnexpectedDataKindException(
+                    raise UnexpectedDataKindExceptionError(
                         "Missing 'data' in step {} of guide {}".format(
                             step["stepid"], guide_content["guideid"]
                         )
@@ -226,13 +228,13 @@ class ScraperGuide(ScraperGeneric):
                     "html" not in step["media"]["data"]
                     or not step["media"]["data"]["html"]
                 ):
-                    raise UnexpectedDataKindException(
+                    raise UnexpectedDataKindExceptionError(
                         "Missing 'html' in step {} of guide {}".format(
                             step["stepid"], guide_content["guideid"]
                         )
                     )
             for line in step["lines"]:
-                if not line["bullet"] in [
+                if line["bullet"] not in [
                     "black",
                     "red",
                     "orange",
@@ -246,7 +248,7 @@ class ScraperGuide(ScraperGeneric):
                     "icon_caution",
                     "icon_reminder",
                 ]:
-                    raise UnexpectedDataKindException(
+                    raise UnexpectedDataKindExceptionError(
                         "Unrecognized bullet '{}' in step {} of guide {}".format(
                             line["bullet"],
                             step["stepid"],
@@ -255,11 +257,11 @@ class ScraperGuide(ScraperGeneric):
                     )
         guide_rendered = self.guide_template.render(
             guide=guide_content,
-            label=GUIDE_LABELS[Global.conf.lang_code],
-            metadata=Global.metadata,
+            label=GUIDE_LABELS[self.configuration.lang_code],
+            metadata=self.metadata,
         )
 
-        Global.add_html_item(
+        self.processor.add_html_item(
             path=self._build_guide_path(
                 guideid=guide_content["guideid"], guidetitle=guide_content["title"]
             ),
