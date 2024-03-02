@@ -360,7 +360,7 @@ class Processor:
     def convert_title_to_filename(self, title):
         return re.sub(r"\s", "_", title)
 
-    def add_html_item(self, path, title, content):
+    def add_html_item(self, path, title, content, *, is_front=True):
         with self.lock:
             logger.debug(f"Adding item in ZIM at path '{path}'")
             self.creator.add_item_for(
@@ -368,7 +368,7 @@ class Processor:
                 title=title,
                 content=content,
                 mimetype="text/html",
-                is_front=True,
+                is_front=is_front,
             )
 
     def add_redirect(self, path, target_path):

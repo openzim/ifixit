@@ -131,6 +131,7 @@ class ScraperUser(ScraperGeneric):
             path=normal_path,
             title=user_content["username"],
             content=user_rendered,
+            is_front=False,
         )
 
         for other_user_title in self.user_id_to_titles[userid]:
