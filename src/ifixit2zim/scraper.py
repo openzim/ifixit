@@ -403,8 +403,7 @@ class IFixit2Zim:
             if isinstance(exc, KeyboardInterrupt):
                 logger.error("KeyboardInterrupt, exiting.")
             else:
-                logger.error(f"Interrupting process due to error: {exc}")
-                logger.exception(exc)
+                logger.error("Interrupting process due to error", exc_info=exc)
             self.imager.abort()
             self.img_executor.shutdown(wait=False)
             return 1

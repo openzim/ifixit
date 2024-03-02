@@ -157,9 +157,9 @@ class Imager:
                 fileobj = self.get_image_data(url.geturl())
             except Exception as exc:
                 logger.error(
-                    f"Failed to download/convert/optim source  at {url.geturl()}"
+                    f"Failed to download/convert/optim source  at {url.geturl()}",
+                    exc_info=exc,
                 )
-                logger.exception(exc)
                 self.add_missing_image_to_zim(
                     path=path,
                 )
@@ -195,8 +195,7 @@ class Imager:
             # don't have it, not a donwload error. we'll upload after processing
             pass
         except Exception as exc:
-            logger.error(f"Failed to download '{path}' from cache: {exc}")
-            logger.exception(exc)
+            logger.error(f"Failed to download '{path}' from cache", exc_info=exc)
             download_failed = True
         else:
             self.add_image_to_zim(
@@ -211,8 +210,10 @@ class Imager:
         try:
             fileobj = self.get_image_data(url.geturl())
         except Exception as exc:
-            logger.error(f"Failed to download/convert/optim source  at {url.geturl()}")
-            logger.exception(exc)
+            logger.error(
+                f"Failed to download/convert/optim source  at {url.geturl()}",
+                exc_info=exc,
+            )
             self.add_missing_image_to_zim(
                 path=path,
             )
@@ -230,6 +231,6 @@ class Imager:
             try:
                 s3_storage.upload_fileobj(fileobj=fileobj, key=path, meta=meta)
             except Exception as exc:
-                logger.error(f"{path} failed to upload to cache: {exc}")
+                logger.error(f"{path} failed to upload to cache", exc_info=exc)
 
         return path
