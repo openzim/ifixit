@@ -1,4 +1,5 @@
 import datetime
+import io
 import json
 import pathlib
 import shutil
@@ -13,8 +14,11 @@ from zimscraperlib.zim.creator import Creator
 from ifixit2zim.constants import (
     DEFAULT_HOMEPAGE,
     ROOT_DIR,
+    TITLE,
     Configuration,
 )
+from ifixit2zim.context import Context
+from ifixit2zim.exceptions import CategoryHomePageContentError
 from ifixit2zim.executor import Executor
 from ifixit2zim.imager import Imager
 from ifixit2zim.processor import Processor
@@ -36,31 +40,19 @@ class IFixit2Zim:
             if getattr(self.configuration, option) is None:
                 raise ValueError(f"Missing parameter `{option}`")
 
-        self.scraper_homepage = ScraperHomepage(scraper=self)
-        self.scraper_guide = ScraperGuide(scraper=self)
-        self.scraper_category = ScraperCategory(scraper=self)
-        self.scraper_info = ScraperInfo(scraper=self)
-        self.scraper_user = ScraperUser(scraper=self)
-        self.scrapers = [
-            self.scraper_homepage,
-            self.scraper_category,
-            self.scraper_guide,
-            self.scraper_info,
-            self.scraper_user,
-        ]
         self.lock = threading.Lock()
-        self.processor = Processor(scraper=self)
+
         self.utils = Utils(configuration=self.configuration)
 
     @property
-    def build_dir(self):
-        return self.configuration.build_dir
+    def build_path(self):
+        return self.configuration.build_path
 
     def cleanup(self):
         """Remove temp files and release resources before exiting"""
         if not self.configuration.keep_build_dir:
-            logger.debug(f"Removing {self.build_dir}")
-            shutil.rmtree(self.build_dir, ignore_errors=True)
+            logger.debug(f"Removing {self.build_path}")
+            shutil.rmtree(self.build_path, ignore_errors=True)
 
     def sanitize_inputs(self):
         """input & metadata sanitation"""
@@ -95,8 +87,23 @@ class IFixit2Zim:
                 f"{self.configuration.name}_{period}.zim"
             )
 
-        # TODO: fixed title based on defined convention (30 chars only)
         if not self.configuration.title:
+            # Try to grab title in selected language, otherwise use title in English
+            # Logic is a bit complex because we need the title for the selected
+            # language in the selected language, or fallback to the title for the
+            # selected language in English.
+            if (
+                self.configuration.lang_code in TITLE
+                and f"title_{self.configuration.lang_code}"
+                in TITLE[self.configuration.lang_code]
+            ):
+                self.configuration.title = TITLE[self.configuration.lang_code][
+                    f"title_{self.configuration.lang_code}"
+                ]
+            else:
+                self.configuration.title = TITLE["en"][
+                    f"title_{self.configuration.lang_code}"
+                ]
             self.configuration.title = self.metadata["title"]
         self.configuration.title = self.configuration.title.strip()
 
@@ -146,21 +153,6 @@ class IFixit2Zim:
             with self.lock:
                 self.creator.add_item_for(path=path, fpath=fpath)
 
-    def add_illustrations(self):
-        logger.info("Adding illustrations")
-
-        src_illus_fpath = pathlib.Path(ROOT_DIR.joinpath("assets", "illustration.png"))
-        tmp_illus_fpath = pathlib.Path(self.build_dir, "illustration.png")
-
-        shutil.copy(src_illus_fpath, tmp_illus_fpath)
-
-        # resize to appropriate size (ZIM uses 48x48 so we double for retina)
-        for size in (96, 48):
-            resize_image(tmp_illus_fpath, width=size, height=size, method="thumbnail")
-            with open(tmp_illus_fpath, "rb") as fh:
-                with self.lock:
-                    self.creator.add_illustration(size, fh.read())
-
     def setup(self):
         # order matters are there are references between them
 
@@ -175,14 +167,22 @@ class IFixit2Zim:
             prefix="IMG-T-",
         )
 
-        self.imager = Imager(scraper=self)
+        src_illus_fpath = pathlib.Path(ROOT_DIR.joinpath("assets", "illustration.png"))
+        dst = io.BytesIO()
+        resize_image(
+            src=src_illus_fpath,
+            dst=dst,
+            width=48,
+            height=48,
+            method="thumbnail",
+        )
 
         self.creator = Creator(
-            filename=self.configuration.output_dir / self.configuration.fpath,
+            filename=self.configuration.output_path / self.configuration.fpath,
             main_path=DEFAULT_HOMEPAGE,
             workaround_nocancel=False,
         ).config_metadata(
-            Illustration_48x48_at_1=b"illustration",
+            Illustration_48x48_at_1=dst.getvalue(),
             Language=self.configuration.language["iso-639-3"],
             Title=self.configuration.title,
             Description=self.configuration.description,
@@ -191,6 +191,14 @@ class IFixit2Zim:
             Name=self.configuration.name,
             Tags=";".join(self.configuration.tag),
             Date=datetime.datetime.now(tz=datetime.UTC).date(),
+        )
+
+        self.imager = Imager(
+            lock=self.lock,
+            creator=self.creator,
+            img_executor=self.img_executor,
+            utils=self.utils,
+            configuration=self.configuration,
         )
 
         # jinja2 environment setup
@@ -202,8 +210,73 @@ class IFixit2Zim:
         def _raise_helper(msg):
             raise Exception(msg)
 
-        self.env.globals["raise"] = _raise_helper
-        self.env.globals["str"] = lambda x: str(x)
+        self.processor = Processor(
+            lock=self.lock,
+            configuration=self.configuration,
+            creator=self.creator,
+            imager=self.imager,
+        )
+
+        context = Context(
+            lock=self.lock,
+            configuration=self.configuration,
+            creator=self.creator,
+            utils=self.utils,
+            metadata=self.metadata,
+            env=self.env,
+            processor=self.processor,
+        )
+
+        self.scraper_homepage = ScraperHomepage(context=context)
+        self.scraper_guide = ScraperGuide(context=context)
+        self.scraper_category = ScraperCategory(context=context)
+        self.scraper_info = ScraperInfo(context=context)
+        self.scraper_user = ScraperUser(context=context)
+        self.scrapers = [
+            self.scraper_homepage,
+            self.scraper_category,
+            self.scraper_guide,
+            self.scraper_info,
+            self.scraper_user,
+        ]
+
+        self.processor.get_guide_link_from_props = (
+            self.scraper_guide.get_guide_link_from_props
+        )
+        self.processor.get_category_link_from_props = (
+            self.scraper_category.get_category_link_from_props
+        )
+        self.processor.get_info_link_from_props = (
+            self.scraper_info.get_info_link_from_props
+        )
+        self.processor.get_user_link_from_props = (
+            self.scraper_user.get_user_link_from_props
+        )
+
+        self.env.filters["get_category_link_from_obj"] = (
+            self.scraper_category.get_category_link_from_obj
+        )
+        self.env.filters["get_category_link_from_props"] = (
+            self.scraper_category.get_category_link_from_props
+        )
+        self.env.filters["get_guide_link_from_obj"] = (
+            self.scraper_guide.get_guide_link_from_obj
+        )
+        self.env.filters["get_guide_link_from_props"] = (
+            self.scraper_guide.get_guide_link_from_props
+        )
+        self.env.filters["get_info_link_from_obj"] = (
+            self.scraper_info.get_info_link_from_obj
+        )
+        self.env.filters["get_info_link_from_props"] = (
+            self.scraper_info.get_info_link_from_props
+        )
+        self.env.filters["get_user_link_from_obj"] = (
+            self.scraper_user.get_user_link_from_obj
+        )
+        self.env.filters["get_user_link_from_props"] = (
+            self.scraper_user.get_user_link_from_props
+        )
         self.env.filters["guides_in_progress"] = self.processor.guides_in_progress
         self.env.filters["category_count_parts"] = self.processor.category_count_parts
         self.env.filters["category_count_tools"] = self.processor.category_count_tools
@@ -222,6 +295,11 @@ class IFixit2Zim:
             self.processor.get_guide_total_comments_count
         )
         self.env.filters["get_user_display_name"] = self.processor.get_user_display_name
+        self.env.globals["raise"] = _raise_helper
+        self.env.globals["str"] = lambda x: str(x)
+
+        for scraper in self.scrapers:
+            scraper.setup()
 
     def run(self):
         # first report => creates a file with appropriate structure
@@ -247,12 +325,12 @@ class IFixit2Zim:
             f"Starting scraper with:\n"
             f"  language: {self.configuration.language['english']}"
             f" ({self.configuration.domain})\n"
-            f"  output_dir: {self.configuration.output_dir}\n"
-            f"  build_dir: {self.build_dir}\n"
+            f"  output: {self.configuration.output_path}\n"
+            f"  build: {self.build_path}\n"
             f"{s3_msg}"
         )
 
-        self.metadata = self.scraper_homepage.get_online_metadata()
+        self.metadata = self.get_online_metadata()
         logger.debug(
             f"Additional metadata scrapped online:\n"
             f"title: {self.metadata['title']}\n"
@@ -263,43 +341,10 @@ class IFixit2Zim:
 
         logger.debug("Starting Zim creation")
         self.setup()
-        self.env.filters["get_category_link_from_obj"] = (
-            self.scraper_category.get_category_link_from_obj
-        )
-        self.env.filters["get_category_link_from_props"] = (
-            self.scraper_category.get_category_link_from_props
-        )
-        self.env.filters["get_guide_link_from_obj"] = (
-            self.scraper_guide.get_guide_link_from_obj
-        )
-        self.env.filters["get_guide_link_from_props"] = (
-            self.scraper_guide.get_guide_link_from_props
-        )
-        self.env.filters["get_info_link_from_obj"] = (
-            self.scraper_info.get_info_link_from_obj
-        )
-        self.env.filters["get_info_link_from_props"] = (
-            self.scraper_info.get_info_link_from_props
-        )
-        self.env.filters["get_user_link_from_obj"] = (
-            self.scraper_user.get_user_link_from_obj
-        )
-        self.env.filters["get_user_link_from_props"] = (
-            self.scraper_user.get_user_link_from_props
-        )
-        self.get_category_link_from_props = (
-            self.scraper_category.get_category_link_from_props
-        )
-        self.get_guide_link_from_props = self.scraper_guide.get_guide_link_from_props
-        self.get_info_link_from_props = self.scraper_info.get_info_link_from_props
-        self.get_user_link_from_props = self.scraper_user.get_user_link_from_props
-        for scraper in self.scrapers:
-            scraper.setup()
         self.creator.start()
 
         try:
             self.add_assets()
-            self.add_illustrations()
 
             for scraper in self.scrapers:
                 scraper.build_expected_items()
@@ -398,3 +443,58 @@ class IFixit2Zim:
         }
         with open(self.configuration.stats_path, "w") as outfile:
             json.dump(progress, outfile, indent=2)
+
+    def get_online_metadata(self):
+        """metadata from online website, looking at homepage source code"""
+        logger.info("Fetching website metadata")
+
+        soup, _ = self.utils.get_soup("/")
+
+        return {
+            "title": soup.find(
+                "title"
+            ).string,  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+            "description": soup.find(
+                "meta", attrs={"name": "description"}
+            ).attrs.get(  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+                "content"
+            ),
+            "stats": self._extract_stats_from_page(soup),
+            "current_year": datetime.datetime.now(tz=datetime.UTC).year,
+        }
+
+    def _extract_stats_from_page(self, soup):
+        results = soup.findAll("div", {"data-name": "KPIDisplay"})
+        if len(results) == 0:
+            raise CategoryHomePageContentError("No KPIs found")
+        if len(results) > 1:
+            raise CategoryHomePageContentError("Too many KPIs found")
+        kpi = results[0].get("data-props")
+        if kpi is None:
+            raise CategoryHomePageContentError("KPIs not found in data-props")
+
+        try:
+            kpi_d = json.loads(kpi)
+        except json.decoder.JSONDecodeError as e:
+            raise CategoryHomePageContentError(
+                f"Failed to decode stats from '{kpi}' to integer"
+            ) from e
+
+        if "stats" not in kpi_d:
+            raise CategoryHomePageContentError(f"Stats not found in KPIs '{kpi}'")
+
+        stats = kpi_d["stats"]
+
+        if len(stats) == 0:
+            raise CategoryHomePageContentError("Stats array is empty")
+        for stat in stats:
+            if "value" not in stat:
+                raise CategoryHomePageContentError(
+                    f"No value found in stat '{json.dumps(stat)}'"
+                )
+            if "label" not in stat:
+                raise CategoryHomePageContentError(
+                    f"No label found in stat '{json.dumps(stat)}'"
+                )
+
+        return stats

@@ -1,7 +1,6 @@
 import pathlib
 import tempfile
 import urllib.parse
-from dataclasses import dataclass
 
 from zimscraperlib.i18n import get_language_details
 
@@ -143,6 +142,24 @@ DIFFICULTY_VERY_HARD = [
 # https://www.ifixit.com/Device/Logitech__G502_Hero
 # https://www.ifixit.com/Guide/MacBook+Air+11-Inch+Late+2010+Battery+Replacement/4384
 # https://www.ifixit.com/Teardown/Apple+Watch+Teardown/40655
+
+TITLE = {
+    "en": {
+        "title_en": "iFixit in English",
+        "title_fr": "iFixit in French",
+        "title_pt": "iFixit in Portuguese",
+        "title_de": "iFixit in German",
+        "title_ko": "iFixit in Korean",
+        "title_zh": "iFixit in Chinese",
+        "title_ru": "iFixit in Russian",
+        "title_nl": "iFixit in Dutch",
+        "title_ja": "iFixit in Japanese",
+        "title_tr": "iFixit in Turkish",
+        "title_es": "iFixit in Spanish",
+        "title_it": "iFixit in Italian",
+    },
+    "fr": {"title_fr": "iFixit en Français"},
+}
 
 HOME_LABELS = {
     "en": {"top_title": "Repair guides for every thing, written by everyone."},
@@ -800,7 +817,6 @@ API_PREFIX = "/api/2.0"
 UNAVAILABLE_OFFLINE_INFOS = ["toolkits"]
 
 
-@dataclass
 class Configuration:
     fpath: pathlib.Path
 
@@ -815,14 +831,14 @@ class Configuration:
     tag: list[str]
 
     # filesystem
-    _output_dir: str  # TODO: rename output_name
-    _tmp_dir: str  # IDEM
-    output_dir: pathlib.Path  # TODO: rename output_path
-    tmp_dir: pathlib.Path  # IDEM
+    _output_name: str
+    _tmp_name: str
+    output_path: pathlib.Path
+    tmp_path: pathlib.Path
 
     required = (
         "lang_code",
-        "output_dir",
+        "output_path",
     )
 
     lang_code: str
@@ -859,6 +875,35 @@ class Configuration:
     stats_filename: str | None
     skip_checks: bool
 
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            self.__setattr__(key, value)
+        self.main_url = Configuration.get_url(self.lang_code)
+        self.language = get_language_details(self.lang_code)
+        self.output_path = pathlib.Path(self._output_name).expanduser().resolve()
+        self.output_path.mkdir(parents=True, exist_ok=True)
+
+        self.tmp_path = pathlib.Path(self._tmp_name).expanduser().resolve()
+        self.tmp_path.mkdir(parents=True, exist_ok=True)
+        if self.build_dir_is_tmp_dir:
+            self.build_path = self.tmp_path
+        else:
+            self.build_path = pathlib.Path(
+                tempfile.mkdtemp(prefix=f"ifixit_{self.lang_code}_", dir=self.tmp_path)
+            )
+
+        self.stats_path = None
+        if self.stats_filename:
+            self.stats_path = pathlib.Path(self.stats_filename).expanduser()
+            self.stats_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # support semi-colon separated tags as well
+        if self.tag:
+            for tag in self.tag.copy():
+                if ";" in tag:
+                    self.tag += [p.strip() for p in tag.split(";")]
+                    self.tag.remove(tag)
+
     @staticmethod
     def get_url(lang_code: str) -> urllib.parse.ParseResult:
         return urllib.parse.urlparse(URLS[lang_code])
@@ -874,30 +919,3 @@ class Configuration:
     @property
     def s3_url(self) -> str | None:
         return self.s3_url_with_credentials
-
-    def __post_init__(self):
-        self.main_url = Configuration.get_url(self.lang_code)
-        self.language = get_language_details(self.lang_code)
-        self.output_dir = pathlib.Path(self._output_dir).expanduser().resolve()
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-
-        self.tmp_dir = pathlib.Path(self._tmp_dir).expanduser().resolve()
-        self.tmp_dir.mkdir(parents=True, exist_ok=True)
-        if self.build_dir_is_tmp_dir:
-            self.build_dir = self.tmp_dir
-        else:
-            self.build_dir = pathlib.Path(
-                tempfile.mkdtemp(prefix=f"ifixit_{self.lang_code}_", dir=self.tmp_dir)
-            )
-
-        self.stats_path = None
-        if self.stats_filename:
-            self.stats_path = pathlib.Path(self.stats_filename).expanduser()
-            self.stats_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # support semi-colon separated tags as well
-        if self.tag:
-            for tag in self.tag.copy():
-                if ";" in tag:
-                    self.tag += [p.strip() for p in tag.split(";")]
-                    self.tag.remove(tag)

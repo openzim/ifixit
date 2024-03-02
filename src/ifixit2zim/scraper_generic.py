@@ -4,16 +4,16 @@ from queue import Queue
 
 from schedule import run_pending
 
+from ifixit2zim.context import Context
 from ifixit2zim.exceptions import FinalScrapingFailureError
-from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.shared import logger
 
 FIRST_ITEMS_COUNT = 5
 
 
 class ScraperGeneric(ABC):
-    def __init__(self, scraper: IFixit2Zim):
-        self.scraper = scraper
+    def __init__(self, context: Context):
+        self.context = context
         self.expected_items_keys = {}
         self.unexpected_items_keys = {}
         self.items_queue = Queue()
@@ -22,31 +22,31 @@ class ScraperGeneric(ABC):
 
     @property
     def configuration(self):
-        return self.scraper.configuration
+        return self.context.configuration
 
     @property
     def utils(self):
-        return self.scraper.utils
+        return self.context.utils
 
     @property
     def metadata(self):
-        return self.scraper.metadata
+        return self.context.metadata
 
     @property
     def env(self):
-        return self.scraper.env
+        return self.context.env
 
     @property
     def lock(self):
-        return self.scraper.lock
+        return self.context.lock
 
     @property
     def creator(self):
-        return self.scraper.creator
+        return self.context.creator
 
     @property
     def processor(self):
-        return self.scraper.processor
+        return self.context.processor
 
     @abstractmethod
     def setup(self):

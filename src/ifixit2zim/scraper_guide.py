@@ -10,15 +10,15 @@ from ifixit2zim.constants import (
     UNKNOWN_LOCALE,
     UNKNOWN_TITLE,
 )
+from ifixit2zim.context import Context
 from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
-from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.shared import logger
 
 
 class ScraperGuide(ScraperGeneric):
-    def __init__(self, scraper: IFixit2Zim):
-        super().__init__(scraper)
+    def __init__(self, context: Context):
+        super().__init__(context)
 
     def setup(self):
         self.guide_template = self.env.get_template("guide.html")
@@ -100,9 +100,7 @@ class ScraperGuide(ScraperGeneric):
         limit = 200
         offset = 0
         while True:
-            guides = self.scraper.utils.get_api_content(
-                "/guides", limit=limit, offset=offset
-            )
+            guides = self.utils.get_api_content("/guides", limit=limit, offset=offset)
             if not guides or len(guides) == 0:
                 break
             for guide in guides:
@@ -133,12 +131,10 @@ class ScraperGuide(ScraperGeneric):
         if locale == "ja":
             locale = "jp"  # Unusual iFixit convention
 
-        guide_content = self.scraper.utils.get_api_content(
-            f"/guides/{guideid}", langid=locale
-        )
+        guide_content = self.utils.get_api_content(f"/guides/{guideid}", langid=locale)
         if guide_content is None and locale != "en":
             # guide is most probably available in English anyway
-            guide_content = self.scraper.utils.get_api_content(
+            guide_content = self.utils.get_api_content(
                 f"/guides/{guideid}", langid="en"
             )
 

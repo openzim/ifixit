@@ -5,27 +5,42 @@ import hashlib
 import io
 import pathlib
 import re
+import threading
 import urllib.parse
 
 from kiwixstorage import KiwixStorage, NotFoundError
 from PIL import Image
 from zimscraperlib.download import stream_file
 from zimscraperlib.image.optimization import optimize_webp
+from zimscraperlib.zim.creator import Creator
 
 from ifixit2zim.constants import IMAGES_ENCODER_VERSION
-from ifixit2zim.scraper import IFixit2Zim
+from ifixit2zim.executor import Executor
+from ifixit2zim.scraper import Configuration
 from ifixit2zim.shared import logger
+from ifixit2zim.utils import Utils
 
 
 class Imager:
-    def __init__(self, scraper: IFixit2Zim):
+    def __init__(
+        self,
+        img_executor: Executor,
+        lock: threading.Lock,
+        creator: Creator,
+        utils: Utils,
+        configuration: Configuration,
+    ):
         self.aborted = False
         # list of source URLs that we've processed and added to ZIM
         self.handled = set()
         self.dedup_items = {}
-        self.scraper = scraper
+        self.img_executor = img_executor
+        self.lock = lock
+        self.creator = creator
+        self.utils = utils
+        self.configuration = configuration
 
-        self.scraper.img_executor.start()
+        self.img_executor.start()
 
     def abort(self):
         """request imager to cancel processing of futures"""
@@ -70,7 +85,7 @@ class Imager:
 
         # find actual URL should it be from a provider
         try:
-            parsed_url = urllib.parse.urlparse(self.scraper.utils.to_url(url))
+            parsed_url = urllib.parse.urlparse(self.utils.to_url(url))
         except Exception:
             logger.warning(f"Can't parse image URL `{url}`. Skipping")
             return
@@ -89,7 +104,7 @@ class Imager:
         # record that we are processing this one
         self.handled.add(path)
 
-        self.scraper.img_executor.submit(
+        self.img_executor.submit(
             self.process_image,
             url=parsed_url,
             path=path,
@@ -108,22 +123,22 @@ class Imager:
 
     def add_image_to_zim(self, path, content, mimetype):
         duplicate_path = self.check_for_duplicate(path, content)
-        with self.scraper.lock:
+        with self.lock:
             if duplicate_path:
-                self.scraper.creator.add_redirect(
+                self.creator.add_redirect(
                     path=path,
                     target_path=duplicate_path,
                 )
             else:
-                self.scraper.creator.add_item_for(
+                self.creator.add_item_for(
                     path=path,
                     content=content,
                     mimetype=mimetype,
                 )
 
     def add_missing_image_to_zim(self, path):
-        with self.scraper.lock:
-            self.scraper.creator.add_redirect(
+        with self.lock:
+            self.creator.add_redirect(
                 path=path,
                 target_path="assets/NoImage_300x225.jpg",
             )
@@ -137,7 +152,7 @@ class Imager:
             return
 
         # just download, optimize and add to ZIM if not using S3
-        if not self.scraper.configuration.s3_url:
+        if not self.configuration.s3_url:
             try:
                 fileobj = self.get_image_data(url.geturl())
             except Exception as exc:
@@ -159,7 +174,7 @@ class Imager:
             return path
 
         # we are using S3 cache
-        ident = self.scraper.utils.get_version_ident_for(url.geturl())
+        ident = self.utils.get_version_ident_for(url.geturl())
         if ident is None:
             logger.error(f"Unable to query {url.geturl()}. Skipping")
             self.add_missing_image_to_zim(
@@ -168,7 +183,7 @@ class Imager:
             return path
 
         # key = self.get_s3_key_for(url.geturl())
-        s3_storage = KiwixStorage(self.scraper.configuration.s3_url)
+        s3_storage = KiwixStorage(self.configuration.s3_url)
         meta = {"ident": ident, "encoder_version": str(IMAGES_ENCODER_VERSION)}
 
         download_failed = False  # useful to trigger reupload or not

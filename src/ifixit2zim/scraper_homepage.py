@@ -1,17 +1,16 @@
-import datetime
 import json
 import re
 
 from ifixit2zim.constants import DEFAULT_HOMEPAGE, HOME_LABELS
+from ifixit2zim.context import Context
 from ifixit2zim.exceptions import CategoryHomePageContentError
-from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.shared import logger
 
 
 class ScraperHomepage(ScraperGeneric):
-    def __init__(self, scraper: IFixit2Zim):
-        super().__init__(scraper)
+    def __init__(self, context: Context):
+        super().__init__(context)
 
     def setup(self):
         self.homepage_template = self.env.get_template("home.html")
@@ -24,7 +23,7 @@ class ScraperHomepage(ScraperGeneric):
         self.add_item_to_scrape(1, 1, True)
 
     def get_one_item_content(self, item_key, item_data):  # noqa ARG002
-        soup, _ = self.scraper.utils.get_soup("/Guide")
+        soup, _ = self.utils.get_soup("/Guide")
         return soup
 
     def add_item_redirect(self, item_key, item_data, redirect_kind):  # noqa ARG002
@@ -422,42 +421,6 @@ class ScraperHomepage(ScraperGeneric):
             )
         return title
 
-    def _extract_stats_from_page(self, soup):
-        results = soup.findAll("div", {"data-name": "KPIDisplay"})
-        if len(results) == 0:
-            raise CategoryHomePageContentError("No KPIs found")
-        if len(results) > 1:
-            raise CategoryHomePageContentError("Too many KPIs found")
-        kpi = results[0].get("data-props")
-        if kpi is None:
-            raise CategoryHomePageContentError("KPIs not found in data-props")
-
-        try:
-            kpi_d = json.loads(kpi)
-        except json.decoder.JSONDecodeError as e:
-            raise CategoryHomePageContentError(
-                f"Failed to decode stats from '{kpi}' to integer"
-            ) from e
-
-        if "stats" not in kpi_d:
-            raise CategoryHomePageContentError(f"Stats not found in KPIs '{kpi}'")
-
-        stats = kpi_d["stats"]
-
-        if len(stats) == 0:
-            raise CategoryHomePageContentError("Stats array is empty")
-        for stat in stats:
-            if "value" not in stat:
-                raise CategoryHomePageContentError(
-                    f"No value found in stat '{json.dumps(stat)}'"
-                )
-            if "label" not in stat:
-                raise CategoryHomePageContentError(
-                    f"No label found in stat '{json.dumps(stat)}'"
-                )
-
-        return stats
-
     def _extract_details_from_single_stat(self, fs):
         stat_text_css_selector = "chakra-stat__help-text"
         p = fs.select(stat_text_css_selector)
@@ -507,22 +470,3 @@ class ScraperHomepage(ScraperGeneric):
             raise CategoryHomePageContentError(
                 f"Failed to convert text '{stat_number}' to integer for stat"
             ) from None
-
-    def get_online_metadata(self):
-        """metadata from online website, looking at homepage source code"""
-        logger.info("Fetching website metadata")
-
-        soup, _ = self.scraper.utils.get_soup("/")
-
-        return {
-            "title": soup.find(
-                "title"
-            ).string,  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-            "description": soup.find(
-                "meta", attrs={"name": "description"}
-            ).attrs.get(  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-                "content"
-            ),
-            "stats": self._extract_stats_from_page(soup),
-            "current_year": datetime.datetime.now(tz=datetime.UTC).year,
-        }

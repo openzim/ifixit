@@ -1,15 +1,15 @@
 import urllib.parse
 
 from ifixit2zim.constants import CATEGORY_LABELS, URLS
+from ifixit2zim.context import Context
 from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
-from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.shared import logger
 
 
 class ScraperCategory(ScraperGeneric):
-    def __init__(self, scraper: IFixit2Zim):
-        super().__init__(scraper)
+    def __init__(self, context: Context):
+        super().__init__(context)
 
     def setup(self):
         self.category_template = self.env.get_template("category.html")
@@ -79,16 +79,14 @@ class ScraperCategory(ScraperGeneric):
                 self._add_category_to_scrape(category_key, category, True)
             return
         logger.info("Downloading list of categories")
-        categories = self.scraper.utils.get_api_content(
-            "/categories", includeStubs=True
-        )
+        categories = self.utils.get_api_content("/categories", includeStubs=True)
         self._process_categories(categories)
         logger.info(f"{len(self.expected_items_keys)} categories found")
 
     def get_one_item_content(self, item_key, item_data):  # noqa ARG002
         categoryid = item_key
 
-        category_content = self.scraper.utils.get_api_content(
+        category_content = self.utils.get_api_content(
             f"/wikis/CATEGORY/{categoryid}", langid=self.configuration.lang_code
         )
 
@@ -96,7 +94,7 @@ class ScraperCategory(ScraperGeneric):
             return category_content
 
         logger.warning("Falling back to category in EN")
-        category_content = self.scraper.utils.get_api_content(
+        category_content = self.utils.get_api_content(
             f"/wikis/CATEGORY/{categoryid}", langid="en"
         )
 
@@ -105,7 +103,7 @@ class ScraperCategory(ScraperGeneric):
 
         for lang in URLS.keys():
             logger.warning(f"Falling back to category in {lang}")
-            category_content = self.scraper.utils.get_api_content(
+            category_content = self.utils.get_api_content(
                 f"/wikis/CATEGORY/{categoryid}", langid=lang
             )
 

@@ -77,7 +77,7 @@ Docker container as explained below.
 
 First, build the Docker image (to be ran in the main folder of this repo):
 ```
-docker build -t ghcr.io/openzim/ifixit:local .
+docker build -t local-ifixit .
 ```
 
 Then run the scraper with CLI arguments needed for your test (everything after `ifixit2zim` in the example below).
@@ -85,7 +85,7 @@ Then run the scraper with CLI arguments needed for your test (everything after `
 For instance, if you want to run a scrape of only the `Apple_PDA` category, including its guides,
 in French :
 ```
-docker run -it -v $(pwd)/output:/output --rm ghcr.io/openzim/fixit:local ifixit2zim --language fr --output /output --tmp-dir /tmp --category Apple_PDA
+docker run -it -v $(pwd)/output:/output --rm local-ifixit ifixit2zim --language fr --output /output --tmp-dir /tmp --category Apple_PDA
 ```
 
 This will produce a ZIM in the output folder of your current directory.

@@ -1,15 +1,15 @@
 import urllib.parse
 
 from ifixit2zim.constants import UNKNOWN_TITLE, USER_LABELS
+from ifixit2zim.context import Context
 from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
-from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.shared import logger
 
 
 class ScraperUser(ScraperGeneric):
-    def __init__(self, scraper: IFixit2Zim):
-        super().__init__(scraper)
+    def __init__(self, context: Context):
+        super().__init__(context)
         self.user_id_to_titles = {}
 
     def setup(self):

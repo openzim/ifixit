@@ -1,15 +1,15 @@
 import urllib.parse
 
 from ifixit2zim.constants import UNAVAILABLE_OFFLINE_INFOS
+from ifixit2zim.context import Context
 from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
-from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.shared import logger
 
 
 class ScraperInfo(ScraperGeneric):
-    def __init__(self, scraper: IFixit2Zim):
-        super().__init__(scraper)
+    def __init__(self, context: Context):
+        super().__init__(context)
 
     def setup(self):
         self.info_template = self.env.get_template("info.html")
@@ -77,7 +77,7 @@ class ScraperInfo(ScraperGeneric):
         limit = 200
         offset = 0
         while True:
-            info_wikis = self.scraper.utils.get_api_content(
+            info_wikis = self.utils.get_api_content(
                 "/wikis/INFO", limit=limit, offset=offset
             )
             if not info_wikis or len(info_wikis) == 0:
@@ -97,9 +97,7 @@ class ScraperInfo(ScraperGeneric):
 
     def get_one_item_content(self, item_key, item_data):  # noqa ARG002
         info_wiki_title = item_key
-        info_wiki_content = self.scraper.utils.get_api_content(
-            f"/wikis/INFO/{info_wiki_title}"
-        )
+        info_wiki_content = self.utils.get_api_content(f"/wikis/INFO/{info_wiki_title}")
         return info_wiki_content
 
     def add_item_redirect(self, item_key, item_data, redirect_kind):  # noqa ARG002

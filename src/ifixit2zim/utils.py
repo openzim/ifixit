@@ -15,7 +15,7 @@ from ifixit2zim.constants import API_PREFIX, Configuration
 from ifixit2zim.shared import logger
 
 
-def __backoff_hdlr(details):
+def backoff_hdlr(details):
     logger.warning(
         "Backing off {wait:0.1f} seconds after {tries} tries "
         "calling function {target} with args {args} and kwargs "
@@ -153,7 +153,7 @@ class Utils:
         backoff.expo,
         requests.exceptions.RequestException,
         max_time=16,
-        on_backoff=__backoff_hdlr,
+        on_backoff=backoff_hdlr,
     )
     def get_api_content(self, path, **params):
         full_path = self.get_url(API_PREFIX + path, **params)

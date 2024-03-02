@@ -5,7 +5,6 @@ LABEL org.opencontainers.image.source https://github.com/openzim/ifixit
 # TODO: do we really need all these packages?
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      # locales required if tool has any i18n support
       locales \
       locales-all \
       libmagic1 \

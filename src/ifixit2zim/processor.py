@@ -1,8 +1,10 @@
 import datetime
 import re
+import threading
 import urllib.parse
 
 import requests
+from zimscraperlib.zim.creator import Creator
 
 from ifixit2zim.constants import (
     DEFAULT_DEVICE_IMAGE_URL,
@@ -13,18 +15,62 @@ from ifixit2zim.constants import (
     UNAVAILABLE_OFFLINE,
 )
 from ifixit2zim.exceptions import ImageUrlNotFoundError
-from ifixit2zim.scraper import IFixit2Zim
+from ifixit2zim.imager import Imager
+from ifixit2zim.scraper import Configuration
 from ifixit2zim.shared import logger, setlocale
 
 
 class Processor:
-    def __init__(self, scraper: IFixit2Zim) -> None:
-        self.scraper = scraper
+    def __init__(
+        self,
+        lock: threading.Lock,
+        configuration: Configuration,
+        creator: Creator,
+        imager: Imager,
+    ) -> None:
         self.null_categories = set()
         self.ifixit_external_content = set()
         self.final_hrefs = {}
+        self.lock = lock
+        self.configuration = configuration
+        self.creator = creator
+        self.imager = imager
 
-    def guides_in_progress(self, guides, *, in_progress=True):
+    @property
+    def get_guide_link_from_props(self):
+        return self._get_guide_link_from_props
+
+    @get_guide_link_from_props.setter
+    def get_guide_link_from_props(self, get_guide_link_from_props):
+        self._get_guide_link_from_props = get_guide_link_from_props
+
+    @property
+    def get_category_link_from_props(self):
+        return self._get_category_link_from_props
+
+    @get_category_link_from_props.setter
+    def get_category_link_from_props(self, get_category_link_from_props):
+        self._get_category_link_from_props = get_category_link_from_props
+
+    @property
+    def get_info_link_from_props(self):
+        return self._get_info_link_from_props
+
+    @get_info_link_from_props.setter
+    def get_info_link_from_props(self, get_info_link_from_props):
+        self._get_info_link_from_props = get_info_link_from_props
+
+    @property
+    def get_user_link_from_props(self):
+        return self._get_user_link_from_props
+
+    @get_user_link_from_props.setter
+    def get_user_link_from_props(self, get_user_link_from_props):
+        self._get_user_link_from_props = get_user_link_from_props
+
+    # no-qa flag is mandatory because this is used in a Jinja filter and arg names are
+    # never passed by Jinja
+    def guides_in_progress(self, guides, in_progress=True):  # noqa: FBT002
         if in_progress:
             return [guide for guide in guides if "GUIDE_IN_PROGRESS" in guide["flags"]]
         return [guide for guide in guides if "GUIDE_IN_PROGRESS" not in guide["flags"]]
@@ -42,7 +88,7 @@ class Processor:
         return len(category["tools"])
 
     def get_image_path(self, image_url):
-        return self.scraper.imager.defer(url=image_url)
+        return self.imager.defer(url=image_url)
 
     def _get_image_url_search(
         self, obj, *, for_guide: bool, for_device: bool, for_wiki: bool, for_user: bool
@@ -154,7 +200,7 @@ class Processor:
     def _process_href_regex_guide(self, rel_prefix, match):
         if not match.group("guide"):
             return None
-        link = self.scraper.get_guide_link_from_props(
+        link = self.get_guide_link_from_props(
             guideid=match.group("guideid"),
             guidetitle=urllib.parse.unquote_plus(match.group("guidetitle")),
         )
@@ -163,7 +209,7 @@ class Processor:
     def _process_href_regex_device(self, rel_prefix, match):
         if not match.group("device"):
             return None
-        link = self.scraper.get_category_link_from_props(
+        link = self.get_category_link_from_props(
             category_title=urllib.parse.unquote_plus(match.group("devicetitle"))
         )
         return f"{rel_prefix}{link}{match.group('deviceafter') or ''}"
@@ -171,7 +217,7 @@ class Processor:
     def _process_href_regex_info(self, rel_prefix, match):
         if not match.group("info"):
             return None
-        link = self.scraper.get_info_link_from_props(
+        link = self.get_info_link_from_props(
             info_title=urllib.parse.unquote_plus(match.group("infotitle"))
         )
         return f"{rel_prefix}{link}{match.group('infoafter') or ''}"
@@ -179,7 +225,7 @@ class Processor:
     def _process_href_regex_user(self, rel_prefix, match):
         if not match.group("user"):
             return None
-        link = self.scraper.get_user_link_from_props(
+        link = self.get_user_link_from_props(
             userid=match.group("userid"),
             usertitle=urllib.parse.unquote_plus(match.group("usertitle")),
         )
@@ -229,7 +275,7 @@ class Processor:
 
     def _process_href_regex(self, href, rel_prefix):
         if href.startswith("/"):
-            href = self.scraper.configuration.main_url.geturl() + href
+            href = self.configuration.main_url.geturl() + href
         if href.startswith("http") and "ifixit.com/" in href:
             href = self.normalize_href(href)
             href = urllib.parse.quote(href)
@@ -303,7 +349,7 @@ class Processor:
         raise Exception("Unsupported match in cleanup_rendered_content")
 
     def cleanup_rendered_content(self, content, rel_prefix="../"):
-        if self.scraper.configuration.no_cleanup:
+        if self.configuration.no_cleanup:
             return content
         return re.sub(
             self.gbl_regex,
@@ -315,9 +361,9 @@ class Processor:
         return re.sub(r"\s", "_", title)
 
     def add_html_item(self, path, title, content):
-        with self.scraper.lock:
+        with self.lock:
             logger.debug(f"Adding item in ZIM at path '{path}'")
-            self.scraper.creator.add_item_for(
+            self.creator.add_item_for(
                 path=path,
                 title=title,
                 content=content,
@@ -326,9 +372,9 @@ class Processor:
             )
 
     def add_redirect(self, path, target_path):
-        with self.scraper.lock:
+        with self.lock:
             logger.debug(f"Adding redirect in ZIM from '{path}' to '{target_path}'")
-            self.scraper.creator.add_redirect(
+            self.creator.add_redirect(
                 path=path,
                 target_path=target_path,
             )

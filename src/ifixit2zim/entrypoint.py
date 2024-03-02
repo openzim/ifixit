@@ -26,7 +26,7 @@ def main():
         "--output",
         help="Output folder for ZIM file",
         default="/output",
-        dest="_output_dir",
+        dest="_output_name",
     )
 
     parser.add_argument(
@@ -103,7 +103,7 @@ def main():
         "--tmp-dir",
         help="Path to create temp folder in. Used for building ZIM file.",
         default=os.getenv("TMPDIR", "."),
-        dest="_tmp_dir",
+        dest="_tmp_name",
     )
 
     parser.add_argument(
@@ -274,7 +274,7 @@ def main():
         scraper = IFixit2Zim(**dict(args._get_kwargs()))
         sys.exit(scraper.run())
     except Exception as exc:
-        logger.error(f"FAILED. An error occurred: {exc}")
+        logger.error("FAILED. An error occurred", exc_info=exc)
         if args.debug:
             logger.exception(exc)
         raise SystemExit(1) from None
