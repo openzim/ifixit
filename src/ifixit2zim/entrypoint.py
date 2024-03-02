@@ -275,8 +275,6 @@ def main():
         sys.exit(scraper.run())
     except Exception as exc:
         logger.error("FAILED. An error occurred", exc_info=exc)
-        if args.debug:
-            logger.exception(exc)
         raise SystemExit(1) from None
 
 

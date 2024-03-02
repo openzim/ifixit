@@ -115,8 +115,7 @@ class Utils:
             resp = requests.head(url, timeout=10)
             headers = resp.headers
         except Exception as exc:
-            logger.warning(f"Unable to HEAD {url}")
-            logger.exception(exc)
+            logger.warning(f"Unable to HEAD {url}", exc_info=exc)
             try:
                 _, headers = stream_file(
                     url=url,
@@ -124,9 +123,8 @@ class Utils:
                     block_size=1,
                     only_first_block=True,
                 )
-            except Exception as exc2:
-                logger.warning(f"Unable to query image at {url}")
-                logger.exception(exc2)
+            except Exception as exc:
+                logger.warning(f"Unable to query image at {url}", exc_info=exc)
                 return
 
         for header in ("ETag", "Last-Modified", "Content-Length"):

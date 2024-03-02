@@ -14,8 +14,10 @@ _global_shutdown_lock = threading.Lock()
 
 
 def excepthook(args):
-    logger.error(f"UNHANDLED Exception in {args.thread.name}: {args.exc_type}")
-    logger.exception(args.exc_value)
+    logger.error(
+        f"UNHANDLED Exception in {args.thread.name}: {args.exc_type}",
+        exc_info=args.exc_value,
+    )
 
 
 threading.excepthook = excepthook
@@ -104,8 +106,7 @@ class Executor(queue.Queue):
             try:
                 func(**kwargs)
             except Exception as exc:
-                logger.error(f"Error processing {func} with {kwargs=}")
-                logger.exception(exc)
+                logger.error(f"Error processing {func} with {kwargs=}", exc_info=exc)
                 if raises:
                     self.exceptions.append(exc)
                     self.shutdown()

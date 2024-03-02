@@ -1,4 +1,3 @@
-import traceback
 from abc import ABC, abstractmethod
 from queue import Queue
 
@@ -147,12 +146,12 @@ class ScraperGeneric(ABC):
             )
             try:
                 self.scrape_one_item(item_key, item_data)
-            except Exception as ex:
+            except Exception as exc:
                 self.error_items_keys.add(item_key)
                 logger.warning(
-                    f"Error while processing {self.get_items_name()} {item_key}: {ex}"
+                    f"Error while processing {self.get_items_name()} {item_key}",
+                    exc_info=exc,
                 )
-                traceback.print_exc()
                 self.add_item_error_redirect(item_key, item_data)
             finally:
                 if (
