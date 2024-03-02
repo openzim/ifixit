@@ -106,7 +106,6 @@ class IFixit2Zim:
                 self.configuration.title = TITLE["en"][
                     f"title_{self.configuration.lang_code}"
                 ]
-            self.configuration.title = self.metadata["title"]
         self.configuration.title = self.configuration.title.strip()
 
         (
