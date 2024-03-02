@@ -44,6 +44,8 @@ class IFixit2Zim:
 
         self.utils = Utils(configuration=self.configuration)
 
+        self.scrapers = []
+
     @property
     def build_path(self):
         return self.configuration.build_path
@@ -232,13 +234,15 @@ class IFixit2Zim:
         self.scraper_category = ScraperCategory(context=context)
         self.scraper_info = ScraperInfo(context=context)
         self.scraper_user = ScraperUser(context=context)
-        self.scrapers = [
-            self.scraper_homepage,
-            self.scraper_category,
-            self.scraper_guide,
-            self.scraper_info,
-            self.scraper_user,
-        ]
+        self.scrapers.extend(
+            [
+                self.scraper_homepage,
+                self.scraper_category,
+                self.scraper_guide,
+                self.scraper_info,
+                self.scraper_user,
+            ]
+        )
 
         self.processor.get_guide_link_from_props = (
             self.scraper_guide.get_guide_link_from_props
