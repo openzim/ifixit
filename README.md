@@ -3,9 +3,10 @@
 `ifixit2zim` is an [openZIM](https://openzim.org) scraper to create offline versions of [iFixit](https://www.ifixit.com/) website, in all its supported languages.
 
 [![CodeFactor](https://www.codefactor.io/repository/github/openzim/ifixit/badge)](https://www.codefactor.io/repository/github/openzim/ifixit)
-[![Docker](https://ghcr-badge.deta.dev/openzim/ifixit/latest_tag?label=docker)](https://ghcr.io/openzim/ifixit)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![codecov](https://codecov.io/gh/openzim/ifixit/branch/main/graph/badge.svg)](https://codecov.io/gh/openzim/ifixit)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/ifixit2zim.svg)](https://pypi.org/project/ifixit2zim/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ifixit2zim.svg)](https://pypi.org/project/ifixit2zim)
 
 This scraper downloads the iFixit resources (categories, guides, ...) and puts them in a ZIM file, a clean and user friendly format for storing content for offline usage.
 
@@ -47,6 +48,10 @@ See `requirements.txt` for the list of python dependencies.
 
 Please open an issue on Github and/or submit a Pull-request.
 
+This project adheres to openZIM's [Contribution Guidelines](https://github.com/openzim/overview/wiki/Contributing).
+
+This project has implemented openZIM's [Python bootstrap, conventions and policies](https://github.com/openzim/_python-bootstrap/blob/main/docs/Policy.md) **v1.0.0**.
+
 ### Guidelines
 
 - Don't take assigned issues. Comment if those get staled.
@@ -68,7 +73,7 @@ source .venv/bin/activate
 ```
 
 
-NOTA : there is some limitations to the execution of the underlying libzim library on 
+NOTA : there is some limitations to the execution of the underlying libzim library on
 MacOS with some known bugs. The main issue is that the full-text index is not working,
 so this shouldn't be a problem for quick tests. In doubt, execute the scraper in a
 Docker container as explained below.
@@ -94,7 +99,7 @@ This will produce a ZIM in the output folder of your current directory.
 
 To test if the ZIM produced is OK, you should run kiwix-serve, once more with Docker.
 
-For instance, if you produced a file named `ifixit_fr_selection_2022-04.zim` in the 
+For instance, if you produced a file named `ifixit_fr_selection_2022-04.zim` in the
 `output` subfolder, and port 1256 is unused on your machine, you might run:
 ```
 docker run -it --rm -v $(pwd)/output:/data -p 1256:80 ghcr.io/kiwix/kiwix-tools kiwix-serve /data/ifixit_fr_selection_2022-04.zim
