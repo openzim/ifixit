@@ -7,6 +7,7 @@
 [![codecov](https://codecov.io/gh/openzim/ifixit/branch/main/graph/badge.svg)](https://codecov.io/gh/openzim/ifixit)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/ifixit2zim.svg)](https://pypi.org/project/ifixit2zim/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ifixit2zim.svg)](https://pypi.org/project/ifixit2zim)
+[![Docker](https://ghcr-badge.egpl.dev/openzim/ifixit/latest_tag?label=docker)](https://ghcr.io/openzim/ifixit)
 
 This scraper downloads the iFixit resources (categories, guides, ...) and puts them in a ZIM file, a clean and user friendly format for storing content for offline usage.
 
