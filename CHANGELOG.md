@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+
+- Add retries to avoid 429 too many requests errors (#109)
 - Fix ZIM Title still not ok
 - Fix crash when using the stats report (#100)
 

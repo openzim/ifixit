@@ -145,6 +145,13 @@ def main():
     )
 
     parser.add_argument(
+        "--request-timeout",
+        help="Timeout in seconds for HTTP requests (default: 10)",
+        type=float,
+        default=10,
+    )
+
+    parser.add_argument(
         "--skip-checks",
         help="[dev] Don't perform Integrity Checks on start",
         default=False,

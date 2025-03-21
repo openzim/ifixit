@@ -9,7 +9,7 @@ import bs4
 import requests
 from kiwixstorage import KiwixStorage
 from pif import get_public_ip
-from zimscraperlib.download import _get_retry_adapter, stream_file
+from zimscraperlib.download import stream_file
 
 from ifixit2zim.constants import API_PREFIX, Configuration
 from ifixit2zim.shared import logger
@@ -20,6 +20,17 @@ def backoff_hdlr(details):
         "Backing off {wait:0.1f} seconds after {tries} tries "
         "calling function {target} with args {args} and kwargs "
         "{kwargs}".format(**details)
+    )
+
+
+def fatal_code(e):
+    """Give up on errors codes 400-499 except 429"""
+    logger.warning(f"Fatal code {e.response.status_code}")
+    return (
+        HTTPStatus.BAD_REQUEST
+        <= e.response.status_code
+        < HTTPStatus.INTERNAL_SERVER_ERROR
+        and e.response.status_code != HTTPStatus.TOO_MANY_REQUESTS
     )
 
 
@@ -67,15 +78,24 @@ class Utils:
         """normalized path part of an url"""
         return self.normalize_ident(urllib.parse.urlparse(url).path)
 
+    @backoff.on_exception(
+        backoff.expo,
+        requests.exceptions.RequestException,
+        max_time=16,
+        on_backoff=backoff_hdlr,
+        giveup=fatal_code,
+    )
     def fetch(self, path: str, **params) -> tuple[str, list[str]]:
         """(source text, actual_paths) of a path from source website
 
         actual_paths is amn ordered list of paths that were traversed to get to content.
         Without redirection, it should be a single path, equal to request
         Final, target path is always last"""
-        session = requests.Session()
-        session.mount("http", _get_retry_adapter(10))  # tied to http and https
-        resp = session.get(self.get_url(path, **params), params=params)
+        resp = requests.get(
+            self.get_url(path, **params),
+            params=params,
+            timeout=self.configuration.request_timeout,
+        )
         resp.raise_for_status()
 
         # we have params meaning we requested a page (?pg=xxx)
@@ -152,11 +172,12 @@ class Utils:
         requests.exceptions.RequestException,
         max_time=16,
         on_backoff=backoff_hdlr,
+        giveup=fatal_code,
     )
     def get_api_content(self, path, **params):
         full_path = self.get_url(API_PREFIX + path, **params)
         logger.debug(f"Retrieving {full_path}")
-        response = requests.get(full_path, timeout=10)
+        response = requests.get(full_path, timeout=self.configuration.request_timeout)
         json_data = (
             response.json()
             if response and response.status_code == HTTPStatus.OK
