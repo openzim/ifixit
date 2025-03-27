@@ -859,6 +859,7 @@ class Configuration:
 
     # performances
     s3_url_with_credentials: str | None
+    request_timeout: float
 
     # error handling
     max_missing_items_percent: int

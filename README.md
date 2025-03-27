@@ -34,7 +34,7 @@ pip3 install ifixit2zim
 ifixit2zim --help
 
 # running from source
-pip3 install -r requirements.pip
+pip3 install -e ".[dev]"
 python3 ifixit2zim/ --help
 ```
 
@@ -65,7 +65,7 @@ First time:
 ```
 python3 -m venv .venv
 source .venv/bin/activate
-pip3 install -r requirements.pip
+pip3 install -e ".[dev]"
 ```
 
 Next times:
