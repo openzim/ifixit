@@ -32,7 +32,8 @@
       "maxLength": 80
     },
     "icon": {
-      "type": "url",
+      "type": "blob",
+      "kind": "image",
       "required": false,
       "title": "Icon",
       "description": "Custom Icon for your ZIM (URL). iFixit square logo otherwise"
