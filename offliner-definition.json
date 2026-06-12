@@ -171,5 +171,31 @@
       "title": "No info",
       "description": "Do not scrape any info"
     }
-  }
+  },
+  "zimMetadata": [
+    {
+      "metadata": "Name",
+      "flag": "name"
+    },
+    {
+      "metadata": "Title",
+      "flag": "title"
+    },
+    {
+      "metadata": "Description",
+      "flag": "description"
+    },
+    {
+      "metadata": "Creator",
+      "flag": "creator"
+    },
+    {
+      "metadata": "Publisher",
+      "flag": "publisher"
+    },
+    {
+      "metadata": "Illustration",
+      "flag": "icon"
+    }
+  ]
 }
