@@ -187,6 +187,7 @@ class IFixit2Zim:
             Language=self.configuration.language["iso-639-3"],
             Title=self.configuration.title,
             Description=self.configuration.description,
+            LongDescription=self.configuration.long_description,
             Creator=self.configuration.author,
             Publisher=self.configuration.publisher,
             Name=self.configuration.name,
