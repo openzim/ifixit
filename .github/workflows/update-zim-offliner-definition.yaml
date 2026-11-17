@@ -17,7 +17,7 @@ on:
 
 jobs:
   prepare-json:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       offliner_definition_b64: ${{ steps.read-json.outputs.offliner_definition_b64 }}
     steps:

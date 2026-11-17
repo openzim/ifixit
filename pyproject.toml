@@ -8,48 +8,46 @@ authors = [
   { name = "Kiwix", email = "dev@kiwix.org" },
 ]
 keywords = ["kiwix","zim","offline","ifixit"]
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 description = "Make ZIM file from iFixit guides"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
 ]
 dependencies = [
-    "requests==2.31.0",
-    "zimscraperlib==3.3.1",
-    "kiwixstorage==0.8.3",
-    "Jinja2==3.1.3",
-    "backoff==2.2.1",
-    "pif==0.8.2",
-    "schedule==1.2.1",
+  "requests==2.34.2",
+  "zimscraperlib==5.5.2",
+  "kiwixstorage==0.11.0",
+  "Jinja2==3.1.6",
+  "schedule==1.2.2",
+  "backoff==2.2.1",
+  "schedule==1.2.2",
+  "pif==0.8.2",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
 scripts = [
-  "invoke==2.2.0",
+    "invoke == 3.0.3",
 ]
-lint = [
-  "black==24.2.0",
-  "ruff==0.3.0",
+qa = [
+    "ruff==0.17.1",
+    "pyright==1.1.414",
 ]
-check = [
-  "pyright==1.1.352",
-]
+
 test = [
-  "pytest==8.0.2",
-  "coverage==7.4.3",
+    "coverage == 7.16.2",
+    "pytest == 9.1.1",
 ]
+
 dev = [
-  "pre-commit==3.6.2",
-  "debugpy==1.8.1",
+  "pre-commit == 4.7.0",
   "ifixit2zim[scripts]",
-  "ifixit2zim[lint]",
   "ifixit2zim[test]",
-  "ifixit2zim[check]",
+  "ifixit2zim[qa]",
 ]
 
 [project.urls]
@@ -83,33 +81,24 @@ report-cov = "inv report-cov"
 coverage = "inv coverage --args '{args}'"
 html = "inv coverage --html --args '{args}'"
 
-[tool.hatch.envs.lint]
-template = "lint"
+
+[tool.hatch.envs.qa]
+template = "qa"
 skip-install = false
-features = ["scripts", "lint"]
+features = ["scripts", "qa", "test"]
 
-[tool.hatch.envs.lint.scripts]
-black = "inv lint-black --args '{args}'"
-ruff = "inv lint-ruff --args '{args}'"
-all = "inv lintall --args '{args}'"
-fix-black = "inv fix-black --args '{args}'"
-fix-ruff = "inv fix-ruff --args '{args}'"
-fixall = "inv fixall --args '{args}'"
-
-[tool.hatch.envs.check]
-features = ["scripts", "check"]
-
-[tool.hatch.envs.check.scripts]
-pyright = "inv check-pyright --args '{args}'"
-all = "inv checkall --args '{args}'"
-
-[tool.black]
-line-length = 88
-target-version = ['py312']
+[tool.hatch.envs.qa.scripts]
+check-lint = "inv check-lint --args '{args}'"
+check-format = "inv check-format --args '{args}'"
+check-type = "inv check-type --args '{args}'"
+check-all = "inv check-all --args '{args}'"
+fix-format = "inv fix-format --args '{args}'"
+fix-lint = "inv fix-lint --args '{args}'"
+fix-all = "inv fix-all --args '{args}'"
 
 [tool.ruff]
-target-version = "py312"
 line-length = 88
+target-version = "py314"
 src = ["src"]
 
 [tool.ruff.lint]
@@ -173,6 +162,8 @@ select = [
 ignore = [
   # Allow non-abstract empty methods in abstract base classes
   "B027",
+  # Allow datetime methods with tz info
+  "DTZ001", "DTZ006",
   # Remove flake8-errmsg since we consider they bloat the code and provide limited value
   "EM",
   # Allow boolean positional values in function calls, like `dict.get(... True)`
@@ -182,12 +173,13 @@ ignore = [
   # Ignore warnings on subprocess.run / popen
   "S603",
   # Ignore complexity
-  "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+  "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR0917",
 ]
 unfixable = [
   # Don't touch unused imports
   "F401",
 ]
+
 
 [tool.ruff.lint.isort]
 known-first-party = ["ifixit2zim"]
@@ -204,9 +196,10 @@ ban-relative-imports = "all"
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
 
 [tool.pytest.ini_options]
-minversion = "7.3"
+minversion = "9.1.1"
 testpaths = ["tests"]
 pythonpath = [".", "src"]
+addopts = "--strict-markers"
 
 [tool.coverage.paths]
 great_project = ["src/ifixit2zim"]
@@ -231,6 +224,6 @@ exclude_lines = [
 include = ["src", "tests", "tasks.py"]
 exclude = [".env/**", ".venv/**"]
 extraPaths = ["src"]
-pythonVersion = "3.12"
-typeCheckingMode="basic"
+pythonVersion = "3.14"
+typeCheckingMode="strict"
 disableBytesTypePromotions = true

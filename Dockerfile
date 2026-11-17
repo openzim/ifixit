@@ -1,5 +1,5 @@
-FROM python:3.12-slim-bookworm
-LABEL org.opencontainers.image.source https://github.com/openzim/ifixit
+FROM python:3.14-slim-bookworm
+LABEL org.opencontainers.image.source=https://github.com/openzim/ifixit
 
 # Install necessary packages
 # TODO: do we really need all these packages?

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# vim: ai ts=4 sts=4 et sw=4 nu
 
 import queue
 import threading
 from collections.abc import Callable
+from typing import Any
 
 from ifixit2zim.shared import logger
 
@@ -13,9 +13,10 @@ _shutdown = False
 _global_shutdown_lock = threading.Lock()
 
 
-def excepthook(args):
+def excepthook(args: threading.ExceptHookArgs) -> None:
+    thread_name = args.thread.name if args.thread is not None else "unknown"
     logger.error(
-        f"UNHANDLED Exception in {args.thread.name}: {args.exc_type}",
+        f"UNHANDLED Exception in {thread_name}: {args.exc_type}",
         exc_info=args.exc_value,
     )
 
@@ -23,7 +24,7 @@ def excepthook(args):
 threading.excepthook = excepthook
 
 
-class Executor(queue.Queue):
+class Executor(queue.Queue[tuple[Callable[..., Any], dict[str, Any]]]):
     """Custom FIFO queue based Executor that's less generic than ThreadPoolExec one
 
     Providing more flexibility for the use cases we're interested about:
@@ -33,15 +34,19 @@ class Executor(queue.Queue):
     See: https://github.com/python/cpython/blob/3.8/Lib/concurrent/futures/thread.py
     """
 
-    def __init__(self, queue_size: int = 10, nb_workers: int = 1, prefix: str = "T-"):
+    def __init__(
+        self, queue_size: int = 10, nb_workers: int = 1, prefix: str = "T-"
+    ) -> None:
         super().__init__(queue_size)
         self.prefix = prefix
         self._shutdown_lock = threading.Lock()
         self.nb_workers = nb_workers
-        self.exceptions = []
+        self.exceptions: list[Exception] = []
+        self._workers: set[threading.Thread] = set()
+        self.no_more = False
 
     @property
-    def exception(self):
+    def exception(self) -> Exception | None:
         """Exception raises in any thread, if any"""
         try:
             return self.exceptions[0:1].pop()
@@ -49,11 +54,11 @@ class Executor(queue.Queue):
             return None
 
     @property
-    def alive(self):
+    def alive(self) -> bool:
         """whether it should continue running"""
         return not self._shutdown
 
-    def submit(self, task: Callable, **kwargs):
+    def submit(self, task: Callable[..., Any], **kwargs: Any) -> None:
         """Submit a callable and its kwargs for execution in one of the workers"""
         with self._shutdown_lock, _global_shutdown_lock:
             if not self.alive:
@@ -71,7 +76,7 @@ class Executor(queue.Queue):
             else:
                 break
 
-    def start(self):
+    def start(self) -> None:
         """Enable executor, starting requested amount of workers
 
         Workers are started always, not provisioned dynamicaly"""
@@ -87,7 +92,7 @@ class Executor(queue.Queue):
             t.start()
             self._workers.add(t)
 
-    def worker(self):
+    def worker(self) -> None:
         while self.alive or self.no_more:
             try:
                 func, kwargs = self.get(block=True, timeout=2.0)
@@ -118,7 +123,7 @@ class Executor(queue.Queue):
                 if callback:
                     callback.__call__()
 
-    def drain(self):
+    def drain(self) -> None:
         """Empty the queue without processing the tasks (tasks will be lost)"""
         while True:
             try:
@@ -126,7 +131,7 @@ class Executor(queue.Queue):
             except queue.Empty:
                 break
 
-    def join(self):
+    def join(self) -> None:
         """Await completion of workers, requesting them to stop taking new task"""
         logger.debug(f"joining all threads for {self.prefix}")
         self.no_more = True
@@ -137,11 +142,11 @@ class Executor(queue.Queue):
                 e.wait(timeout=2)
         logger.debug(f"all threads joined for {self.prefix}")
 
-    def release_halt(self):
+    def release_halt(self) -> None:
         """release the `no_more` flag preventing workers from taking up tasks"""
         self.no_more = False
 
-    def shutdown(self, *, wait=True):
+    def shutdown(self, *, wait: bool = True) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         """stop the executor, either somewhat immediately or awaiting completion"""
         logger.debug(f"shutting down executor {self.prefix} with {wait=}")
         with self._shutdown_lock:

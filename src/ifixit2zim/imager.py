@@ -8,17 +8,20 @@ import re
 import threading
 import urllib.parse
 
-from kiwixstorage import KiwixStorage, NotFoundError
+from kiwixstorage import (  # pyright: ignore[reportMissingTypeStubs]
+    KiwixStorage,
+    NotFoundError,
+)
 from PIL import Image
 from zimscraperlib.download import stream_file
-from zimscraperlib.image.optimization import optimize_webp
+from zimscraperlib.image.optimization import OptimizeWebpOptions, optimize_webp
 from zimscraperlib.zim.creator import Creator
 
 from ifixit2zim.constants import IMAGES_ENCODER_VERSION
 from ifixit2zim.executor import Executor
 from ifixit2zim.scraper import Configuration
 from ifixit2zim.shared import logger
-from ifixit2zim.utils import Utils
+from ifixit2zim.utils import IFixitRequestClient, get_version_ident_for_url
 
 
 class Imager:
@@ -27,22 +30,22 @@ class Imager:
         img_executor: Executor,
         lock: threading.Lock,
         creator: Creator,
-        utils: Utils,
+        client: IFixitRequestClient,
         configuration: Configuration,
-    ):
+    ) -> None:
         self.aborted = False
         # list of source URLs that we've processed and added to ZIM
-        self.handled = set()
-        self.dedup_items = {}
+        self.handled: set[str] = set()
+        self.dedup_items: dict[bytes, str] = {}
         self.img_executor = img_executor
         self.lock = lock
         self.creator = creator
-        self.utils = utils
+        self.client = client
         self.configuration = configuration
 
         self.img_executor.start()
 
-    def abort(self):
+    def abort(self) -> None:
         """request imager to cancel processing of futures"""
         self.aborted = True
 
@@ -63,9 +66,11 @@ class Imager:
         del src
         return optimize_webp(
             src=webp,
-            lossless=False,
-            quality=60,
-            method=6,
+            options=OptimizeWebpOptions(
+                lossless=False,
+                quality=60,
+                method=6,
+            ),
         )  # pyright: ignore[reportReturnType]
 
     def get_path_for(self, url: urllib.parse.ParseResult) -> str:
@@ -85,7 +90,7 @@ class Imager:
 
         # find actual URL should it be from a provider
         try:
-            parsed_url = urllib.parse.urlparse(self.utils.to_url(url))
+            parsed_url = urllib.parse.urlparse(self.client.to_url(url))
         except Exception:
             logger.warning(f"Can't parse image URL `{url}`. Skipping")
             return
@@ -114,14 +119,14 @@ class Imager:
 
         return path
 
-    def check_for_duplicate(self, path, content):
+    def check_for_duplicate(self, path: str, content: bytes) -> str | None:
         digest = hashlib.sha256(content).digest()
         if digest in self.dedup_items:
             return self.dedup_items[digest]
         self.dedup_items[digest] = path
         return None
 
-    def add_image_to_zim(self, path, content, mimetype):
+    def add_image_to_zim(self, path: str, content: bytes, mimetype: str) -> None:
         duplicate_path = self.check_for_duplicate(path, content)
         with self.lock:
             if duplicate_path:
@@ -136,7 +141,7 @@ class Imager:
                     mimetype=mimetype,
                 )
 
-    def add_missing_image_to_zim(self, path):
+    def add_missing_image_to_zim(self, path: str) -> None:
         with self.lock:
             self.creator.add_redirect(
                 path=path,
@@ -174,7 +179,7 @@ class Imager:
             return path
 
         # we are using S3 cache
-        ident = self.utils.get_version_ident_for(url.geturl())
+        ident = get_version_ident_for_url(url.geturl())
         if ident is None:
             logger.error(f"Unable to query {url.geturl()}. Skipping")
             self.add_missing_image_to_zim(

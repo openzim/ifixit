@@ -1,15 +1,31 @@
-import datetime
+import datetime as dt
 import io
 import json
 import pathlib
 import shutil
 import threading
+from collections.abc import Callable
+from typing import Any, NoReturn, cast
 
+from bs4 import BeautifulSoup
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from schedule import every
 from zimscraperlib.image.transformation import resize_image
 from zimscraperlib.inputs import compute_descriptions
 from zimscraperlib.zim.creator import Creator
+from zimscraperlib.zim.metadata import (
+    CreatorMetadata,
+    DateMetadata,
+    DefaultIllustrationMetadata,
+    DescriptionMetadata,
+    LanguageMetadata,
+    LongDescriptionMetadata,
+    NameMetadata,
+    PublisherMetadata,
+    StandardMetadataList,
+    TagsMetadata,
+    TitleMetadata,
+)
 
 from ifixit2zim.constants import (
     DEFAULT_HOMEPAGE,
@@ -21,20 +37,26 @@ from ifixit2zim.context import Context
 from ifixit2zim.exceptions import CategoryHomePageContentError
 from ifixit2zim.executor import Executor
 from ifixit2zim.imager import Imager
+from ifixit2zim.models import IFixitMetadata
 from ifixit2zim.processor import Processor
 from ifixit2zim.scraper_category import ScraperCategory
+from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.scraper_guide import ScraperGuide
 from ifixit2zim.scraper_homepage import ScraperHomepage
 from ifixit2zim.scraper_info import ScraperInfo
 from ifixit2zim.scraper_user import ScraperUser
 from ifixit2zim.shared import logger
-from ifixit2zim.utils import Utils
+from ifixit2zim.utils import IFixitRequestClient, get_kiwix_storage_client
 
 LOCALE_LOCK = threading.Lock()
 
 
+def _raise_helper(msg: str) -> NoReturn:
+    raise Exception(msg)
+
+
 class IFixit2Zim:
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.configuration = Configuration(**kwargs)
         for option in self.configuration.required:
             if getattr(self.configuration, option) is None:
@@ -42,21 +64,21 @@ class IFixit2Zim:
 
         self.lock = threading.Lock()
 
-        self.utils = Utils(configuration=self.configuration)
+        self.client = IFixitRequestClient(configuration=self.configuration)
 
-        self.scrapers = []
+        self.scrapers: list[ScraperGeneric] = []
 
     @property
-    def build_path(self):
+    def build_path(self) -> pathlib.Path:
         return self.configuration.build_path
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Remove temp files and release resources before exiting"""
         if not self.configuration.keep_build_dir:
             logger.debug(f"Removing {self.build_path}")
             shutil.rmtree(self.build_path, ignore_errors=True)
 
-    def sanitize_inputs(self):
+    def sanitize_inputs(self) -> None:
         """input & metadata sanitation"""
         logger.debug("Checking user-provided metadata")
 
@@ -70,11 +92,11 @@ class IFixit2Zim:
                 or self.configuration.no_info
             )
             self.configuration.name = "ifixit_{lang}_{selection}".format(
-                lang=self.configuration.language["iso-639-1"],
+                lang=self.configuration.language.iso_639_1,
                 selection="selection" if is_selection else "all",
             )
 
-        period = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m")
+        period = dt.datetime.now(tz=dt.UTC).strftime("%Y-%m")
         if self.configuration.fname:
             # make sure we were given a filename and not a path
             self.configuration.fpath = pathlib.Path(
@@ -112,7 +134,7 @@ class IFixit2Zim:
             self.configuration.description,
             self.configuration.long_description,
         ) = compute_descriptions(
-            self.metadata["description"],
+            self.metadata.description,
             self.configuration.description,
             self.configuration.long_description,
         )
@@ -139,7 +161,7 @@ class IFixit2Zim:
             f"publisher: {self.configuration.publisher}"
         )
 
-    def add_assets(self):
+    def add_assets(self) -> None:
         """download and add site-wide assets, identified in metadata step"""
         logger.info("Adding assets")
 
@@ -154,7 +176,7 @@ class IFixit2Zim:
             with self.lock:
                 self.creator.add_item_for(path=path, fpath=fpath)
 
-    def setup(self):
+    def setup(self) -> None:
         # order matters are there are references between them
 
         # images handled on a different queue.
@@ -183,23 +205,35 @@ class IFixit2Zim:
             main_path=DEFAULT_HOMEPAGE,
             workaround_nocancel=False,
         ).config_metadata(
-            Illustration_48x48_at_1=dst.getvalue(),
-            Language=self.configuration.language["iso-639-3"],
-            Title=self.configuration.title,
-            Description=self.configuration.description,
-            Creator=self.configuration.author,
-            Publisher=self.configuration.publisher,
-            Name=self.configuration.name,
-            Tags=";".join(self.configuration.tag),
-            Date=datetime.datetime.now(tz=datetime.UTC).date(),
+            std_metadata=StandardMetadataList(
+                Title=TitleMetadata(self.configuration.title),
+                Description=DescriptionMetadata(self.configuration.description),
+                LongDescription=(
+                    LongDescriptionMetadata(self.configuration.long_description)
+                    if self.configuration.long_description
+                    and self.configuration.long_description.strip()
+                    else None
+                ),
+                Creator=CreatorMetadata(self.configuration.author),
+                Publisher=PublisherMetadata(self.configuration.publisher),
+                Name=NameMetadata(self.configuration.name),
+                Language=LanguageMetadata(
+                    cast(str, self.configuration.language.iso_639_3)
+                ),
+                Tags=TagsMetadata(
+                    ";".join(self.configuration.tag),
+                ),
+                Date=DateMetadata(dt.datetime.now(tz=dt.UTC).date()),
+                Illustration_48x48_at_1=DefaultIllustrationMetadata(dst.getvalue()),
+            )
         )
 
         self.imager = Imager(
             lock=self.lock,
             creator=self.creator,
             img_executor=self.img_executor,
-            utils=self.utils,
             configuration=self.configuration,
+            client=self.client,
         )
 
         # jinja2 environment setup
@@ -207,9 +241,6 @@ class IFixit2Zim:
             loader=FileSystemLoader(ROOT_DIR.joinpath("templates")),
             autoescape=select_autoescape(),
         )
-
-        def _raise_helper(msg):
-            raise Exception(msg)
 
         self.processor = Processor(
             lock=self.lock,
@@ -222,7 +253,7 @@ class IFixit2Zim:
             lock=self.lock,
             configuration=self.configuration,
             creator=self.creator,
-            utils=self.utils,
+            client=self.client,
             metadata=self.metadata,
             env=self.env,
             processor=self.processor,
@@ -233,6 +264,7 @@ class IFixit2Zim:
         self.scraper_category = ScraperCategory(context=context)
         self.scraper_info = ScraperInfo(context=context)
         self.scraper_user = ScraperUser(context=context)
+
         self.scrapers.extend(
             [
                 self.scraper_homepage,
@@ -256,62 +288,48 @@ class IFixit2Zim:
             self.scraper_user.get_user_link_from_props
         )
 
-        self.env.filters["get_category_link_from_obj"] = (
+        filters = cast(dict[str, Callable[..., Any]], self.env.filters)
+        globals_ = cast(dict[str, Callable[..., Any]], self.env.globals)
+        filters["get_category_link_from_obj"] = (
             self.scraper_category.get_category_link_from_obj
         )
-        self.env.filters["get_category_link_from_props"] = (
+        filters["get_category_link_from_props"] = (
             self.scraper_category.get_category_link_from_props
         )
-        self.env.filters["get_guide_link_from_obj"] = (
-            self.scraper_guide.get_guide_link_from_obj
-        )
-        self.env.filters["get_guide_link_from_props"] = (
+        filters["get_guide_link_from_obj"] = self.scraper_guide.get_guide_link_from_obj
+        filters["get_guide_link_from_props"] = (
             self.scraper_guide.get_guide_link_from_props
         )
-        self.env.filters["get_info_link_from_obj"] = (
-            self.scraper_info.get_info_link_from_obj
-        )
-        self.env.filters["get_info_link_from_props"] = (
-            self.scraper_info.get_info_link_from_props
-        )
-        self.env.filters["get_user_link_from_obj"] = (
-            self.scraper_user.get_user_link_from_obj
-        )
-        self.env.filters["get_user_link_from_props"] = (
-            self.scraper_user.get_user_link_from_props
-        )
-        self.env.filters["guides_in_progress"] = self.processor.guides_in_progress
-        self.env.filters["category_count_parts"] = self.processor.category_count_parts
-        self.env.filters["category_count_tools"] = self.processor.category_count_tools
-        self.env.filters["get_image_path"] = self.processor.get_image_path
-        self.env.filters["get_image_url"] = self.processor.get_image_url
-        self.env.filters["cleanup_rendered_content"] = (
-            self.processor.cleanup_rendered_content
-        )
-        self.env.filters["get_timestamp_day_rendered"] = (
+        filters["get_info_link_from_obj"] = self.scraper_info.get_info_link_from_obj
+        filters["get_info_link_from_props"] = self.scraper_info.get_info_link_from_props
+        filters["get_user_link_from_obj"] = self.scraper_user.get_user_link_from_obj
+        filters["get_user_link_from_props"] = self.scraper_user.get_user_link_from_props
+        filters["guides_in_progress"] = self.processor.guides_in_progress
+        filters["category_count_parts"] = self.processor.category_count_parts
+        filters["category_count_tools"] = self.processor.category_count_tools
+        filters["get_image_path"] = self.processor.get_image_path
+        filters["get_image_url"] = self.processor.get_image_url
+        filters["cleanup_rendered_content"] = self.processor.cleanup_rendered_content
+        filters["get_timestamp_day_rendered"] = (
             self.processor.get_timestamp_day_rendered
         )
-        self.env.filters["get_item_comments_count"] = (
-            self.processor.get_item_comments_count
-        )
-        self.env.filters["get_guide_total_comments_count"] = (
+        filters["get_item_comments_count"] = self.processor.get_item_comments_count
+        filters["get_guide_total_comments_count"] = (
             self.processor.get_guide_total_comments_count
         )
-        self.env.filters["get_user_display_name"] = self.processor.get_user_display_name
-        self.env.globals["raise"] = _raise_helper
-        self.env.globals["str"] = lambda x: str(x)
+        filters["get_user_display_name"] = self.processor.get_user_display_name
+        globals_["raise"] = _raise_helper
+        globals_["str"] = str
 
         for scraper in self.scrapers:
             scraper.setup()
 
-    def run(self):
+    def run(self) -> int | None:
         # first report => creates a file with appropriate structure
         self.report_progress()
 
         s3_storage = (
-            self.utils.setup_s3_and_check_credentials(
-                self.configuration.s3_url_with_credentials
-            )
+            get_kiwix_storage_client(self.configuration.s3_url_with_credentials)
             if self.configuration.s3_url_with_credentials
             else None
         )
@@ -326,7 +344,7 @@ class IFixit2Zim:
 
         logger.info(
             f"Starting scraper with:\n"
-            f"  language: {self.configuration.language['english']}"
+            f"  language: {self.configuration.language.english}"
             f" ({self.configuration.domain})\n"
             f"  output: {self.configuration.output_path}\n"
             f"  build: {self.build_path}\n"
@@ -336,9 +354,9 @@ class IFixit2Zim:
         self.metadata = self.get_online_metadata()
         logger.debug(
             f"Additional metadata scrapped online:\n"
-            f"title: {self.metadata['title']}\n"
-            f"description: {self.metadata['description']}\n"
-            f"stats: {self.metadata['stats']}\n"
+            f"title: {self.metadata.title}\n"
+            f"description: {self.metadata.description}\n"
+            f"stats: {self.metadata.stats}\n"
         )
         self.sanitize_inputs()
 
@@ -355,7 +373,7 @@ class IFixit2Zim:
 
             # set a timer to report progress only every 10 seconds, not need to do it
             # after every item scrapped
-            every(10).seconds.do(self.report_progress)
+            every(10).seconds.do(self.report_progress)  # pyright: ignore[reportUnknownMemberType]
 
             while True:
                 for scraper in self.scrapers:
@@ -426,7 +444,7 @@ class IFixit2Zim:
 
         logger.info("Scraper has finished normally")
 
-    def report_progress(self):
+    def report_progress(self) -> None:
         if not self.configuration.stats_path:
             return
         done = 0
@@ -446,27 +464,30 @@ class IFixit2Zim:
         with open(self.configuration.stats_path, "w") as outfile:
             json.dump(progress, outfile, indent=2)
 
-    def get_online_metadata(self):
+    def get_online_metadata(self) -> IFixitMetadata:
         """metadata from online website, looking at homepage source code"""
         logger.info("Fetching website metadata")
 
-        soup, _ = self.utils.get_soup("/")
+        soup, _ = self.client.get_soup("/")
 
-        return {
-            "title": soup.find(
-                "title"
-            ).string,  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-            "description": soup.find(
-                "meta", attrs={"name": "description"}
-            ).attrs.get(  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        stats: list[dict[str, Any]]
+        try:
+            stats = self._extract_stats_from_page(soup)
+        except CategoryHomePageContentError as exc:
+            logger.warning(f"Unable to extract website stats: {exc}")
+            stats = []
+
+        return IFixitMetadata(
+            title=soup.find("title").string,  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess, reportArgumentType]
+            description=soup.find("meta", attrs={"name": "description"}).attrs.get(  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess, reportArgumentType]
                 "content"
             ),
-            "stats": self._extract_stats_from_page(soup),
-            "current_year": datetime.datetime.now(tz=datetime.UTC).year,
-        }
+            stats=stats,
+            current_year=dt.datetime.now(tz=dt.UTC).year,
+        )
 
-    def _extract_stats_from_page(self, soup):
-        results = soup.findAll("div", {"data-name": "KPIDisplay"})
+    def _extract_stats_from_page(self, soup: BeautifulSoup) -> list[dict[str, Any]]:
+        results = soup.find_all("div", {"data-name": "KPIDisplay"})
         if len(results) == 0:
             raise CategoryHomePageContentError("No KPIs found")
         if len(results) > 1:
@@ -474,6 +495,7 @@ class IFixit2Zim:
         kpi = results[0].get("data-props")
         if kpi is None:
             raise CategoryHomePageContentError("KPIs not found in data-props")
+        kpi = cast(str, kpi)
 
         try:
             kpi_d = json.loads(kpi)

@@ -1,4 +1,5 @@
 import urllib.parse
+from typing import Any
 
 from ifixit2zim.constants import UNAVAILABLE_OFFLINE_INFOS
 from ifixit2zim.context import Context
@@ -8,16 +9,21 @@ from ifixit2zim.shared import logger
 
 
 class ScraperInfo(ScraperGeneric):
-    def __init__(self, context: Context):
+    def __init__(self, context: Context) -> None:
         super().__init__(context)
 
-    def setup(self):
+    def setup(self) -> None:
         self.info_template = self.env.get_template("info.html")
 
-    def get_items_name(self):
+    def get_items_name(self) -> str:
         return "info"
 
-    def _add_info_to_scrape(self, info_key, info_title, is_expected):
+    def _add_info_to_scrape(
+        self,
+        info_key: str,
+        info_title: str,
+        is_expected: bool,  # noqa: FBT001
+    ) -> None:
         self.add_item_to_scrape(
             info_key,
             {
@@ -26,10 +32,10 @@ class ScraperInfo(ScraperGeneric):
             is_expected,
         )
 
-    def _get_info_key_from_title(self, info_title):
+    def _get_info_key_from_title(self, info_title: str) -> str:
         return self.processor.convert_title_to_filename(info_title.lower())
 
-    def _build_info_path(self, info_title):
+    def _build_info_path(self, info_title: str) -> str:
         href = (
             self.configuration.main_url.geturl()
             + f"/Info/{info_title.replace('/', ' ')}"
@@ -37,7 +43,7 @@ class ScraperInfo(ScraperGeneric):
         final_href = self.processor.normalize_href(href)
         return final_href[1:]
 
-    def get_info_link_from_obj(self, info):
+    def get_info_link_from_obj(self, info: dict[str, Any]) -> str:
         if "title" not in info or not info["title"]:
             raise UnexpectedDataKindExceptionError(
                 f"Impossible to extract info title from {info}"
@@ -45,7 +51,7 @@ class ScraperInfo(ScraperGeneric):
         info_title = info["title"]
         return self.get_info_link_from_props(info_title=info_title)
 
-    def get_info_link_from_props(self, info_title):
+    def get_info_link_from_props(self, info_title: str) -> str:
         info_path = urllib.parse.quote(self._build_info_path(info_title))
         if self.configuration.no_info:
             return f"home/not_scrapped?url={info_path}"
@@ -63,7 +69,7 @@ class ScraperInfo(ScraperGeneric):
         self._add_info_to_scrape(info_key, info_title, False)
         return info_path
 
-    def build_expected_items(self):
+    def build_expected_items(self) -> None:
         if self.configuration.no_info:
             logger.info("No info required")
             return
@@ -77,7 +83,7 @@ class ScraperInfo(ScraperGeneric):
         limit = 200
         offset = 0
         while True:
-            info_wikis = self.utils.get_api_content(
+            info_wikis = self.client.get_api_content(
                 "/wikis/INFO", limit=limit, offset=offset
             )
             if not info_wikis or len(info_wikis) == 0:
@@ -95,19 +101,35 @@ class ScraperInfo(ScraperGeneric):
                 break
         logger.info(f"{len(self.expected_items_keys)} info found")
 
-    def get_one_item_content(self, item_key, item_data):  # noqa ARG002
+    def get_one_item_content(
+        self,
+        item_key: str,
+        item_data: dict[str, Any],  # noqa: ARG002
+    ) -> Any:
         info_wiki_title = item_key
-        info_wiki_content = self.utils.get_api_content(f"/wikis/INFO/{info_wiki_title}")
+        info_wiki_content = self.client.get_api_content(
+            f"/wikis/INFO/{info_wiki_title}"
+        )
         return info_wiki_content
 
-    def add_item_redirect(self, item_key, item_data, redirect_kind):  # noqa ARG002
+    def add_item_redirect(
+        self,
+        item_key: str,  # noqa: ARG002
+        item_data: dict[str, Any],
+        redirect_kind: str,
+    ) -> None:
         path = self._build_info_path(item_data["info_title"])
         self.processor.add_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url':path})}",
+            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url': path})}",
         )
 
-    def process_one_item(self, item_key, item_data, item_content):  # noqa ARG002
+    def process_one_item(
+        self,
+        item_key: str,  # noqa: ARG002
+        item_data: dict[str, Any],  # noqa: ARG002
+        item_content: Any,
+    ) -> None:
         info_wiki_content = item_content
 
         info_wiki_rendered = self.info_template.render(

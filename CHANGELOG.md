@@ -7,11 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `scripts/update_assets.py` to discover, download and localize hashed
+  upstream CSS assets and update template references
+
+### Changed
+
+- Migrate to Python 3.14 and current dependencies (#126)
+- Add strict type annotations and ruff/pyright checks
+- Update bundled CSS assets to match the current iFixit frontend and remove
+  obsolete assets
+- Rename the HTTP utility class to `IFixitRequestClient`
+
 ### Fixed
 
 - Add retries to avoid 429 too many requests errors (#109)
 - Fix ZIM Title still not ok
 - Fix crash when using the stats report (#100)
+- Do not abort when the homepage no longer exposes KPI/stats data (#122)
+- Format dates without requiring an installed `en_GB` locale
 
 ## [0.3.0] - 2024-03-02
 
