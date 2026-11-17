@@ -1,7 +1,9 @@
-import datetime
+import datetime as dt
 import re
 import threading
 import urllib.parse
+from collections.abc import Callable
+from typing import Any, cast
 
 import requests
 from zimscraperlib.zim.creator import Creator
@@ -17,7 +19,7 @@ from ifixit2zim.constants import (
 from ifixit2zim.exceptions import ImageUrlNotFoundError
 from ifixit2zim.imager import Imager
 from ifixit2zim.scraper import Configuration
-from ifixit2zim.shared import logger, setlocale
+from ifixit2zim.shared import logger
 
 
 class Processor:
@@ -28,70 +30,93 @@ class Processor:
         creator: Creator,
         imager: Imager,
     ) -> None:
-        self.null_categories = set()
-        self.ifixit_external_content = set()
-        self.final_hrefs = {}
+        self.null_categories: set[str] = set()
+        self.ifixit_external_content: set[str] = set()
+        self.final_hrefs: dict[str, str] = {}
         self.lock = lock
         self.configuration = configuration
         self.creator = creator
         self.imager = imager
 
     @property
-    def get_guide_link_from_props(self):
+    def get_guide_link_from_props(self) -> Callable[..., str]:
         return self._get_guide_link_from_props
 
     @get_guide_link_from_props.setter
-    def get_guide_link_from_props(self, get_guide_link_from_props):
+    def get_guide_link_from_props(
+        self, get_guide_link_from_props: Callable[..., str]
+    ) -> None:
         self._get_guide_link_from_props = get_guide_link_from_props
 
     @property
-    def get_category_link_from_props(self):
+    def get_category_link_from_props(self) -> Callable[..., str]:
         return self._get_category_link_from_props
 
     @get_category_link_from_props.setter
-    def get_category_link_from_props(self, get_category_link_from_props):
+    def get_category_link_from_props(
+        self, get_category_link_from_props: Callable[..., str]
+    ) -> None:
         self._get_category_link_from_props = get_category_link_from_props
 
     @property
-    def get_info_link_from_props(self):
+    def get_info_link_from_props(self) -> Callable[..., str]:
         return self._get_info_link_from_props
 
     @get_info_link_from_props.setter
-    def get_info_link_from_props(self, get_info_link_from_props):
+    def get_info_link_from_props(
+        self, get_info_link_from_props: Callable[..., str]
+    ) -> None:
         self._get_info_link_from_props = get_info_link_from_props
 
     @property
-    def get_user_link_from_props(self):
+    def get_user_link_from_props(self) -> Callable[..., str]:
         return self._get_user_link_from_props
 
     @get_user_link_from_props.setter
-    def get_user_link_from_props(self, get_user_link_from_props):
+    def get_user_link_from_props(
+        self, get_user_link_from_props: Callable[..., str]
+    ) -> None:
         self._get_user_link_from_props = get_user_link_from_props
+
+    _get_guide_link_from_props: Callable[..., str]
+    _get_category_link_from_props: Callable[..., str]
+    _get_info_link_from_props: Callable[..., str]
+    _get_user_link_from_props: Callable[..., str]
 
     # no-qa flag is mandatory because this is used in a Jinja filter and arg names are
     # never passed by Jinja
-    def guides_in_progress(self, guides, in_progress=True):  # noqa: FBT002
+    def guides_in_progress(
+        self,
+        guides: list[dict[str, Any]],
+        in_progress: bool = True,  # noqa: FBT001, FBT002
+    ) -> list[dict[str, Any]]:
         if in_progress:
             return [guide for guide in guides if "GUIDE_IN_PROGRESS" in guide["flags"]]
         return [guide for guide in guides if "GUIDE_IN_PROGRESS" not in guide["flags"]]
 
-    def category_count_parts(self, category):
+    def category_count_parts(self, category: dict[str, Any]) -> int:
         if "parts" not in category:
             return 0
         if "total" not in category["parts"]:
             return 0
         return category["parts"]["total"]
 
-    def category_count_tools(self, category):
+    def category_count_tools(self, category: dict[str, Any]) -> int:
         if "tools" not in category:
             return 0
         return len(category["tools"])
 
-    def get_image_path(self, image_url):
+    def get_image_path(self, image_url: str) -> str | None:
         return self.imager.defer(url=image_url)
 
     def _get_image_url_search(
-        self, obj, *, for_guide: bool, for_device: bool, for_wiki: bool, for_user: bool
+        self,
+        obj: dict[str, Any],
+        *,
+        for_guide: bool,
+        for_device: bool,
+        for_wiki: bool,
+        for_user: bool,
     ) -> str:
         if "standard" in obj:
             return obj["standard"]
@@ -108,12 +133,18 @@ class Processor:
         if for_wiki:
             return DEFAULT_WIKI_IMAGE_URL
         if for_user and "userid" in obj:
-            idx = obj["userid"] % len(DEFAULT_USER_IMAGE_URLS)
+            idx = int(obj["userid"]) % len(DEFAULT_USER_IMAGE_URLS)
             return DEFAULT_USER_IMAGE_URLS[idx]
         raise ImageUrlNotFoundError(f"Unable to find image URL in object {obj}")
 
     def get_image_url(
-        self, obj, *, for_guide=False, for_device=False, for_wiki=False, for_user=False
+        self,
+        obj: dict[str, Any],
+        *,
+        for_guide: bool = False,
+        for_device: bool = False,
+        for_wiki: bool = False,
+        for_user: bool = False,
     ) -> str:
         if obj.get("image"):
             return self._get_image_url_search(
@@ -171,33 +202,36 @@ class Processor:
         f"{href_anchor_regex}|{href_object_kind_regex}", flags=re.IGNORECASE
     )
 
-    def _process_external_url(self, url, rel_prefix):
+    def _process_external_url(self, url: str, rel_prefix: str) -> str:
         if "ifixit" in url:
             self.ifixit_external_content.add(url)
         return f"{rel_prefix}home/external_content?url={urllib.parse.quote(url)}"
 
-    def _process_unrecognized_href(self, url, rel_prefix):
+    def _process_unrecognized_href(self, url: str, rel_prefix: str) -> str:
         return self._process_external_url(url, rel_prefix)
 
-    def _process_href_regex_dynamics(self, href, rel_prefix):
+    def _process_href_regex_dynamics(self, href: str, rel_prefix: str) -> str | None:
         if "Guide/login/register" in href or "Guide/new" in href:
             return (
-                f"{rel_prefix}home/unavailable_offline"
-                f"?url={urllib.parse.quote(href)}"
+                f"{rel_prefix}home/unavailable_offline?url={urllib.parse.quote(href)}"
             )
         return None
 
-    def _process_href_regex_nomatch(self, href, rel_prefix, match):
+    def _process_href_regex_nomatch(
+        self, href: str, rel_prefix: str, match: re.Match[str] | None
+    ) -> str | None:
         if match:
             return None
         return self._process_unrecognized_href(href, rel_prefix)
 
-    def _process_href_regex_anchor(self, match):
+    def _process_href_regex_anchor(self, match: re.Match[str]) -> str | None:
         if not match.group("anchor"):
             return None
         return f"{match.group('anchor')}"
 
-    def _process_href_regex_guide(self, rel_prefix, match):
+    def _process_href_regex_guide(
+        self, rel_prefix: str, match: re.Match[str]
+    ) -> str | None:
         if not match.group("guide"):
             return None
         link = self.get_guide_link_from_props(
@@ -206,7 +240,9 @@ class Processor:
         )
         return f"{rel_prefix}{link}{match.group('guideafter') or ''}"
 
-    def _process_href_regex_device(self, rel_prefix, match):
+    def _process_href_regex_device(
+        self, rel_prefix: str, match: re.Match[str]
+    ) -> str | None:
         if not match.group("device"):
             return None
         link = self.get_category_link_from_props(
@@ -214,7 +250,9 @@ class Processor:
         )
         return f"{rel_prefix}{link}{match.group('deviceafter') or ''}"
 
-    def _process_href_regex_info(self, rel_prefix, match):
+    def _process_href_regex_info(
+        self, rel_prefix: str, match: re.Match[str]
+    ) -> str | None:
         if not match.group("info"):
             return None
         link = self.get_info_link_from_props(
@@ -222,7 +260,9 @@ class Processor:
         )
         return f"{rel_prefix}{link}{match.group('infoafter') or ''}"
 
-    def _process_href_regex_user(self, rel_prefix, match):
+    def _process_href_regex_user(
+        self, rel_prefix: str, match: re.Match[str]
+    ) -> str | None:
         if not match.group("user"):
             return None
         link = self.get_user_link_from_props(
@@ -231,21 +271,22 @@ class Processor:
         )
         return f"{rel_prefix}{link}{match.group('userafter') or ''}"
 
-    def _process_href_regex_kind(self, href, rel_prefix, match):
+    def _process_href_regex_kind(
+        self, href: str, rel_prefix: str, match: re.Match[str]
+    ) -> str | None:
         if not match.group("kind"):
             return None
         if match.group("kind").lower() in NOT_YET_AVAILABLE:
             return f"{rel_prefix}home/not_yet_available?url={urllib.parse.quote(href)}"
         if match.group("kind").lower() in UNAVAILABLE_OFFLINE:
             return (
-                f"{rel_prefix}home/unavailable_offline"
-                f"?url={urllib.parse.quote(href)}"
+                f"{rel_prefix}home/unavailable_offline?url={urllib.parse.quote(href)}"
             )
         raise Exception(
             f"Unsupported kind '{match.group('kind')}' in _process_href_regex"
         )
 
-    def normalize_href(self, href):
+    def normalize_href(self, href: str) -> str:
         if href in self.final_hrefs:
             return self.final_hrefs[href]
         try:
@@ -273,32 +314,35 @@ class Processor:
         logger.debug(f"Result is {final_href}")
         return final_href
 
-    def _process_href_regex(self, href, rel_prefix):
+    def _process_href_regex(self, href: str, rel_prefix: str) -> str:
         if href.startswith("/"):
             href = self.configuration.main_url.geturl() + href
         if href.startswith("http") and "ifixit.com/" in href:
             href = self.normalize_href(href)
             href = urllib.parse.quote(href)
         match = self.href_regex.search(href)
+        strict_match = cast(re.Match[str], match)
         res = (
             self._process_href_regex_dynamics(href=href, rel_prefix=rel_prefix)
             or self._process_href_regex_nomatch(
                 href=href, rel_prefix=rel_prefix, match=match
             )
-            or self._process_href_regex_anchor(match=match)
-            or self._process_href_regex_guide(rel_prefix=rel_prefix, match=match)
-            or self._process_href_regex_device(rel_prefix=rel_prefix, match=match)
-            or self._process_href_regex_info(rel_prefix=rel_prefix, match=match)
-            or self._process_href_regex_user(rel_prefix=rel_prefix, match=match)
+            or self._process_href_regex_anchor(match=strict_match)
+            or self._process_href_regex_guide(rel_prefix=rel_prefix, match=strict_match)
+            or self._process_href_regex_device(
+                rel_prefix=rel_prefix, match=strict_match
+            )
+            or self._process_href_regex_info(rel_prefix=rel_prefix, match=strict_match)
+            or self._process_href_regex_user(rel_prefix=rel_prefix, match=strict_match)
             or self._process_href_regex_kind(
-                href=href, rel_prefix=rel_prefix, match=match
+                href=href, rel_prefix=rel_prefix, match=strict_match
             )
         )
         if res is None:
             raise Exception("Unsupported match in _process_href_regex")
         return res
 
-    def _process_youtube(self, match, rel_prefix):
+    def _process_youtube(self, match: re.Match[str], rel_prefix: str) -> str:
         return (
             f'<a href="'
             f"{self._process_external_url(match.group('youtubesrc'), rel_prefix)}"
@@ -310,24 +354,24 @@ class Processor:
             "</div></a>"
         )
 
-    def _process_bgdimgurl(self, match, rel_prefix):
+    def _process_bgdimgurl(self, match: re.Match[str], rel_prefix: str) -> str:
         return (
             f"background-image:url({match.group('quote1')}{rel_prefix}"
             f"{self.get_image_path(match.group('bgdimgurl'))}"
             f"{match.group('quote2')})"
         )
 
-    def _process_video(self):
+    def _process_video(self) -> str:
         return "<p>Video not scrapped</p>"
 
-    def _process_iframe(self, match, rel_prefix):
+    def _process_iframe(self, match: re.Match[str], rel_prefix: str) -> str:
         return (
             f'<a href="'
             f"{self._process_external_url(match.group('iframe_url'), rel_prefix)}"
             f'">External content</a>'
         )
 
-    def _process_gbl_regex(self, match, rel_prefix):
+    def _process_gbl_regex(self, match: re.Match[str], rel_prefix: str) -> str:
         if match.group("image_url"):
             return (
                 f"<img{match.group('image_before')}"
@@ -348,7 +392,7 @@ class Processor:
             return self._process_iframe(match=match, rel_prefix=rel_prefix)
         raise Exception("Unsupported match in cleanup_rendered_content")
 
-    def cleanup_rendered_content(self, content, rel_prefix="../"):
+    def cleanup_rendered_content(self, content: str, rel_prefix: str = "../") -> str:
         if self.configuration.no_cleanup:
             return content
         return re.sub(
@@ -357,10 +401,12 @@ class Processor:
             content,
         )
 
-    def convert_title_to_filename(self, title):
+    def convert_title_to_filename(self, title: str) -> str:
         return re.sub(r"\s", "_", title)
 
-    def add_html_item(self, path, title, content, *, is_front=True):
+    def add_html_item(
+        self, path: str, title: str, content: str, *, is_front: bool = True
+    ) -> None:
         with self.lock:
             logger.debug(f"Adding item in ZIM at path '{path}'")
             self.creator.add_item_for(
@@ -371,7 +417,7 @@ class Processor:
                 is_front=is_front,
             )
 
-    def add_redirect(self, path, target_path):
+    def add_redirect(self, path: str, target_path: str) -> None:
         with self.lock:
             logger.debug(f"Adding redirect in ZIM from '{path}' to '{target_path}'")
             self.creator.add_redirect(
@@ -379,7 +425,7 @@ class Processor:
                 target_path=target_path,
             )
 
-    def get_item_comments_count(self, item):
+    def get_item_comments_count(self, item: dict[str, Any]) -> int:
         if "comments" not in item:
             return 0
         total = 0
@@ -389,22 +435,21 @@ class Processor:
                 total += len(comment["replies"])
         return total
 
-    def get_guide_total_comments_count(self, guide):
+    def get_guide_total_comments_count(self, guide: dict[str, Any]) -> int:
         total = self.get_item_comments_count(guide)
         for step in guide["steps"]:
             total += self.get_item_comments_count(step)
         return total
 
-    def get_timestamp_day_rendered(self, timestamp):
-        with setlocale("en_GB"):
-            if timestamp:
-                return datetime.datetime.strftime(
-                    datetime.datetime.fromtimestamp(timestamp, tz=datetime.UTC),
-                    "%x",
-                )
-            return ""
+    def get_timestamp_day_rendered(self, timestamp: float) -> str:
+        if timestamp:
+            return dt.datetime.strftime(
+                dt.datetime.fromtimestamp(timestamp, tz=dt.UTC),
+                "%d/%m/%y",
+            )
+        return ""
 
-    def get_user_display_name(self, user):
+    def get_user_display_name(self, user: dict[str, Any]) -> str:
         if user["username"] and len(user["username"]) > 0:
             return user["username"]
         if user["unique_username"] and len(user["unique_username"]) > 0:

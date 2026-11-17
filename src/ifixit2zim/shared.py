@@ -14,8 +14,8 @@ logger = lib_getLogger(
 )
 
 
-def set_debug(value):
-    level = logging.DEBUG if value else logging.INFO
+def set_debug(*, debug: bool):
+    level = logging.DEBUG if debug else logging.INFO
     logger.setLevel(level)
     for handler in logger.handlers:
         handler.setLevel(level)
@@ -25,7 +25,7 @@ LOCALE_LOCK = threading.Lock()
 
 
 @contextmanager
-def setlocale(name):
+def setlocale(name: str):
     with LOCALE_LOCK:
         saved = locale.setlocale(locale.LC_ALL)
         try:
