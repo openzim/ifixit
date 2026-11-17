@@ -76,7 +76,7 @@ source .venv/bin/activate
 ### Update static assets
 
 iFixit generates hashed CSS filenames, so assets must be refreshed when the
-upstream site changes. Mirror the site with HTTrack into `tmp/www.ifixit.com`
+upstream site changes. Mirror the site with [HTTrack](https://www.httrack.com/) into `tmp/www.ifixit.com`
 and run:
 
 ```bash
