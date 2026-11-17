@@ -73,6 +73,22 @@ Next times:
 source .venv/bin/activate
 ```
 
+### Update static assets
+
+iFixit generates hashed CSS filenames, so assets must be refreshed when the
+upstream site changes. Mirror the site with HTTrack into `tmp/www.ifixit.com`
+and run:
+
+```bash
+python scripts/update_assets.py --mirror-dir tmp/www.ifixit.com
+```
+
+The script discovers the current CSS URLs from the mirrored HTML, downloads
+the CSS files and their `url(...)` dependencies, rewrites those URLs to local
+`../assets/...` paths, updates the template references to the new hashed
+filenames, and removes stale managed CSS files. Use `--dry-run` to preview the
+changes.
+
 
 NOTA : there is some limitations to the execution of the underlying libzim library on
 MacOS with some known bugs. The main issue is that the full-text index is not working,

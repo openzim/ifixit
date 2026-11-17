@@ -1,4 +1,5 @@
 import urllib.parse
+from typing import Any
 
 from ifixit2zim.constants import CATEGORY_LABELS, URLS
 from ifixit2zim.context import Context
@@ -8,16 +9,21 @@ from ifixit2zim.shared import logger
 
 
 class ScraperCategory(ScraperGeneric):
-    def __init__(self, context: Context):
+    def __init__(self, context: Context) -> None:
         super().__init__(context)
 
-    def setup(self):
+    def setup(self) -> None:
         self.category_template = self.env.get_template("category.html")
 
-    def get_items_name(self):
+    def get_items_name(self) -> str:
         return "category"
 
-    def _add_category_to_scrape(self, category_key, category_title, is_expected):
+    def _add_category_to_scrape(
+        self,
+        category_key: str,
+        category_title: str,
+        is_expected: bool,  # noqa: FBT001
+    ) -> None:
         self.add_item_to_scrape(
             category_key,
             {
@@ -26,10 +32,10 @@ class ScraperCategory(ScraperGeneric):
             is_expected,
         )
 
-    def _get_category_key_from_title(self, category_title):
+    def _get_category_key_from_title(self, category_title: str) -> str:
         return self.processor.convert_title_to_filename(category_title.lower())
 
-    def _build_category_path(self, category_title):
+    def _build_category_path(self, category_title: str) -> str:
         href = (
             self.configuration.main_url.geturl()
             + f"/Device/{category_title.replace('/', ' ')}"
@@ -37,7 +43,7 @@ class ScraperCategory(ScraperGeneric):
         final_href = self.processor.normalize_href(href)
         return final_href[1:]
 
-    def get_category_link_from_obj(self, category):
+    def get_category_link_from_obj(self, category: dict[str, Any]) -> str:
         if "title" not in category or not category["title"]:
             raise UnexpectedDataKindExceptionError(
                 f"Impossible to extract category title from {category}"
@@ -45,7 +51,7 @@ class ScraperCategory(ScraperGeneric):
         category_title = category["title"]
         return self.get_category_link_from_props(category_title=category_title)
 
-    def get_category_link_from_props(self, category_title):
+    def get_category_link_from_props(self, category_title: str) -> str:
         category_path = urllib.parse.quote(self._build_category_path(category_title))
         if self.configuration.no_category:
             return f"home/not_scrapped?url={category_path}"
@@ -61,14 +67,14 @@ class ScraperCategory(ScraperGeneric):
         self._add_category_to_scrape(category_key, category_title, False)
         return category_path
 
-    def _process_categories(self, categories):
-        for category in categories:
+    def _process_categories(self, categories: dict[str, Any]) -> None:
+        for category, value in categories.items():
             category_key = self._get_category_key_from_title(category)
             self._add_category_to_scrape(category_key, category, True)
-            if categories[category]:
-                self._process_categories(categories[category])
+            if value:
+                self._process_categories(value)
 
-    def build_expected_items(self):
+    def build_expected_items(self) -> None:
         if self.configuration.no_category:
             logger.info("No category required")
             return
@@ -79,14 +85,18 @@ class ScraperCategory(ScraperGeneric):
                 self._add_category_to_scrape(category_key, category, True)
             return
         logger.info("Downloading list of categories")
-        categories = self.utils.get_api_content("/categories", includeStubs=True)
+        categories = self.client.get_api_content("/categories", includeStubs=True)
         self._process_categories(categories)
         logger.info(f"{len(self.expected_items_keys)} categories found")
 
-    def get_one_item_content(self, item_key, item_data):  # noqa ARG002
+    def get_one_item_content(
+        self,
+        item_key: str,
+        item_data: dict[str, Any],  # noqa: ARG002
+    ) -> Any:
         categoryid = item_key
 
-        category_content = self.utils.get_api_content(
+        category_content = self.client.get_api_content(
             f"/wikis/CATEGORY/{categoryid}", langid=self.configuration.lang_code
         )
 
@@ -94,7 +104,7 @@ class ScraperCategory(ScraperGeneric):
             return category_content
 
         logger.warning("Falling back to category in EN")
-        category_content = self.utils.get_api_content(
+        category_content = self.client.get_api_content(
             f"/wikis/CATEGORY/{categoryid}", langid="en"
         )
 
@@ -103,7 +113,7 @@ class ScraperCategory(ScraperGeneric):
 
         for lang in URLS.keys():
             logger.warning(f"Falling back to category in {lang}")
-            category_content = self.utils.get_api_content(
+            category_content = self.client.get_api_content(
                 f"/wikis/CATEGORY/{categoryid}", langid=lang
             )
 
@@ -115,14 +125,24 @@ class ScraperCategory(ScraperGeneric):
 
         return None
 
-    def add_item_redirect(self, item_key, item_data, redirect_kind):  # noqa ARG002
+    def add_item_redirect(
+        self,
+        item_key: str,  # noqa: ARG002
+        item_data: dict[str, Any],
+        redirect_kind: str,
+    ) -> None:
         path = self._build_category_path(item_data["category_title"])
         self.processor.add_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url':path})}",
+            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url': path})}",
         )
 
-    def process_one_item(self, item_key, item_data, item_content):  # noqa ARG002
+    def process_one_item(
+        self,
+        item_key: str,  # noqa: ARG002
+        item_data: dict[str, Any],  # noqa: ARG002
+        item_content: Any,
+    ) -> None:
         category_content = item_content
 
         category_rendered = self.category_template.render(

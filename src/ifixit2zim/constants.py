@@ -1,8 +1,9 @@
 import pathlib
 import tempfile
 import urllib.parse
+from typing import Any
 
-from zimscraperlib.i18n import get_language_details
+from zimscraperlib.i18n import Language, get_language
 
 from ifixit2zim.__about__ import __version__
 
@@ -41,8 +42,7 @@ DEFAULT_DEVICE_IMAGE_URL = (
 )
 
 DEFAULT_WIKI_IMAGE_URL = (
-    "https://assets.cdn.ifixit.com/static/images/"
-    "default_images/WikiNoImage_300x225.jpg"
+    "https://assets.cdn.ifixit.com/static/images/default_images/WikiNoImage_300x225.jpg"
 )
 
 DEFAULT_USER_IMAGE_URLS = [
@@ -55,12 +55,18 @@ DEFAULT_USER_IMAGE_URLS = [
     "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-7.standard",
     "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-8.standard",
     "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/avatar-9.standard",
-    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/"
-    "avatar-10.standard",
-    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/"
-    "avatar-11.standard",
-    "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/"
-    "avatar-12.standard",
+    (
+        "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/"
+        "avatar-10.standard"
+    ),
+    (
+        "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/"
+        "avatar-11.standard"
+    ),
+    (
+        "https://assets.cdn.ifixit.com/static/images/avatars/User/ifixit/"
+        "avatar-12.standard"
+    ),
 ]
 
 # Open this URL in the various languages to retrieve labels below
@@ -835,6 +841,8 @@ class Configuration:
     _tmp_name: str
     output_path: pathlib.Path
     tmp_path: pathlib.Path
+    build_path: pathlib.Path
+    stats_path: pathlib.Path | None
 
     required = (
         "lang_code",
@@ -842,7 +850,7 @@ class Configuration:
     )
 
     lang_code: str
-    language: dict
+    language: Language
     main_url: urllib.parse.ParseResult
 
     # customization
@@ -876,11 +884,11 @@ class Configuration:
     stats_filename: str | None
     skip_checks: bool
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             self.__setattr__(key, value)
         self.main_url = Configuration.get_url(self.lang_code)
-        self.language = get_language_details(self.lang_code)
+        self.language = get_language(self.lang_code)
         self.output_path = pathlib.Path(self._output_name).expanduser().resolve()
         self.output_path.mkdir(parents=True, exist_ok=True)
 

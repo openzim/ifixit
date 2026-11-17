@@ -1,17 +1,34 @@
+import threading
 from abc import ABC, abstractmethod
 from queue import Queue
+from typing import TYPE_CHECKING, Any
 
 from schedule import run_pending
 
-from ifixit2zim.context import Context
 from ifixit2zim.exceptions import FinalScrapingFailureError
 from ifixit2zim.shared import logger
+
+if TYPE_CHECKING:
+    from jinja2 import Environment
+    from zimscraperlib.zim.creator import Creator
+
+    from ifixit2zim.constants import Configuration
+    from ifixit2zim.context import Context
+    from ifixit2zim.processor import Processor
+    from ifixit2zim.scraper import IFixitMetadata
+    from ifixit2zim.utils import IFixitRequestClient
 
 FIRST_ITEMS_COUNT = 5
 
 
 class ScraperGeneric(ABC):
-    def __init__(self, context: Context):
+    expected_items_keys: dict[str, dict[str, Any]]
+    unexpected_items_keys: dict[str, dict[str, Any]]
+    items_queue: Queue[dict[str, Any]]
+    missing_items_keys: set[str]
+    error_items_keys: set[str]
+
+    def __init__(self, context: Context) -> None:
         self.context = context
         self.expected_items_keys = {}
         self.unexpected_items_keys = {}
@@ -20,60 +37,69 @@ class ScraperGeneric(ABC):
         self.error_items_keys = set()
 
     @property
-    def configuration(self):
+    def configuration(self) -> Configuration:
         return self.context.configuration
 
     @property
-    def utils(self):
-        return self.context.utils
+    def client(self) -> IFixitRequestClient:
+        return self.context.client
 
     @property
-    def metadata(self):
+    def metadata(self) -> IFixitMetadata:
         return self.context.metadata
 
     @property
-    def env(self):
+    def env(self) -> Environment:
         return self.context.env
 
     @property
-    def lock(self):
+    def lock(self) -> threading.Lock:
         return self.context.lock
 
     @property
-    def creator(self):
+    def creator(self) -> Creator:
         return self.context.creator
 
     @property
-    def processor(self):
+    def processor(self) -> Processor:
         return self.context.processor
 
     @abstractmethod
-    def setup(self):
+    def setup(self) -> None:
         pass
 
     @abstractmethod
-    def get_items_name(self):
+    def get_items_name(self) -> str:
         pass
 
     @abstractmethod
-    def build_expected_items(self):
+    def build_expected_items(self) -> None:
         pass
 
     @abstractmethod
-    def get_one_item_content(self, item_key, item_data):
+    def get_one_item_content(self, item_key: str, item_data: dict[str, Any]) -> Any:
         pass
 
     @abstractmethod
-    def add_item_redirect(self, item_key, item_data, redirect_kind):
+    def add_item_redirect(
+        self, item_key: str, item_data: dict[str, Any], redirect_kind: str
+    ) -> None:
         pass
 
     @abstractmethod
-    def process_one_item(self, item_key, item_data, item_content):
+    def process_one_item(
+        self, item_key: str, item_data: dict[str, Any], item_content: Any
+    ) -> None:
         pass
 
     def add_item_to_scrape(
-        self, item_key, item_data, is_expected, *, warn_unexpected=True
-    ):
+        self,
+        item_key: str | int,
+        item_data: Any,
+        is_expected: bool,  # noqa: FBT001
+        *,
+        warn_unexpected: bool = True,
+    ) -> None:
         item_key = str(item_key)  # just in case it's an int
         if (
             item_key in self.expected_items_keys
@@ -100,17 +126,17 @@ class ScraperGeneric(ABC):
             }
         )
 
-    def add_item_missing_redirect(self, item_key, item_data):
+    def add_item_missing_redirect(self, item_key: str, item_data: Any) -> None:
         self.add_item_redirect(item_key, item_data, "missing")
 
-    def add_item_error_redirect(self, item_key, item_data):
+    def add_item_error_redirect(self, item_key: str, item_data: Any) -> None:
         try:
             self.add_item_redirect(item_key, item_data, "error")
         except Exception:
             logger.warning("Failed to add redirect for item in error")
             pass  # ignore exceptions, we are already inside an exception handling
 
-    def scrape_one_item(self, item_key, item_data):
+    def scrape_one_item(self, item_key: str, item_data: Any) -> None:
         item_content = self.get_one_item_content(item_key, item_data)
 
         if item_content is None:
@@ -123,7 +149,7 @@ class ScraperGeneric(ABC):
 
         self.process_one_item(item_key, item_data, item_content)
 
-    def scrape_items(self):
+    def scrape_items(self) -> None:
         logger.info(
             f"Scraping {self.get_items_name()} items ({self.items_queue.qsize()}"
             " items remaining)"

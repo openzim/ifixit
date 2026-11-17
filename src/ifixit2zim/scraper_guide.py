@@ -1,4 +1,5 @@
 import urllib.parse
+from typing import Any
 
 from ifixit2zim.constants import (
     DIFFICULTY_EASY,
@@ -17,16 +18,22 @@ from ifixit2zim.shared import logger
 
 
 class ScraperGuide(ScraperGeneric):
-    def __init__(self, context: Context):
+    def __init__(self, context: Context) -> None:
         super().__init__(context)
 
-    def setup(self):
+    def setup(self) -> None:
         self.guide_template = self.env.get_template("guide.html")
 
-    def get_items_name(self):
+    def get_items_name(self) -> str:
         return "guide"
 
-    def _add_guide_to_scrape(self, guideid, guidetitle, locale, is_expected):
+    def _add_guide_to_scrape(
+        self,
+        guideid: str,
+        guidetitle: str,
+        locale: str,
+        is_expected: bool,  # noqa: FBT001
+    ) -> None:
         self.add_item_to_scrape(
             guideid,
             {
@@ -37,12 +44,12 @@ class ScraperGuide(ScraperGeneric):
             is_expected,
         )
 
-    def _build_guide_path(self, guideid, guidetitle):  # noqa ARG002
+    def _build_guide_path(self, guideid: str, guidetitle: str) -> str:  # noqa: ARG002
         href = self.configuration.main_url.geturl() + f"/Guide/-/{guideid}"
         final_href = self.processor.normalize_href(href)
         return final_href[1:]
 
-    def get_guide_link_from_obj(self, guide):
+    def get_guide_link_from_obj(self, guide: dict[str, Any]) -> str:
         if "guideid" not in guide or not guide["guideid"]:
             raise UnexpectedDataKindExceptionError(
                 f"Impossible to extract guide id from {guide}"
@@ -75,8 +82,8 @@ class ScraperGuide(ScraperGeneric):
         )
 
     def get_guide_link_from_props(
-        self, guideid, guidetitle, guidelocale=UNKNOWN_LOCALE
-    ):
+        self, guideid: str, guidetitle: str, guidelocale: str = UNKNOWN_LOCALE
+    ) -> str:
         guide_path = urllib.parse.quote(
             self._build_guide_path(guideid=guideid, guidetitle=guidetitle)
         )
@@ -87,7 +94,7 @@ class ScraperGuide(ScraperGeneric):
         self._add_guide_to_scrape(guideid, guidetitle, guidelocale, False)
         return guide_path
 
-    def build_expected_items(self):
+    def build_expected_items(self) -> None:
         if self.configuration.no_guide:
             logger.info("No guide required")
             return
@@ -100,7 +107,7 @@ class ScraperGuide(ScraperGeneric):
         limit = 200
         offset = 0
         while True:
-            guides = self.utils.get_api_content("/guides", limit=limit, offset=offset)
+            guides = self.client.get_api_content("/guides", limit=limit, offset=offset)
             if not guides or len(guides) == 0:
                 break
             for guide in guides:
@@ -122,7 +129,7 @@ class ScraperGuide(ScraperGeneric):
                 break
         logger.info(f"{len(self.expected_items_keys)} guides found")
 
-    def get_one_item_content(self, item_key, item_data):
+    def get_one_item_content(self, item_key: str, item_data: dict[str, Any]) -> Any:
         guideid = item_key
         guide = item_data
         locale = guide["locale"]
@@ -131,16 +138,18 @@ class ScraperGuide(ScraperGeneric):
         if locale == "ja":
             locale = "jp"  # Unusual iFixit convention
 
-        guide_content = self.utils.get_api_content(f"/guides/{guideid}", langid=locale)
+        guide_content = self.client.get_api_content(f"/guides/{guideid}", langid=locale)
         if guide_content is None and locale != "en":
             # guide is most probably available in English anyway
-            guide_content = self.utils.get_api_content(
+            guide_content = self.client.get_api_content(
                 f"/guides/{guideid}", langid="en"
             )
 
         return guide_content
 
-    def add_item_redirect(self, item_key, item_data, redirect_kind):
+    def add_item_redirect(
+        self, item_key: str, item_data: dict[str, Any], redirect_kind: str
+    ) -> None:
         guideid = item_key
         guide = item_data
         guidetitle = guide["guidetitle"]
@@ -150,10 +159,15 @@ class ScraperGuide(ScraperGeneric):
         path = self._build_guide_path(guideid, guidetitle)
         self.processor.add_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url':path})}",
+            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url': path})}",
         )
 
-    def process_one_item(self, item_key, item_data, item_content):  # noqa ARG002
+    def process_one_item(
+        self,
+        item_key: str,  # noqa: ARG002
+        item_data: dict[str, Any],  # noqa: ARG002
+        item_content: Any,
+    ) -> None:
         guide_content = item_content
 
         if guide_content["type"] != "teardown":

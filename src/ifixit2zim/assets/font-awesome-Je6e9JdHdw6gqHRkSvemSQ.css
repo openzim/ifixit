@@ -1,0 +1,2 @@
+
+/*! File: Shared/fa_compat.less */.fa{display:inline-block;line-height:1}.fa-lg{font-size:1.33333333em;line-height:.75em;vertical-align:-15%}.fa-2x{font-size:2em}.fa-spin{animation:fa-spin 2s linear infinite}@keyframes fa-spin{0%{transform:rotate(0deg)}to{transform:rotate(359deg)}}.pull-right{float:right}.pull-left{float:left}.fa.fa-svg:after,.fa.fa-svg:before{content:none}
