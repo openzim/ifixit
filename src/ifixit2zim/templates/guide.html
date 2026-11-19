@@ -2,6 +2,12 @@
 {% block specific_head %}
 <link
   type="text/css"
+  href="{{rel_prefix}}assets/Guide-View-guideTop-n1g1BrhldcBw52TGbQMDQA.css"
+  rel="stylesheet"
+  as="style"
+/>
+<link
+  type="text/css"
   href="{{rel_prefix}}assets/new-guide-view-all-Qh2zB_5yfZ0soY1i_hJaBg.css"
   rel="stylesheet"
   as="style"
@@ -37,292 +43,249 @@
           >
             <div
               id="guide-intro"
-              class="guide-container guide-v2 js-guide-container container"
+              class="component-GuideTopComponent guide-top"
+              data-guide-top
+              itemscope
+              itemtype="http://schema.org/HowTo"
+              itemref="steps-container"
             >
-              <div>
-                <div class="guide-all-metadata">
-                  <div class="guide-metadata guide-status-container">
-                    <div class="statuses"></div>
-                  </div>
-                  <div
-                    class="guide-metadata guide-title-container guide-title-metadata"
+              <div
+                class="guide-top-header flex flex-wrap items-start border-b border-gray-300 pb-3"
+              >
+                <a
+                  data-guide-image
+                  href="{{rel_prefix}}{{guide | get_image_url(for_guide=True) | get_image_path}}"
+                  class="hidden sm:block mr-3 shrink-0"
+                >
+                  <img
+                    src="{{rel_prefix}}{{guide | get_image_url(for_guide=True) | get_image_path}}"
+                    width="120"
+                    height="90"
+                    alt="{{guide['title']}}"
+                    class="w-[120px] h-[90.5px] object-contain rounded border border-gray-300"
                   >
-                    <h1 class="guide-intro-title guide-title">
-                      {{guide['title']}}
-                    </h1>
-
-                    <div class="guide-author guide-title-subtext">
-                      {{label['written_by']}} 
-                      <a class="guide-title-subtext-strong" href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}">{{guide['author'] | get_user_display_name}}</a>
-                      <!-- TODO: Display other contributors + Retrieve page history -->
-                    </div>
-                    {% if guide['type'] == 'teardown' %}
-                    <div class="guide-published-date guide-title-subtext">
-                      {{label['published']}}{{guide['published_date'] | get_timestamp_day_rendered}}
-                    </div>
-                    {% endif %}
-                    <ul class="stats-container visible-desktop">
-                      <li class="comments-count">
-                        <i class="svg-icon" style="width: 16px; height: 16px;">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.946l-2.206 3.53a1 1 0 0 1-1.696 0L4.946 12H2a2 2 0 0 1-2-2V2zm14 0H2v8h4.054L8 13.113 9.946 10H14V2z"></path>
-                          </svg>
-                        </i>{{label['comments_stats_title']}}<span class="stats-value" >{{guide | get_guide_total_comments_count}}</span>
-                      </li>
-                   </ul>
-                  </div>
-                  <div class="guide-metadata guide-main-image-container">
-                    {% if guide['type'] == 'teardown' %}
+                </a>
+                <div class="flex-1 min-w-0">
+                  <h1
+                    class="guide-title text-2xl sm:text-[30px] font-medium mt-0 mb-2 text-gray-800"
+                  >
+                    {{guide['title']}}
+                  </h1>
+                  <div
+                    class="flex flex-col items-start lg:flex-row lg:items-center gap-3 guide-author-section"
+                  >
                     <div
-                      class="guide-main-image hidden-mobile"
-                      style="background-image: url('{{rel_prefix}}{{guide | get_image_url(for_guide=True) | get_image_path }}')"
+                      class="flex flex-1 items-center"
+                      itemprop="author"
+                      itemscope
+                      itemtype="http://schema.org/Person"
                     >
-                      <div class="teardown-image-overlay">
-                        <div
-                          class="guide-metadata guide-title-container guide-title-image"
-                        >
-                          <h1 class="guide-intro-title guide-title">
-                            {{guide['title']}}
-                          </h1>
-                          <div class="guide-published-date guide-title-subtext">
-                            {{label['published']}}{{guide['published_date'] | get_timestamp_day_rendered}}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="guide-main-image-banner hidden-mobile">
-                      <p>
-                        <i
-                          class="svg-icon"
-                          style="
-                            display: inline-block;
-                            width: 24px;
-                            height: 24px;
-                          "
-                          ><svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <polygon
-                              points="12 2 2 7 12 12 22 7 12 2"
-                            ></polygon>
-                            <polyline points="2 17 12 22 22 17"></polyline>
-                            <polyline points="2 12 12 17 22 12"></polyline></svg
-                        ></i>
-                        {{label['teardown']}}
-                      </p>
-                    </div>
-                    {% else %}
-                    <div class="guide-main-image">
                       <img
-                        class="hasMenu"
-                        src="{{rel_prefix}}{{guide | get_image_url(for_guide=True) | get_image_path }}"
-                        alt="{{guide['title']}}"
-                        sizes="(max-width: 740px) 100vw, 405px"
-                        width="405"
-                        height="290"
-                      />
-                    </div>
-                    {% endif %}
-                  </div>
-                  {% if guide['type'] != 'teardown' %}
-                  <div
-                    class="guide-metadata guide-details-container js-guide-details-container"
-                  >
-                    <div class="details-item-container">
-                      <div
-                        class="details-item difficulty row {{guide['difficulty_class']}}"
+                        src="{{rel_prefix}}{{guide['author'] | get_image_url(for_user=True) | get_image_path}}"
+                        alt="{{guide['author'] | get_user_display_name}}"
+                        width="40"
+                        height="40"
+                        itemprop="image"
+                        class="size-10 shrink-0 rounded-full border-2 border-brand-500 bg-gray-100 object-cover"
                       >
-                        <p class="item-title column">
-                          <i
-                            class="svg-icon"
-                            style="
-                              display: inline-block;
-                              width: 24px;
-                              height: 24px;
-                            "
-                            ><svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            >
-                              <circle cx="12" cy="16" r="2"></circle>
-                              <line x1="12" y1="9" x2="12" y2="14"></line>
-                              <path
-                                d="M6,19H2V15a10,10,0,0,1,20,0v4H18"
-                              ></path></svg></i
-                          >{{label['difficulty']}}
+                      <div class="flex flex-col pl-1.5">
+                        <p class="m-0 font-medium text-gray-800">
+                          <a
+                            href="{{rel_prefix}}{{guide['author'] | get_user_link_from_obj}}"
+                            itemprop="url"
+                            class="guide-author text-brand-500"
+                          ><span itemprop="name">{{guide['author'] | get_user_display_name}}</span></a>
                         </p>
-                        <p class="item-value column">
-                          <span class="difficulty-indicator">
-                            <span class="indicator-dot"></span>
-                            <span class="indicator-dot"></span>
-                            <span class="indicator-dot"></span> </span
-                          >{{guide['difficulty']}}
+                        {% if guide.get('modified_date') %}
+                        <p class="m-0 text-gray-500">
+                          {{ label.get('last_updated_on', 'Last updated on') }}
+                          {{ guide['modified_date'] | get_timestamp_day_rendered }}
                         </p>
-                      </div>
-                    </div>
-                    <div class="details-item-container">
-                      <div class="details-item row">
-                        <p class="item-title column">
-                          <i
-                            class="svg-icon"
-                            style="
-                              display: inline-block;
-                              width: 24px;
-                              height: 24px;
-                            "
-                            ><svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            >
-                              <line x1="8" y1="6" x2="21" y2="6"></line>
-                              <line x1="8" y1="12" x2="21" y2="12"></line>
-                              <line x1="8" y1="18" x2="21" y2="18"></line>
-                              <line x1="3" y1="6" x2="3" y2="6"></line>
-                              <line x1="3" y1="12" x2="3" y2="12"></line>
-                              <line x1="3" y1="18" x2="3" y2="18"></line>
-                            </svg> </i
-                          >{{label['steps']}}
-                        </p>
-                        <p class="item-value column">
-                          {{guide['steps']|length}}
-                        </p>
+                        {% endif %}
                       </div>
                     </div>
                     <div
-                      id="guide-time-required"
-                      class="details-item-container"
+                      class="relative flex items-center font-medium text-gray-500 tabular-nums"
                     >
-                      <div class="details-item row">
-                        <p class="item-title column">
-                          <i
-                            class="svg-icon"
-                            style="
-                              display: inline-block;
-                              width: 24px;
-                              height: 24px;
-                            "
-                            ><svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            >
-                              <circle cx="12" cy="12" r="10"></circle>
-                              <polyline
-                                points="12 6 12 12 15 15"
-                              ></polyline></svg></i
-                          >{{label['time_required']}}
-                        </p>
-                        <p class="item-value">{{guide['time_required']}}</p>
-                      </div>
+                      {{ label['comments_stats_title'] }}
+                      <span class="ml-1">{{ guide | get_guide_total_comments_count }}</span>
                     </div>
-
-                    <!-- TODO: Handle sections display (use 'subject' fields of prereqs guides + 'subject' of guide itself) -->
-
-                    <!--TODO: Handle flags display -->
-                  </div>
-                  {% endif %}
-                </div>
-                <!--TODO: Handle flags displayed in full width  -->
-
-                <div class="introduction-container">
-                  <h2>{{label['introduction']}}</h2>
-                  <div itemprop="description">
-                    {{guide['introduction_rendered'] | cleanup_rendered_content(rel_prefix) | safe}}
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div id="tools-and-parts" class="tools-and-parts">
-              <div class="actionbar-portal"></div>
-              <div>
-                <div class="row item-list-container">
-                  {% if (guide['tools'] | length > 0) and (guide['parts'] | length > 0) %}
-                    {% set colclass = 'no-columns' %}
-                  {% else %}
-                    {% set colclass = 'three-columns' %}
-                  {% endif %}
-                  {% if guide['tools'] | length > 0 %}
-                  <div class="column one-half item-list-tools">
-                    <div class="item-list-header row">
-                      <h3 class="column full-width">{{label['tools']}}</h3>
-                    </div>
-                    <ul class="item-list-featured attachment-link-list {{colclass}}">
-                      {% for tool in guide['tools'] %}
-                      {% set urlhref = (('href="' + tool['url'] + '"') |  cleanup_rendered_content(rel_prefix) | safe) %}
-                      <li class="attachment-link">
-                        <div class="row attachment-container" itemprop="supply" itemscope=""
-                          itemtype="http://schema.org/HowToSupply">
-                          {% if tool['thumbnail'] %}
-                          <a {{urlhref}}>
-                            <img src="{{rel_prefix}}{{tool['thumbnail'] | get_image_path}}"
-                              alt="" width="41" height="41">
-                          </a>
-                          {% endif %}
-                          <div class="column">
-                            <a {{urlhref}}>
-                              <p itemprop="name" class="title">{{tool['text']}}</p>
-                            </a>
-                          </div>
-                        </div>
-                      </li>
-                      {% endfor %}
-                    </ul>
-                  </div>
-                  {% endif %}
-                  {% if guide['parts'] | length > 0 %}
-                  <div class="column one-half item-list-parts">
-                    <div class="item-list-header row">
-                      <h3 class="column full-width">{{label['parts']}}</h3>
-                    </div>
-                    <ul class="item-list-featured attachment-link-list {{colclass}}">
-                      {% for part in guide['parts'] %}
-                      {% set urlhref = (('href="' + part['url'] + '"') |  cleanup_rendered_content(rel_prefix) | safe) %}
-                      <li class="attachment-link">
-                        <div class="row attachment-container" itemprop="supply" itemscope=""
-                          itemtype="http://schema.org/HowToSupply">
-                          {% if part['thumbnail'] %}
-                          <a {{urlhref}}>
-                            <img src="{{rel_prefix}}{{part['thumbnail'] | get_image_path}}"
-                              alt="" width="41" height="41">
-                          </a>
-                          {% endif %}
-                          <div class="column">
-                            <a {{urlhref}}>
-                              <p itemprop="name" class="title">{{part['text']}}</p>
-                            </a>
-                          </div>
-                        </div>
-                      </li>
-                      {% endfor %}
-                    </ul>
-                  </div>
-                  {% endif %}
+              <div class="flex flex-wrap gap-1.5 pt-3 pb-4 flags-list">
+                {% if guide.get('time_required') %}
+                <div
+                  class="flex items-center gap-1 px-1.5 py-1 leading-[18px] rounded border font-medium text-[13px] sm:text-sm whitespace-nowrap bg-gray-100 border-gray-300 text-gray-700"
+                  title="Time required"
+                >
+                  <span class="sr-only">{{ label['time_required'] }}:</span>
+                  <span class="guide-time-required">{{ guide['time_required'] }}</span>
                 </div>
+                {% endif %}
+                {% if guide['type'] != 'teardown' and guide.get('difficulty') %}
+                <div
+                  class="flex items-center gap-1 px-1.5 py-1 leading-[18px] rounded border font-medium text-[13px] sm:text-sm whitespace-nowrap bg-gray-100 border-gray-300 text-gray-700 guide-difficulty guide-difficulty-{{ guide['difficulty_class'] | replace('difficulty-', '') }}"
+                  title="Difficulty rating: {{ guide['difficulty'] }}"
+                >
+                  <span class="sr-only">{{ label['difficulty'] }}:</span>
+                  {{ guide['difficulty'] }}
+                </div>
+                {% endif %}
+                {% for flag in guide.get('flags', []) %}
+                <details class="flag relative" name="guide-flags" data-guide-flag>
+                  <summary
+                    class="flagTitle flex items-center gap-1 px-1.5 py-1 leading-[18px] rounded border font-medium text-[13px] sm:text-sm whitespace-nowrap bg-brand-50 border-blue-300 text-blue-700 cursor-pointer"
+                  >
+                    {{ flag['title'] }}
+                  </summary>
+                  {% if flag.get('text') %}
+                  <p
+                    class="flagText absolute z-10 top-full start-0 m-0 p-3 w-64 bg-white border border-gray-300 rounded text-sm"
+                  >
+                    {{ flag['text'] }}
+                  </p>
+                  {% endif %}
+                </details>
+                {% endfor %}
+              </div>
+
+              <div class="flex flex-col-reverse sm:flex-row">
+                <div
+                  class="flex-1 min-w-0 self-start sm:sticky sm:top-(--header-height)"
+                >
+                  <div class="introduction-container prose-wiki">
+                    <div
+                      class="flex flex-col-reverse sm:flex-row sm:items-baseline gap-3 mb-4"
+                    >
+                      <h2 class="m-0! text-xl sm:text-2xl font-medium text-gray-800">
+                        {{ label['introduction'] }}
+                      </h2>
+                      <a
+                        href="#steps-container"
+                        data-guide-first-step
+                        class="text-lg text-brand-500 no-underline"
+                        >{{ label.get('go_to_step', 'Go to step 1') }} ↓</a
+                      >
+                    </div>
+                    <div
+                      data-guide-introduction
+                      class="[&>*:first-child]:pt-0 [&>*:first-child]:mt-0"
+                    >
+                      {{guide['introduction_rendered'] | cleanup_rendered_content(rel_prefix) | safe}}
+                    </div>
+                  </div>
+                </div>
+
+                {% if (guide['tools'] | length > 0) or (guide['parts'] | length > 0) %}
+                <div
+                  class="flex flex-col py-4 min-w-0 sm:flex-[0_1_50vw] lg:flex-[0_1_448px] sm:pl-4"
+                >
+                  <h2 class="text-xl sm:text-2xl font-medium text-gray-800 mt-0 mb-3 sm:mb-4">
+                    {{ label.get('what_you_need', 'What you need') }}
+                  </h2>
+                  <div class="guide-products-panel">
+                    <div
+                      data-guide-products
+                      data-list-id="guide_products"
+                      class="relative flex flex-col items-start border border-gray-300 rounded-t p-3 md:p-4 max-h-[264px] sm:max-h-[370px]"
+                    >
+                      {% if guide['parts'] | length > 0 %}
+                      <h3
+                        data-guide-listed="parts"
+                        class="m-0 p-0 text-gray-800 text-base/[1.4] font-medium"
+                      >
+                        {{ label['parts'] }}
+                      </h3>
+                      <ul
+                        data-guide-listed="parts"
+                        class="item-list-parts flex flex-col list-none m-0 p-0 pt-3 w-full shrink-0 break-words"
+                      >
+                        {% for part in guide['parts'] %}
+                        {% set urlhref = (('href="' + part['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe) %}
+                        <li
+                          class="flex flex-col gap-2 w-full p-3 border-t border-x first:rounded-t last:rounded-b last:border-b bg-white border-gray-200"
+                          itemprop="supply"
+                          itemscope
+                          itemtype="http://schema.org/HowToSupply"
+                        >
+                          <div class="flex gap-2 items-start">
+                            {% if part['thumbnail'] %}
+                            <div class="relative mr-1.5 shrink-0">
+                              <a {{urlhref}} aria-hidden="true" tabindex="-1">
+                                <img
+                                  src="{{rel_prefix}}{{part['thumbnail'] | get_image_path}}"
+                                  alt="{{ part['text'] }}"
+                                  width="48"
+                                  height="48"
+                                  class="block object-cover border border-gray-300 rounded size-12"
+                                >
+                              </a>
+                            </div>
+                            {% endif %}
+                            <div class="flex-1 min-w-0">
+                              <a {{urlhref}} class="text-gray-800 font-medium">
+                                {{ part['text'] }}
+                              </a>
+                            </div>
+                          </div>
+                        </li>
+                        {% endfor %}
+                      </ul>
+                      {% endif %}
+
+                      {% if guide['tools'] | length > 0 %}
+                      <h3
+                        data-guide-listed="tools"
+                        class="m-0 p-0 text-gray-800 text-base/[1.4] font-medium [&:not(:first-child)]:pt-4"
+                      >
+                        {{ label['tools'] }}
+                      </h3>
+                      <ul
+                        data-guide-listed="tools"
+                        class="item-list-tools flex flex-col list-none m-0 p-0 pt-3 w-full shrink-0 break-words"
+                      >
+                        {% for tool in guide['tools'] %}
+                        {% set urlhref = (('href="' + tool['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe) %}
+                        <li
+                          class="flex flex-col gap-2 w-full p-3 border-t border-x first:rounded-t last:rounded-b last:border-b bg-white border-gray-200"
+                          itemprop="supply"
+                          itemscope
+                          itemtype="http://schema.org/HowToSupply"
+                        >
+                          <div class="flex gap-2 items-start">
+                            {% if tool['thumbnail'] %}
+                            <div class="relative mr-1.5 shrink-0">
+                              <a {{urlhref}} aria-hidden="true" tabindex="-1">
+                                <img
+                                  src="{{rel_prefix}}{{tool['thumbnail'] | get_image_path}}"
+                                  alt="{{ tool['text'] }}"
+                                  width="48"
+                                  height="48"
+                                  class="block object-cover border border-gray-300 rounded size-12"
+                                >
+                              </a>
+                            </div>
+                            {% endif %}
+                            <div class="flex-1 min-w-0">
+                              <a {{urlhref}} class="text-gray-800 font-medium">
+                                {{ tool['text'] }}
+                              </a>
+                            </div>
+                          </div>
+                        </li>
+                        {% endfor %}
+                      </ul>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
               </div>
             </div>
 
-            <ol class="steps-container container">
+            <ol id="steps-container" class="steps-container container">
               <!-- TODO: Handle sections display (for now we have only one section for simplicity)-->
               <section>
                 {% for step in guide['steps'] %} {% set steploop = loop %}

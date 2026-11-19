@@ -11,13 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `scripts/update_assets.py` to discover, download and localize hashed
   upstream CSS assets and update template references
+- Scrape and render WIKI-namespace pages (troubleshooting tips and related wiki
+  pages), troubleshooting index pages, and localize links to them
 
 ### Changed
 
+- Replace the `--scrape-only-first-items` boolean flag with `--max-items-per-type`, which
+  takes the maximum number of items to scrape per type (0 means no limit)
 - Migrate to Python 3.14 and current dependencies (#126)
 - Add strict type annotations and ruff/pyright checks
 - Update bundled CSS assets to match the current iFixit frontend and remove
   obsolete assets
+- Adopt the new iFixit category page layout with an author byline, section
+  headings, featured guide tags, troubleshooting/related page cards, and
+  documents/tools sections (#123)
+- Replace the KPI-stats footer with a static site footer containing navigation,
+  legal, social, and licensing links
 - Rename the HTTP utility class to `IFixitRequestClient`
 
 ### Fixed
@@ -26,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix ZIM Title still not ok
 - Fix crash when using the stats report (#100)
 - Do not abort when the homepage no longer exposes KPI/stats data (#122)
+- Render homepage collection guides and download their images
 - Format dates without requiring an installed `en_GB` locale
 
 ## [0.3.0] - 2024-03-02

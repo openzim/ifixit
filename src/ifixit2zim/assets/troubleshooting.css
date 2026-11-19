@@ -1,0 +1,113 @@
+.troubleshooting-problem-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .troubleshooting-problem-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+.troubleshooting-problem-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+
+.troubleshooting-problem-card:hover {
+  border-color: #0071ce;
+}
+
+.troubleshooting-problem-card-body {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  padding: 20px;
+}
+
+.troubleshooting-problem-card-image {
+  width: 96px;
+  height: 72px;
+  flex: 0 0 auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.troubleshooting-problem-card-content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.troubleshooting-problem-card-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.troubleshooting-problem-card-title {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.troubleshooting-problem-card-summary {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.troubleshooting-problem-badge {
+  align-self: flex-start;
+  border: 1px solid #ddd6fe;
+  border-radius: 4px;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 2px 6px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.troubleshooting-problem-card-device {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  border-top: 1px solid #e5e7eb;
+  background: #f1f5f9;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.troubleshooting-problem-card-device-image {
+  width: 48px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  object-fit: cover;
+}

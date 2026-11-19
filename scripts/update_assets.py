@@ -49,6 +49,7 @@ ASSET_PREFIXES = {
     "Shared-attachment_link-": "guide",
     "new-guide-view-all-": "guide",
     "prosemirror-all-": "guide",
+    "Guide-View-guideTop-": "guide",
     "Wiki-wiki-": "user",
 }
 

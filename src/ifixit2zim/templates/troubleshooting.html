@@ -1,0 +1,63 @@
+{% set bodyFullWidth = True %}{% extends "base.html" %} {% block title %}{{troubleshooter['title']}}{% endblock title%}
+{% block specific_head %}
+<link type="text/css" href="{{rel_prefix}}assets/Wiki-topic-V8-fnfprBzAdE_ps-mWqjQ.css" rel="stylesheet" as="style">
+<link type="text/css" href="{{rel_prefix}}assets/Wiki-common-qepl4IGOkwqOoA26Vb-xHw.css" rel="stylesheet" as="style">
+<link type="text/css" href="{{rel_prefix}}assets/troubleshooting.css" rel="stylesheet" as="style">
+{% endblock specific_head%} {% block content %}
+<div id="page" class=" ">
+  <div id="main">
+    <div id="mainBody">
+      <!-- MAIN BODY -->
+      <div id="contentFloat">
+        <div id="content">
+          <div class="page-container articleContainer info">
+            <h1 class="pageTitle wikiTitle originalText bordered">{{troubleshooter['title']}}</h1>
+            {% if troubleshooter['description'] %}
+            <p class="summary originalText">{{troubleshooter['description']}}</p>
+            {% endif %}
+            <div class="troubleshooting-problem-grid">
+              {% for problem in troubleshooter['problems'] %}
+              <a href="{{rel_prefix}}{{problem['link']}}" class="troubleshooting-problem-card">
+                <div class="troubleshooting-problem-card-body">
+                  {% if problem['image_url'] %}
+                  <img src="{{rel_prefix}}{{problem['image_url'] | get_image_path}}" width="96" height="72"
+                    class="troubleshooting-problem-card-image" alt="{{problem['title']}}" />
+                  {% endif %}
+                  <div class="troubleshooting-problem-card-content">
+                    <div class="troubleshooting-problem-card-text">
+                      <h3 class="troubleshooting-problem-card-title">{{problem['title']}}</h3>
+                      {% if problem['summary'] %}
+                      <p class="troubleshooting-problem-card-summary">{{problem['summary']}}</p>
+                      {% endif %}
+                    </div>
+                    {% if problem['badge'] %}
+                    <span class="troubleshooting-problem-badge">{{problem['badge']}}</span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if problem['device_title'] %}
+                <div class="troubleshooting-problem-card-device">
+                  {% if problem['device_image_url'] %}
+                  <img src="{{rel_prefix}}{{problem['device_image_url'] | get_image_path}}" width="48" height="36"
+                    class="troubleshooting-problem-card-device-image" alt="{{problem['device_title']}}" />
+                  {% endif %}
+                  <span>{{problem['device_title']}}</span>
+                </div>
+                {% endif %}
+              </a>
+              {% endfor %}
+            </div>
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <!-- /mainBody -->
+
+    <div class="clearer"></div>
+  </div>
+  <!-- /main -->
+</div>
+<!-- /page -->
+{% endblock content%}

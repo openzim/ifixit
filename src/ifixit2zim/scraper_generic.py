@@ -18,8 +18,6 @@ if TYPE_CHECKING:
     from ifixit2zim.scraper import IFixitMetadata
     from ifixit2zim.utils import IFixitRequestClient
 
-FIRST_ITEMS_COUNT = 5
-
 
 class ScraperGeneric(ABC):
     expected_items_keys: dict[str, dict[str, Any]]
@@ -158,10 +156,7 @@ class ScraperGeneric(ABC):
         num_items = 1
         while not self.items_queue.empty():
             run_pending()
-            if (
-                self.configuration.scrape_only_first_items
-                and num_items > FIRST_ITEMS_COUNT
-            ):
+            if 0 < self.configuration.max_items_per_type < num_items:
                 break
             item = self.items_queue.get(block=False)
             item_key = item["key"]

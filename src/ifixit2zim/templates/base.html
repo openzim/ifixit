@@ -31,6 +31,7 @@
     <link type="text/css" href="{{rel_prefix}}assets/7593.4bb8643427f2cfcaafeb.css" rel="stylesheet" as="style">
     <link type="text/css" href="{{rel_prefix}}assets/tailwind-phtml.css.32205fbd64c1e0d10290.css" rel="stylesheet" as="style">
     <link type="text/css" href="{{rel_prefix}}assets/guidepage.js.9f477644f1eb7c021337.css" rel="stylesheet" as="style">
+    <link type="text/css" href="{{rel_prefix}}assets/footer.css" rel="stylesheet" as="style">
 
     {% block specific_head %}{% endblock %}
 </head>
@@ -43,28 +44,65 @@
 
 
 
-    <footer class="">
-        <div class="footer-container">
+    {% macro footer_link(url, text) -%}
+    <a {{('href="' + url + '"') | cleanup_rendered_content(rel_prefix) | safe}}>{{ text }}</a>
+    {%- endmacro %}
 
-            <!-- Site Stats -->
-            <div class="footer-row footer-stats footer-container-width">
-                {%for stat in metadata['stats']%}
-                <div class="footer-col-4">
-                    <p class="footer-stat">{{stat['value']}}</p>
-                    <p>{{stat['label']}}</p>
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="site-footer-columns">
+                <div class="site-footer-column">
+                    <h2>iFixit</h2>
+                    <ul>
+                        <li>{{ footer_link('https://www.ifixit.com/Info/About', 'About us') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/Support', 'Customer Support') }}</li>
+                        <li>{{ footer_link('https://meta.ifixit.com', 'Discuss iFixit') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/about-us/careers', 'Careers') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/api/2.0/doc', 'API') }}</li>
+                    </ul>
                 </div>
-                {%endfor%}
+                <div class="site-footer-column">
+                    <h2>Resources</h2>
+                    <ul>
+                        <li>{{ footer_link('https://www.ifixit.com/Community', 'Community') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/pro', 'Pro Wholesale') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/Retail', 'Retail Locator') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/solutions', 'For Manufacturers') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/Info/Media', 'Press') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/Page/all-categories', 'News') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/Newsletter', 'Newsletter') }}</li>
+                    </ul>
+                </div>
+                <div class="site-footer-column">
+                    <h2>Legal</h2>
+                    <ul>
+                        <li>{{ footer_link('https://www.ifixit.com/Info/Accessibility', 'Accessibility') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/Info/Privacy', 'Privacy') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/Info/Terms_Of_Use', 'Terms') }}</li>
+                        <li>{{ footer_link('https://www.ifixit.com/Info/Licensing', 'Licensing') }}</li>
+                    </ul>
+                </div>
+                <div class="site-footer-column">
+                    <h2>Follow us</h2>
+                    <ul>
+                        <li>{{ footer_link('https://www.youtube.com/user/iFixitYourself', 'YouTube') }}</li>
+                        <li>{{ footer_link('https://www.instagram.com/ifixit/', 'Instagram') }}</li>
+                        <li>{{ footer_link('https://tiktok.com/@ifixit.com', 'TikTok') }}</li>
+                        <li>{{ footer_link('https://www.facebook.com/iFixit/', 'Facebook') }}</li>
+                        <li>{{ footer_link('https://twitter.com/ifixit', 'X (Twitter)') }}</li>
+                        <li>{{ footer_link('https://mastodon.social/@iFixit', 'Mastodon') }}</li>
+                        <li>{{ footer_link('https://bsky.app/profile/ifixit.com', 'Bluesky') }}</li>
+                    </ul>
+                </div>
             </div>
-
-            <!-- Ifixit Org Blog & Copyright -->
-            <div class="footer-row centered copyright">
+            <div class="site-footer-bottom">
                 <p>
-                    ©&nbsp;<time class="js-absolute-date">{{metadata['current_year']}}</time> iFixit — Creative Commons
+                    ©&nbsp;<time>{{metadata['current_year']}}</time> iFixit —
+                    {{ footer_link('https://www.ifixit.com/Info/Licensing', 'Licensed under Creative Commons') }}
                 </p>
+                <p>{{ footer_link('https://www.ifixit.com/Translate', 'Help translate') }}</p>
             </div>
-
         </div>
-
     </footer>
 
 </body>

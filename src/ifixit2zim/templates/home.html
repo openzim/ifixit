@@ -43,6 +43,19 @@
                    </div>
                </section>
 
+               <div class="page-callout hidden-mobile">
+                  <div class="page-callout-inner">
+                     <img
+                        role="presentation"
+                        width="998"
+                        height="210"
+                        alt="Repair Banner"
+                        src="{{rel_prefix}}{{home_content['callout']['img_url'] | get_image_path}}"
+                     >
+                     {{home_content['callout']['content'] | cleanup_rendered_content(rel_prefix) | safe}}
+                  </div>
+               </div>
+
                 <div class="page-content">
                    <div class="section-divider primary-divider">
                       <p>{{home_content['primary_title']}}</p>
@@ -75,6 +88,24 @@
                       {%endfor%}
                    </div>
                 </div>
+
+               {% for collection in home_content['collections'] %}
+               <div class="collection-guides">
+                  <h2>{{ collection['title'] }}
+                     {% if collection['link'] %}
+                     <a class="collection-link" {{ ('href="' + collection['link'] + '"') | cleanup_rendered_content(rel_prefix) | safe }}>View All <i class="fa fa-chevron-right fa-svg">&rsaquo;</i></a>
+                     {% endif %}
+                  </h2>
+                  {% for item in collection['items'] %}
+                  <div class="blurbListCell">
+                     <a {{ ('href="' + item['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe }}>
+                        <img src="{{rel_prefix}}{{item['img_url'] | get_image_path}}" role="presentation">
+                        <h5 class="title">{{item['title']}}</h5>
+                     </a>
+                  </div>
+                  {% endfor %}
+               </div>
+               {% endfor %}
              </div>
           </div>
           <div class="clearer"></div>
