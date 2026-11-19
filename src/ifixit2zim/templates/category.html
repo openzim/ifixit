@@ -17,18 +17,14 @@
             <!-- MAIN BODY -->
             <div id="banner">
                 <div id="banner-wrap">
-                    <div id="banner-wrap-bg-container">
-                        <img id="banner-wrap-bg"
-                            src="{{rel_prefix}}{{category | get_image_url(for_device=True) | get_image_path}}">
-                    </div>
                     <div class="banner-content">
                         <div class="banner-bucket">
                             <div class="banner-small-photo">
                                 <img src="{{rel_prefix}}{{category | get_image_url(for_device=True) | get_image_path}}"
-                                    width="252" height="189" alt="{{category['image']['display_title']}}">
+                                    width="252" height="189" alt="{{category['display_title']}}">
                                 {% if category['repairability_score'] %}
-                                <!-- TODO: Retrieve the href of the teardown of this device"> -->
-                                <a href="#" class="banner-repairability-score hidden-mobile repairability-score-{{category['repairability_score']}}"> {{label['repairability']}}  
+                                <!-- TODO: Retrieve the href of the teardown of this device -->
+                                <a href="#" class="banner-repairability-score hidden-mobile repairability-score-{{category['repairability_score']}}"> {{label['repairability']}}
                                     <strong>{{category['repairability_score']}}</strong> / 10
                                     </a>
                                 {% endif %}
@@ -42,7 +38,14 @@
                                     <span class="topicHeaderText originalText" itemprop="description">
                                         {{category['description']}}</span>
                                 </p>
-                                <!-- TODO: retrieve wiki author (missing from API for now) -->
+                                {% if category.get('authors') %}
+                                <div class="wiki-author">
+                                    {{label['author']}}
+                                    <span>
+                                        <a class="main" href="{{rel_prefix}}{{category['authors'][0] | get_user_link_from_obj}}">{{category['authors'][0]['username']}}</a>
+                                    </span>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="clearer"></div>
@@ -66,62 +69,29 @@
 
                 {% if category['children'] | length > 0 %}
                 <div class="subcategorySection">
-                    <!-- <h2 id='Section_3_Categories' class="js-dynamic-toc-section"> -->
-                    <h2 id='Section_Childrens' class="js-dynamic-toc-section">
-                        {{ label['categories_before']}}{{ category['children'] | length }}{{ label['categories_after']}}
-                    </h2>
+                    <div class="wiki-section-heading">
+                        <h2 id="Section_{{ category['children'] | length }}_Categories" class="js-dynamic-toc-section">
+                            {{ label['categories_before']}}{{ category['children'] | length }}{{ label['categories_after']}}
+                        </h2>
+                    </div>
                     <div class="grid">
                         {% for child in category['children'] %}
                         <div class="categoryListCell">
                             <a href="{{rel_prefix}}{{child | get_category_link_from_obj}}" class="categoryAnchor">
-                                <img src="{{rel_prefix}}{{child | get_image_url(for_device=True) | get_image_path}}" width="179"
-                                    height="143" alt="{{child['display_title']}}" class="category-image" />
+                                <img src="{{rel_prefix}}{{child | get_image_url(for_device=True) | get_image_path}}" width="300"
+                                    height="225" alt="{{child['display_title']}}" class="category-image" />
                                 <h5 class="title">
                                     {{child['display_title']}}</h5>
                             </a>
-                            <!-- TODO: retrieve child locale, not available in current API 
-                            {% if child['locale'] != lang %}
-                            <span class="lang">{{child['locale']}}</span>
-                            {% endif %}-->
                         </div>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
 
-                {% if category['featured_guides'] | length > 0 %}
-                <div class="highlight-guides">
-                    <h2 id="Section_Guides" class="blurbListTitle js-dynamic-toc-section js-guide-section">
-                        {{label['featured_guides']}}</h2>
-                    <div class="entry-container">
-                        {% for guide in category['featured_guides'] %}
-                        {% if loop.index < 3 %} <a href="{{rel_prefix}}{{guide | get_guide_link_from_obj}}"
-                            class="entry">
-                            <div class="thumbnail">
-                                <span class="featured-icon"><i class="svg-icon" alt="Featured" title="Featured"
-                                        style="display: inline-block; width: 24px; height: 24px;"><svg
-                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <circle cx="12" cy="8" r="7" />
-                                            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-                                        </svg></i></span>
-                                <img src="{{rel_prefix}}{{guide | get_image_url(for_guide=True) | get_image_path }}"
-                                    alt="{{guide['title']}}" width="176" height="131" />
-                            </div>
-                            <div class="entry-text">
-                                <h4>{{guide['title']}}</h4>
-                                <p>{{guide['summary']}}</p>
-                            </div>
-                            </a>
-                            {% endif %}
-                            {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- TODO: Check if display order on a category with all guide types if OK -->
-                {% for guide_type in ['technique', 'replacement', 'disassembly', 'teardown'] %}
+                {% if category['guides'] | guides_in_progress(False) | list | length > 0 %}
+                <h2 id="Section_Guides" class="blurbListTitle js-dynamic-toc-section">{{label['guides']}}</h2>
+                {% for guide_type in ['replacement', 'teardown', 'disassembly', 'technique'] %}
                     {% if category['guides'] | guides_in_progress(False) | selectattr('type', '==', guide_type) | list | length > 0 %}
                         {% if guide_type in ['replacement'] %}
                             {% set guide_text = 'subject' %}
@@ -129,8 +99,8 @@
                             {% set guide_text = 'title' %}
                         {% endif %}
                 <div class="blurbListWide" data-type="{{guide_type}}">
-                    <h3 id="Section_{{guide_type}}" class="blurbListTitle js-dynamic-toc-section">
-                        <a href="#Section_{{guide_type}}" style="text-decoration: none;">
+                    <h3 id="Section_{{ guide_type | capitalize }}" class="blurbListTitle js-dynamic-toc-section">
+                        <a href="#Section_{{ guide_type | capitalize }}" style="text-decoration: none;">
                             {{label[guide_type + '_guides']}}</a>
                     </h3>
                     <div class="grid">
@@ -139,9 +109,32 @@
                             <a href="{{rel_prefix}}{{guide | get_guide_link_from_obj}}" class="title">
                                 <img src="{{rel_prefix}}{{guide | get_image_url(for_guide=True) | get_image_path }}" width="133"
                                     height="100" alt="{{guide[guide_text]}}" class="thumb" />
-                                <div class='title-text'>
-                                    <p>{{guide[guide_text]}}</p>
+                                {% if 'GUIDE_STARRED' in guide.get('flags', []) %}
+                                <div class="featured-tag-and-title-flex">
+                                    <div class="featured-tag">
+                                        <span class="featured-icon">
+                                            <i class="svg-icon" alt="{{label['featured']}}" title="{{label['featured']}}"
+                                                style="width: 16px; height: 16px; display: inline-flex;">
+                                                <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <circle cx="12" cy="8" r="7" />
+                                                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                                                </svg></i>
+                                            <p class="featured-text">{{label['featured']}}</p>
+                                        </span>
+                                    </div>
+                                    <div class='title-text'>
+                                        <p>{{guide[guide_text]}}</p>
+                                    </div>
                                 </div>
+                                {% else %}
+                                <div class="title-flex">
+                                    <div class='title-text'>
+                                        <p>{{guide[guide_text]}}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </a>
                             {% if guide['locale'] != lang %}
                             <span class="lang">{{guide['locale']}}</span>
@@ -152,113 +145,139 @@
                 </div>
                     {% endif %}
                 {% endfor %}
+                {% endif %}
 
-                {% if false and category['related_wikis'] | length > 0 %}
+                {% if category.get('related_wikis') %}
+                {% set related = namespace(troubleshooting=[], pages=[]) %}
+                {% for wiki in category['related_wikis'] %}
+                    {% if '/Troubleshooting/' in wiki['url'] %}
+                        {% set _ = related.troubleshooting.append(wiki) %}
+                    {% else %}
+                        {% set _ = related.pages.append(wiki) %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if related.troubleshooting | length > 0 %}
                 <div class="subcategorySection">
-                    <h2 id='Section_Related_Pages' class="js-dynamic-toc-section">
-                        {{label['related_pages']}}
-                    </h2>
+                    <div class="wiki-section-heading">
+                        <h2 id="Section_Troubleshooting" class="js-dynamic-toc-section">
+                            <a {{('href="/Troubleshooting/' + category['title'].replace(' ', '_') + '"') | cleanup_rendered_content(rel_prefix) | safe}}>{{label['troubleshooting']}}</a>
+                        </h2>
+                    </div>
                     <div class="grid">
-                        {% for wiki in category['related_wikis'] %}
+                        {% for wiki in related.troubleshooting %}
                         <div class="categoryListCell">
-                            <a href="{{rel_prefix}}wikis/wiki_{{wiki['wikiid']}}.html" class="categoryAnchor">
-                                <!-- TODO: Move images to the appropriate folder + handle unusual extensions ? (or is it just a corner case ?) -->
-                                <img src="{{rel_prefix}}{{wiki | get_image_url(for_wiki=True) | get_image_path}}" width="179"
-                                    height="143" alt="{{wiki['display_title']}}" class="category-image" />
+                            <a href="{{rel_prefix}}{{wiki | get_wiki_link_from_obj}}" class="categoryAnchor">
+                                <img src="{{rel_prefix}}{{wiki | get_image_url(for_wiki=True) | get_image_path}}" width="300"
+                                    height="225" alt="{{wiki['display_title']}}" class="category-image" />
                                 <h5 class="title">{{wiki['display_title']}}</h5>
                             </a>
-                            {% if wiki['locale'] != lang %}
-                            <span class="lang">{{wiki['locale']}}</span>
-                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="seeAllLink">
+                        <a {{('href="/Troubleshooting/' + category['title'].replace(' ', '_') + '"') | cleanup_rendered_content(rel_prefix) | safe}}>View
+                            common problems<i class="svg-icon"
+                                style="width: 16px; height: 16px; display: inline-flex;"><svg width="16" height="16"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="4" y1="12" x2="20" y2="12" />
+                                    <polyline points="14 6 20 12 14 18" />
+                                </svg></i></a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if related.pages | length > 0 %}
+                <div class="subcategorySection">
+                    <div class="wiki-section-heading">
+                        <h2 id="Section_Related_Pages" class="js-dynamic-toc-section">
+                            {{label['related_pages']}}
+                        </h2>
+                    </div>
+                    <div class="grid">
+                        {% for wiki in related.pages %}
+                        <div class="categoryListCell">
+                            <a href="{{rel_prefix}}{{wiki | get_wiki_link_from_obj}}" class="categoryAnchor">
+                                <img src="{{rel_prefix}}{{wiki | get_image_url(for_wiki=True) | get_image_path}}" width="300"
+                                    height="225" alt="{{wiki['display_title']}}" class="category-image" />
+                                <h5 class="title">{{wiki['display_title']}}</h5>
+                            </a>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
+                {% endif %}
             </div>
 
             <div id="contentFloat">
                 <div id="content">
-                    <div class="container articleContainer topic">
-                        {% if category['guides'] | guides_in_progress | list | length > 0 %}
-                        <div class="blurbListWide" data-type="inprogress">
-                            <h3 class="blurbListTitle">
-                                <a href='#Section_In_Progress' style="text-decoration: none;">
-                                    {{label['in_progress_guides']}}</a>
-                            </h3>
-                            <div class="grid">
-
-                                {% for guide in category['guides'] | guides_in_progress %}
-                                {% if guide['type'] in ['replacement'] %}
-                                    {% set guide_text = 'subject' %}
-                                {% else %}
-                                    {% set guide_text = 'title' %}
-                                {% endif %}
-                                <div class="cell">
-                                    <a href="{{rel_prefix}}{{guide | get_guide_link_from_obj}}" class="title">
-                                        <img src="{{rel_prefix}}{{guide | get_image_url(for_guide=True) | get_image_path}}" width="133"
-                                            height="100" alt="{{guide[guide_text]}}" class="thumb" />
-                                        <div class='title-text'>
-                                            <p>{{guide['subject']}}</p>
-                                        </div>
+                    <div class="page-container articleContainer topic">
+                        {% if category.get('documents') %}
+                        <div id="Section_Documents" class="js-dynamic-toc-section">
+                            <h2 class="blurbListTitle">{{label['documents']}}</h2>
+                            <ul class="m-0 flex list-none flex-col gap-2 p-0">
+                                {% for document in category['documents'] %}
+                                {% set document_href = (('href="' + document['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe) %}
+                                <li>
+                                    <a {{document_href}}
+                                        class="flex items-center gap-3 rounded-2xl border border-gray-300 bg-white p-3">
+                                        {% if document.get('image') %}
+                                        <img src="{{rel_prefix}}{{document['image']['standard'] | get_image_path}}"
+                                            alt="" width="48" height="48"
+                                            class="block size-12 rounded border border-gray-300 object-cover">
+                                        {% endif %}
+                                        <span class="text-gray-800 font-medium">{{document['title']}}</span>
                                     </a>
-                                    {% if guide['locale'] != lang %}
-                                    <span class="lang">{{guide['locale']}}</span>
-                                    {% endif %}
-                                </div>
+                                </li>
                                 {% endfor %}
-                            </div>
+                            </ul>
                         </div>
                         {% endif %}
 
-                        <!-- TODO : retrieve questions if this makes sense -->
-                        {% if (category | category_count_tools) + (category | category_count_parts) > 0 %}
-                        <div id="Section_tools_and_parts" class="js-dynamic-toc-section">
-                            {% if category | category_count_parts > 0 %}
-                            <h2>{{label['parts']}}</h2>
-                            <div id="deviceToolsList" class="row">
-                                <ul class="attachment-link-list two-columns">
+                        {% if (category.get('parts') and category['parts'].get('categories')) or category.get('tools') %}
+                        <div id="Section_Tools" class="js-dynamic-toc-section">
+                            {% if category.get('parts') and category['parts'].get('categories') %}
+                            <section>
+                                <h2 class="blurbListTitle">{{label['parts']}}</h2>
+                                <ul class="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
                                     {% for part in category['parts']['categories'] %}
-                                    <li class="attachment-link">
-                                        <div class="row attachment-container">
-                                            <div class="column">
-                                                <a {{('href="' + part['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe}}>
-                                                    <span>{{part['tag']}}</span>
-                                                    ({{part['count']}})
-                                                </a>
-                                            </div>
+                                    {% set part_href = (('href="' + part['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe) %}
+                                    <li
+                                        class="flex items-center gap-3 rounded-2xl border border-gray-300 bg-white p-3">
+                                        <a {{part_href}} class="text-gray-800 font-medium">
+                                            {{part['tag']}} ({{part['count']}})
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </section>
+                            {% endif %}
+
+                            {% if category.get('tools') %}
+                            <section>
+                                <h2 class="blurbListTitle">{{label['tools']}}</h2>
+                                <p class="text-sm text-gray-600">{{label['tools_introduction']}}</p>
+                                <ul class="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
+                                    {% for tool in category['tools'] %}
+                                    {% set tool_href = (('href="' + tool['target_url'] + '"') | cleanup_rendered_content(rel_prefix) | safe) %}
+                                    <li
+                                        class="flex items-center gap-3 rounded-2xl border border-gray-300 bg-white p-3">
+                                        {% if tool.get('image_url') %}
+                                        <a {{tool_href}} aria-hidden="true" tabindex="-1" class="shrink-0">
+                                            <img src="{{rel_prefix}}{{tool['image_url'] | get_image_path}}" alt=""
+                                                width="48" height="48"
+                                                class="block size-12 rounded border border-gray-300 object-cover">
+                                        </a>
+                                        {% endif %}
+                                        <div class="min-w-0 flex-1">
+                                            <a {{tool_href}} class="text-gray-800 font-medium">{{tool['title']}}</a>
                                         </div>
                                     </li>
                                     {% endfor %}
                                 </ul>
-                            </div>
-                            {% endif %}
-
-                            {% if category | category_count_tools > 0 %}
-                            <h2 class="tools-header">{{label['tools']}}</h2>
-                            <div class="deviceToolsContainer">
-                                <p>{{label['tools_introduction']}}</p>
-                                <div class="deviceToolsList">
-                                    <ul class="attachment-link-list two-columns">
-                                        {% for tool in category['tools'] %}
-                                        <li class="attachment-link">
-                                            <div class="row attachment-container">
-                                                <a {{('href="' + tool['target_url'] + '"') | cleanup_rendered_content(rel_prefix) | safe}}>
-                                                <img src="{{rel_prefix}}{{tool['image_url'] | get_image_path}}"
-                                                    alt="" width="41" height="41">
-                                                </a>
-                                                <div class="column">
-                                                    <a {{('href="' + tool['target_url'] + '"') | cleanup_rendered_content(rel_prefix) | safe}}>
-                                                        <p class="title">{{tool['title']}}</p>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                                <div class="clearer"></div>
-                            </div>
+                            </section>
                             {% endif %}
                         </div>
                         {% endif %}

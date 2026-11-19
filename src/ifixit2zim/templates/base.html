@@ -31,6 +31,7 @@
     <link type="text/css" href="{{rel_prefix}}assets/7593.4bb8643427f2cfcaafeb.css" rel="stylesheet" as="style">
     <link type="text/css" href="{{rel_prefix}}assets/tailwind-phtml.css.32205fbd64c1e0d10290.css" rel="stylesheet" as="style">
     <link type="text/css" href="{{rel_prefix}}assets/guidepage.js.9f477644f1eb7c021337.css" rel="stylesheet" as="style">
+    <link type="text/css" href="{{rel_prefix}}assets/footer.css" rel="stylesheet" as="style">
 
     {% block specific_head %}{% endblock %}
 </head>
@@ -43,28 +44,13 @@
 
 
 
-    <footer class="">
-        <div class="footer-container">
-
-            <!-- Site Stats -->
-            <div class="footer-row footer-stats footer-container-width">
-                {%for stat in metadata['stats']%}
-                <div class="footer-col-4">
-                    <p class="footer-stat">{{stat['value']}}</p>
-                    <p>{{stat['label']}}</p>
-                </div>
-                {%endfor%}
-            </div>
-
-            <!-- Ifixit Org Blog & Copyright -->
-            <div class="footer-row centered copyright">
-                <p>
-                    ©&nbsp;<time class="js-absolute-date">{{metadata['current_year']}}</time> iFixit — Creative Commons
-                </p>
-            </div>
-
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <p>
+                ©&nbsp;<time>{{metadata['current_year']}}</time> iFixit —
+                Licensed under Creative Commons
+            </p>
         </div>
-
     </footer>
 
 </body>

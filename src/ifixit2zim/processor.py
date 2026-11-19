@@ -78,10 +78,21 @@ class Processor:
     ) -> None:
         self._get_user_link_from_props = get_user_link_from_props
 
+    @property
+    def get_wiki_link_from_props(self) -> Callable[..., str]:
+        return self._get_wiki_link_from_props
+
+    @get_wiki_link_from_props.setter
+    def get_wiki_link_from_props(
+        self, get_wiki_link_from_props: Callable[..., str]
+    ) -> None:
+        self._get_wiki_link_from_props = get_wiki_link_from_props
+
     _get_guide_link_from_props: Callable[..., str]
     _get_category_link_from_props: Callable[..., str]
     _get_info_link_from_props: Callable[..., str]
     _get_user_link_from_props: Callable[..., str]
+    _get_wiki_link_from_props: Callable[..., str]
 
     # no-qa flag is mandatory because this is used in a Jinja filter and arg names are
     # never passed by Jinja
@@ -187,7 +198,14 @@ class Processor:
     href_anchor_regex = r"^(?P<anchor>#.*)$"
     href_object_kind_regex = (
         r"^(?:https*://[\w\.]*(?:ifixit)[\w\.]*)*/"
-        r"((?:(?P<kind>"
+        r"((?:(?P<wiki>Wiki)/(?P<wikititle>[^/?#]+))"
+        r"|(?:(?P<troubleshooting>Troubleshooting)/"
+        r"(?P<troubleshootingcategory>[^/?#]+)/"
+        r"(?P<troubleshootingtitle>[^/?#]+)/"
+        r"(?P<troubleshootingid>\d+))"
+        r"|(?:(?P<troubleshootingindex>Troubleshooting)/"
+        r"(?P<troubleshootingindexcategory>[^/?#]+))"
+        r"|(?:(?P<kind>"
         + "|".join(NOT_YET_AVAILABLE + UNAVAILABLE_OFFLINE)
         + r")(?:/.+)?)"
         r"|(?:(?P<guide>Guide|Anleitung|Guía|Guida|Tutoriel|Teardown)/"
@@ -271,6 +289,30 @@ class Processor:
         )
         return f"{rel_prefix}{link}{match.group('userafter') or ''}"
 
+    def _process_href_regex_wiki(
+        self, href: str, rel_prefix: str, match: re.Match[str]
+    ) -> str | None:
+        if not match.group("wiki"):
+            return None
+        link = self.get_wiki_link_from_props(wiki_path=href)
+        return f"{rel_prefix}{link}"
+
+    def _process_href_regex_troubleshooting(
+        self, href: str, rel_prefix: str, match: re.Match[str]
+    ) -> str | None:
+        if not match.group("troubleshooting"):
+            return None
+        link = self.get_wiki_link_from_props(wiki_path=href)
+        return f"{rel_prefix}{link}"
+
+    def _process_href_regex_troubleshooting_index(
+        self, href: str, rel_prefix: str, match: re.Match[str]
+    ) -> str | None:
+        if not match.group("troubleshootingindex"):
+            return None
+        link = self.get_wiki_link_from_props(wiki_path=href)
+        return f"{rel_prefix}{link}"
+
     def _process_href_regex_kind(
         self, href: str, rel_prefix: str, match: re.Match[str]
     ) -> str | None:
@@ -315,6 +357,9 @@ class Processor:
         return final_href
 
     def _process_href_regex(self, href: str, rel_prefix: str) -> str:
+        fragment = ""
+        if not href.startswith("#"):
+            href, fragment = urllib.parse.urldefrag(href)
         if href.startswith("/"):
             href = self.configuration.main_url.geturl() + href
         if href.startswith("http") and "ifixit.com/" in href:
@@ -334,12 +379,23 @@ class Processor:
             )
             or self._process_href_regex_info(rel_prefix=rel_prefix, match=strict_match)
             or self._process_href_regex_user(rel_prefix=rel_prefix, match=strict_match)
+            or self._process_href_regex_wiki(
+                href=href, rel_prefix=rel_prefix, match=strict_match
+            )
+            or self._process_href_regex_troubleshooting(
+                href=href, rel_prefix=rel_prefix, match=strict_match
+            )
+            or self._process_href_regex_troubleshooting_index(
+                href=href, rel_prefix=rel_prefix, match=strict_match
+            )
             or self._process_href_regex_kind(
                 href=href, rel_prefix=rel_prefix, match=strict_match
             )
         )
         if res is None:
             raise Exception("Unsupported match in _process_href_regex")
+        if fragment:
+            res = f"{res}#{fragment}"
         return res
 
     def _process_youtube(self, match: re.Match[str], rel_prefix: str) -> str:

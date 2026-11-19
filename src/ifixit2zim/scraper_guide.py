@@ -104,9 +104,19 @@ class ScraperGuide(ScraperGeneric):
                 self._add_guide_to_scrape(guide, UNKNOWN_TITLE, UNKNOWN_LOCALE, True)
             return
         logger.info("Downloading list of guides")
+        max_items = self.configuration.max_items_per_type
         limit = 200
         offset = 0
         while True:
+            if max_items > 0:
+                remaining = max_items - len(self.expected_items_keys)
+                if remaining <= 0:
+                    logger.warning(
+                        "Aborting the retrieval of all guides since at most "
+                        f"{max_items} items will be scraped"
+                    )
+                    break
+                limit = min(limit, remaining)
             guides = self.client.get_api_content("/guides", limit=limit, offset=offset)
             if not guides or len(guides) == 0:
                 break
@@ -121,12 +131,6 @@ class ScraperGuide(ScraperGeneric):
                 # on this endpoint, so we consider it as unknown for now
                 self._add_guide_to_scrape(guideid, UNKNOWN_TITLE, UNKNOWN_LOCALE, True)
             offset += limit
-            if self.configuration.scrape_only_first_items:
-                logger.warning(
-                    "Aborting the retrieval of all guides since only first items"
-                    " will be scraped anyway"
-                )
-                break
         logger.info(f"{len(self.expected_items_keys)} guides found")
 
     def get_one_item_content(self, item_key: str, item_data: dict[str, Any]) -> Any:
