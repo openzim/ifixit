@@ -170,13 +170,6 @@
       "required": false,
       "title": "No info",
       "description": "Do not scrape any info"
-    },
-    "max_items_per_type": {
-      "type": "integer",
-      "required": false,
-      "title": "Max items per type",
-      "description": "Scrape at most this many items of each type (categories, guides, infos, users, wikis). 0 means no limit and is the default",
-      "min": 0
     }
   },
   "zimMetadata": [
