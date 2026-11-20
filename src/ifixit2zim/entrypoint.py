@@ -9,6 +9,16 @@ from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.shared import logger, set_debug
 
 
+def non_negative_int(value: str) -> int:
+    try:
+        int_value = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"invalid integer value: {value}") from None
+    if int_value < 0:
+        raise argparse.ArgumentTypeError("value must be greater than or equal to 0")
+    return int_value
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog=NAME,
@@ -258,11 +268,12 @@ def main():
     )
 
     parser.add_argument(
-        "--scrape-only-first-items",
-        help="Scrape only first items of every type.",
-        dest="scrape_only_first_items",
-        action="store_true",
-        default=False,
+        "--max-items-per-type",
+        help="Scrape at most this many items of each type (categories, guides, "
+        "infos, users, wikis). 0 means no limit and is the default.",
+        dest="max_items_per_type",
+        type=non_negative_int,
+        default=0,
     )
 
     parser.add_argument(
