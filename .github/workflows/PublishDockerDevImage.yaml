@@ -7,10 +7,11 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Retrieve source code
+        uses: actions/checkout@v7
 
       - name: Build and push Docker image
         uses: openzim/docker-publish-action@v10

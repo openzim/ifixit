@@ -8,13 +8,14 @@ on:
 
 jobs:
   run-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Retrieve source code
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version-file: pyproject.toml
           architecture: x64
@@ -33,12 +34,13 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   build_python:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v3
+      - name: Retrieve source code
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version-file: pyproject.toml
           architecture: x64
@@ -49,9 +51,10 @@ jobs:
           python3 -m build --sdist --wheel
 
   build_docker:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v3
+      - name: Retrieve source code
+        uses: actions/checkout@v7
 
       - name: Ensure we can build the Docker image
         run: |
