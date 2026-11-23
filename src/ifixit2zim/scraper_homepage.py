@@ -1,5 +1,8 @@
 import json
 import re
+from typing import Any, cast
+
+from bs4 import BeautifulSoup, Tag
 
 from ifixit2zim.constants import DEFAULT_HOMEPAGE, HOME_LABELS
 from ifixit2zim.context import Context
@@ -9,32 +12,46 @@ from ifixit2zim.shared import logger
 
 
 class ScraperHomepage(ScraperGeneric):
-    def __init__(self, context: Context):
+    def __init__(self, context: Context) -> None:
         super().__init__(context)
 
-    def setup(self):
+    def setup(self) -> None:
         self.homepage_template = self.env.get_template("home.html")
         self.not_here_template = self.env.get_template("not_here.html")
 
-    def get_items_name(self):
+    def get_items_name(self) -> str:
         return "home"
 
-    def build_expected_items(self):
+    def build_expected_items(self) -> None:
         self.add_item_to_scrape(1, 1, True)
 
-    def get_one_item_content(self, item_key, item_data):  # noqa ARG002
-        soup, _ = self.utils.get_soup("/Guide")
+    def get_one_item_content(
+        self,
+        item_key: str,  # noqa: ARG002
+        item_data: dict[str, Any],  # noqa: ARG002
+    ) -> BeautifulSoup:
+        soup, _ = self.client.get_soup("/Guide")
         return soup
 
-    def add_item_redirect(self, item_key, item_data, redirect_kind):  # noqa ARG002
+    def add_item_redirect(
+        self,
+        item_key: str,  # noqa: ARG002
+        item_data: dict[str, Any],  # noqa: ARG002
+        redirect_kind: str,  # noqa: ARG002
+    ) -> None:
         logger.warning("Not supposed to add a redirect for a home item")
 
-    def process_one_item(self, item_key, item_data, item_content):  # noqa ARG002
+    def process_one_item(
+        self,
+        item_key: str,  # noqa: ARG002
+        item_data: dict[str, Any],  # noqa: ARG002
+        item_content: BeautifulSoup,
+    ) -> None:
         soup = item_content
 
         # extract and clean main content
         home_content = {
-            "main_title": soup.find("title").string,
+            "main_title": cast(str, cast(Tag, soup.find("title")).string),
             "page_title": self._extract_page_title_from_page(soup),
             "primary_title": self._extract_primary_title_from_page(soup),
             "secondary_title": self._extract_secondary_title_from_page(soup),
@@ -44,7 +61,7 @@ class ScraperHomepage(ScraperGeneric):
         }
 
         logger.debug(
-            f"Content extracted from /Guide:\n {json.dumps(home_content,indent=2)}"
+            f"Content extracted from /Guide:\n {json.dumps(home_content, indent=2)}"
         )
 
         homepage = self.homepage_template.render(
@@ -147,7 +164,7 @@ class ScraperHomepage(ScraperGeneric):
 
     _device_link_regex_without_href = re.compile(r"/Device/(?P<device>.*)")
 
-    def _extract_page_title_from_page(self, soup):
+    def _extract_page_title_from_page(self, soup: BeautifulSoup) -> str:
         page_title_selector = "h1.page-title span"
         p = soup.select(page_title_selector)
         if len(p) == 0:
@@ -165,7 +182,7 @@ class ScraperHomepage(ScraperGeneric):
             )
         return text
 
-    def _extract_primary_title_from_page(self, soup):
+    def _extract_primary_title_from_page(self, soup: BeautifulSoup) -> str:
         primary_title_selector = "div.primary-divider p"
         p = soup.select(primary_title_selector)
         if len(p) == 0:
@@ -174,8 +191,7 @@ class ScraperHomepage(ScraperGeneric):
             )
         if len(p) > 1:
             raise CategoryHomePageContentError(
-                "Too many text found in page with selector "
-                f"'{primary_title_selector}'"
+                f"Too many text found in page with selector '{primary_title_selector}'"
             )
         text = p[0].text
         if len(text) == 0:
@@ -184,7 +200,7 @@ class ScraperHomepage(ScraperGeneric):
             )
         return text
 
-    def _extract_secondary_title_from_page(self, soup):
+    def _extract_secondary_title_from_page(self, soup: BeautifulSoup) -> str:
         secondary_title_selector = "div.secondary-divider p"
         p = soup.select(secondary_title_selector)
         if len(p) == 0:
@@ -199,18 +215,17 @@ class ScraperHomepage(ScraperGeneric):
         text = p[0].text
         if len(text) == 0:
             raise CategoryHomePageContentError(
-                "Empty text found in page with selector "
-                f"'{secondary_title_selector}'"
+                f"Empty text found in page with selector '{secondary_title_selector}'"
             )
         return text
 
-    def _extract_callout_from_page(self, soup):
+    def _extract_callout_from_page(self, soup: BeautifulSoup) -> dict[str, str]:
         return {
             "content": self._extract_callout_content_from_page(soup),
             "img_url": self._extract_callout_img_src_from_page(soup),
         }
 
-    def _extract_callout_content_from_page(self, soup):
+    def _extract_callout_content_from_page(self, soup: BeautifulSoup) -> str:
         page_callout_selector = "div.page-callout-content"
         p = soup.select(page_callout_selector)
         if len(p) == 0:
@@ -225,20 +240,19 @@ class ScraperHomepage(ScraperGeneric):
             )
         return f"{p[0]}"
 
-    def _extract_callout_img_src_from_page(self, soup):
+    def _extract_callout_img_src_from_page(self, soup: BeautifulSoup) -> str:
         page_callout_selector = "div.page-callout-inner img"
         p = soup.select(page_callout_selector)
         if len(p) == 0:
             raise CategoryHomePageContentError(
-                "No callout img found in page with selector "
-                f"'{page_callout_selector}'"
+                f"No callout img found in page with selector '{page_callout_selector}'"
             )
         if len(p) > 1:
             raise CategoryHomePageContentError(
                 "Too many callout img found in page with selector "
                 f"'{page_callout_selector}'"
             )
-        src = p[0].attrs.get("src")
+        src = cast(str, p[0].attrs.get("src"))
         if len(src) == 0:
             raise CategoryHomePageContentError(
                 "Empty img src found in featured callout with selector "
@@ -246,7 +260,9 @@ class ScraperHomepage(ScraperGeneric):
             )
         return src
 
-    def _extract_featured_categories_from_page(self, soup):
+    def _extract_featured_categories_from_page(
+        self, soup: BeautifulSoup
+    ) -> list[dict[str, str]]:
         featured_categories_css_selector = "a.featured-category-item"
         featured_categories = [
             {
@@ -265,7 +281,7 @@ class ScraperHomepage(ScraperGeneric):
             )
         return featured_categories
 
-    def _extract_text_from_featured_category(self, fc):
+    def _extract_text_from_featured_category(self, fc: Tag) -> str:
         featured_category_text_css_selector = "p.featured-category-title"
         p = fc.select(featured_category_text_css_selector)
         if len(p) == 0:
@@ -286,7 +302,7 @@ class ScraperHomepage(ScraperGeneric):
             )
         return text
 
-    def _extract_img_src_from_featured_category(self, fc):
+    def _extract_img_src_from_featured_category(self, fc: Tag) -> str:
         featured_category_img_css_selector = "img"
         p = fc.select(featured_category_img_css_selector)
         if len(p) == 0:
@@ -299,7 +315,7 @@ class ScraperHomepage(ScraperGeneric):
                 "Too many img found in featured category with selector "
                 f"'{featured_category_img_css_selector}'"
             )
-        src = p[0].attrs.get("src")
+        src = cast(str, p[0].attrs.get("src"))
         if len(src) == 0:
             raise CategoryHomePageContentError(
                 "Empty img src found in featured category with selector "
@@ -307,8 +323,8 @@ class ScraperHomepage(ScraperGeneric):
             )
         return src
 
-    def _extract_name_from_featured_category(self, fc):
-        href = fc.attrs.get("href")
+    def _extract_name_from_featured_category(self, fc: Tag) -> str:
+        href = cast(str, fc.attrs.get("href"))
         if len(href) == 0:
             raise CategoryHomePageContentError("Empty href found in featured category")
         name = self._device_link_regex_without_href.sub("\\g<device>", href)
@@ -318,13 +334,15 @@ class ScraperHomepage(ScraperGeneric):
             )
         return name
 
-    def _extract_title_from_featured_category(self, fc):
-        title = fc.attrs.get("title")
+    def _extract_title_from_featured_category(self, fc: Tag) -> str:
+        title = cast(str, fc.attrs.get("title"))
         if len(title) == 0:
             raise CategoryHomePageContentError("Empty title found in featured category")
         return title
 
-    def _extract_sub_categories_from_page(self, soup):
+    def _extract_sub_categories_from_page(
+        self, soup: BeautifulSoup
+    ) -> list[dict[str, Any]]:
         sub_categories_css_selector = "a.sub-category"
         sub_categories = [
             {
@@ -337,12 +355,11 @@ class ScraperHomepage(ScraperGeneric):
         ]
         if len(sub_categories) == 0:
             raise CategoryHomePageContentError(
-                "No sub-categories found with selector "
-                f"'{sub_categories_css_selector}'"
+                f"No sub-categories found with selector '{sub_categories_css_selector}'"
             )
         return sub_categories
 
-    def _extract_text_from_sub_category(self, sc):
+    def _extract_text_from_sub_category(self, sc: Tag) -> str:
         sub_category_text_css_selector = "span.sub-category-title-text"
         p = sc.select(sub_category_text_css_selector)
         if len(p) == 0:
@@ -363,8 +380,8 @@ class ScraperHomepage(ScraperGeneric):
             )
         return text
 
-    def _extract_name_from_sub_category(self, sc):
-        href = sc.attrs.get("href")
+    def _extract_name_from_sub_category(self, sc: Tag) -> str:
+        href = cast(str, sc.attrs.get("href"))
         if len(href) == 0:
             raise CategoryHomePageContentError("Empty href found in sub-category")
         name = self._device_link_regex_without_href.sub("\\g<device>", href)
@@ -374,7 +391,7 @@ class ScraperHomepage(ScraperGeneric):
             )
         return name
 
-    def _extract_count_from_sub_category(self, sc):
+    def _extract_count_from_sub_category(self, sc: Tag) -> int:
         sub_category_img_css_selector = "span.overflow-slide-in"
         p = sc.select(sub_category_img_css_selector)
         if len(p) == 0:
@@ -400,7 +417,7 @@ class ScraperHomepage(ScraperGeneric):
                 f"Failed to convert span text '{text}' to integer for sub-category"
             ) from None
 
-    def _extract_title_from_sub_category(self, sc):
+    def _extract_title_from_sub_category(self, sc: Tag) -> str:
         sub_category_img_css_selector = "span.overflow-slide-in"
         p = sc.select(sub_category_img_css_selector)
         if len(p) == 0:
@@ -413,7 +430,7 @@ class ScraperHomepage(ScraperGeneric):
                 "Too many span found in sub-category with selector "
                 f"'{sub_category_img_css_selector}'"
             )
-        title = p[0].attrs.get("title")
+        title = cast(str, p[0].attrs.get("title"))
         if len(title) == 0:
             raise CategoryHomePageContentError(
                 "Empty span title found in sub-category with selector "
@@ -421,7 +438,7 @@ class ScraperHomepage(ScraperGeneric):
             )
         return title
 
-    def _extract_details_from_single_stat(self, fs):
+    def _extract_details_from_single_stat(self, fs: Tag) -> dict[str, Any]:
         stat_text_css_selector = "chakra-stat__help-text"
         p = fs.select(stat_text_css_selector)
         if len(p) == 0:
@@ -430,8 +447,7 @@ class ScraperHomepage(ScraperGeneric):
             )
         if len(p) > 1:
             raise CategoryHomePageContentError(
-                "Too much text found in stat with selector "
-                f"'{stat_text_css_selector}'"
+                f"Too much text found in stat with selector '{stat_text_css_selector}'"
             )
         stat_text = p[0].text
         if len(stat_text) == 0:
@@ -453,8 +469,7 @@ class ScraperHomepage(ScraperGeneric):
         stat_number_str = p[0].text
         if len(stat_number_str) == 0:
             raise CategoryHomePageContentError(
-                "Empty text found in stat with selector "
-                f"'{stat_number_css_selector}'"
+                f"Empty text found in stat with selector '{stat_number_css_selector}'"
             )
         stat_number = re.sub("[^0-9]", "", stat_number_str)
         if len(stat_number) == 0:

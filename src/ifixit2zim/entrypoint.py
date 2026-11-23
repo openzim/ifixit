@@ -5,6 +5,7 @@ import os
 import sys
 
 from ifixit2zim.constants import NAME, SCRAPER, URLS
+from ifixit2zim.scraper import IFixit2Zim
 from ifixit2zim.shared import logger, set_debug
 
 
@@ -273,9 +274,7 @@ def main():
     )
 
     args = parser.parse_args()
-    set_debug(args.debug)
-
-    from ifixit2zim.scraper import IFixit2Zim
+    set_debug(debug=args.debug)
 
     try:
         scraper = IFixit2Zim(**dict(args._get_kwargs()))
