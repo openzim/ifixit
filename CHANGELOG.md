@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not abort when the homepage no longer exposes KPI/stats data (#122)
 - Render homepage collection guides and download their images
 - Format dates without requiring an installed `en_GB` locale
+- Normalize `s3+https://` optimization-cache URLs before handing them to KiwixStorage client (#131)
 
 ## [0.3.0] - 2024-03-02
 
