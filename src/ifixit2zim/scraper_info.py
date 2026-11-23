@@ -80,9 +80,19 @@ class ScraperInfo(ScraperGeneric):
                 self._add_info_to_scrape(info_key, info_title, True)
             return
         logger.info("Downloading list of info")
+        max_items = self.configuration.max_items_per_type
         limit = 200
         offset = 0
         while True:
+            if max_items > 0:
+                remaining = max_items - len(self.expected_items_keys)
+                if remaining <= 0:
+                    logger.warning(
+                        "Aborting the retrieval of all infos since at most "
+                        f"{max_items} items will be scraped"
+                    )
+                    break
+                limit = min(limit, remaining)
             info_wikis = self.client.get_api_content(
                 "/wikis/INFO", limit=limit, offset=offset
             )
@@ -93,12 +103,6 @@ class ScraperInfo(ScraperGeneric):
                 info_key = self._get_info_key_from_title(info_title)
                 self._add_info_to_scrape(info_key, info_title, True)
             offset += limit
-            if self.configuration.scrape_only_first_items:
-                logger.warning(
-                    "Aborting the retrieval of all infos since only first items"
-                    " will be scraped anyway"
-                )
-                break
         logger.info(f"{len(self.expected_items_keys)} info found")
 
     def get_one_item_content(

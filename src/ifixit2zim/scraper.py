@@ -45,6 +45,7 @@ from ifixit2zim.scraper_guide import ScraperGuide
 from ifixit2zim.scraper_homepage import ScraperHomepage
 from ifixit2zim.scraper_info import ScraperInfo
 from ifixit2zim.scraper_user import ScraperUser
+from ifixit2zim.scraper_wiki import ScraperWiki
 from ifixit2zim.shared import logger
 from ifixit2zim.utils import IFixitRequestClient, get_kiwix_storage_client
 
@@ -263,6 +264,7 @@ class IFixit2Zim:
         self.scraper_guide = ScraperGuide(context=context)
         self.scraper_category = ScraperCategory(context=context)
         self.scraper_info = ScraperInfo(context=context)
+        self.scraper_wiki = ScraperWiki(context=context)
         self.scraper_user = ScraperUser(context=context)
 
         self.scrapers.extend(
@@ -271,6 +273,7 @@ class IFixit2Zim:
                 self.scraper_category,
                 self.scraper_guide,
                 self.scraper_info,
+                self.scraper_wiki,
                 self.scraper_user,
             ]
         )
@@ -283,6 +286,9 @@ class IFixit2Zim:
         )
         self.processor.get_info_link_from_props = (
             self.scraper_info.get_info_link_from_props
+        )
+        self.processor.get_wiki_link_from_props = (
+            self.scraper_wiki.get_wiki_link_from_props
         )
         self.processor.get_user_link_from_props = (
             self.scraper_user.get_user_link_from_props
@@ -302,6 +308,8 @@ class IFixit2Zim:
         )
         filters["get_info_link_from_obj"] = self.scraper_info.get_info_link_from_obj
         filters["get_info_link_from_props"] = self.scraper_info.get_info_link_from_props
+        filters["get_wiki_link_from_obj"] = self.scraper_wiki.get_wiki_link_from_obj
+        filters["get_wiki_link_from_props"] = self.scraper_wiki.get_wiki_link_from_props
         filters["get_user_link_from_obj"] = self.scraper_user.get_user_link_from_obj
         filters["get_user_link_from_props"] = self.scraper_user.get_user_link_from_props
         filters["guides_in_progress"] = self.processor.guides_in_progress
@@ -379,7 +387,7 @@ class IFixit2Zim:
                 for scraper in self.scrapers:
                     scraper.scrape_items()
                 needs_rerun = False
-                if not self.configuration.scrape_only_first_items:
+                if self.configuration.max_items_per_type <= 0:
                     for scraper in self.scrapers:
                         if not scraper.items_queue.empty():
                             needs_rerun = True

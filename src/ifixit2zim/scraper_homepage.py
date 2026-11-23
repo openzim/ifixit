@@ -58,6 +58,7 @@ class ScraperHomepage(ScraperGeneric):
             "callout": self._extract_callout_from_page(soup),
             "featured_categories": self._extract_featured_categories_from_page(soup),
             "sub_categories": self._extract_sub_categories_from_page(soup),
+            "collections": self._extract_collections_from_page(soup),
         }
 
         logger.debug(
@@ -437,6 +438,67 @@ class ScraperHomepage(ScraperGeneric):
                 f"'{sub_category_img_css_selector}'"
             )
         return title
+
+    def _extract_collections_from_page(
+        self, soup: BeautifulSoup
+    ) -> list[dict[str, Any]]:
+        collections: list[dict[str, Any]] = []
+        for collection in soup.select("div.collection-guides"):
+            extracted = self._extract_collection(collection)
+            if extracted is not None:
+                collections.append(extracted)
+        return collections
+
+    def _extract_collection(self, collection: Tag) -> dict[str, Any] | None:
+        title_el = collection.select_one("h2")
+        if title_el is None:
+            logger.warning("No title found in collection guides section. Skipping")
+            return None
+
+        link_el = title_el.select_one("a.collection-link") or title_el.find("a")
+        title = "".join(title_el.find_all(string=True, recursive=False)).strip()
+        if not title:
+            title = title_el.get_text(" ", strip=True)
+            if link_el is not None:
+                title = title.replace(link_el.get_text(" ", strip=True), "").strip()
+
+        link = ""
+        if link_el is not None:
+            href = link_el.get("href")
+            if isinstance(href, str):
+                link = href
+
+        items: list[dict[str, str]] = []
+        for cell in collection.select(".blurbListCell"):
+            anchor = cell.find("a")
+            image = cell.find("img")
+            item_title_el = cell.select_one("h5.title")
+            if anchor is None or image is None or item_title_el is None:
+                logger.warning("Malformed collection guide item. Skipping")
+                continue
+
+            href = anchor.get("href")
+            img_url = image.get("src")
+            if not isinstance(href, str) or not isinstance(img_url, str):
+                logger.warning("Collection guide item without href or image. Skipping")
+                continue
+
+            items.append(
+                {
+                    "title": item_title_el.get_text(" ", strip=True),
+                    "url": href,
+                    "img_url": img_url,
+                }
+            )
+
+        if not items:
+            return None
+
+        return {
+            "title": title,
+            "link": link,
+            "items": items,
+        }
 
     def _extract_details_from_single_stat(self, fs: Tag) -> dict[str, Any]:
         stat_text_css_selector = "chakra-stat__help-text"
