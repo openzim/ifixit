@@ -21,7 +21,11 @@ from ifixit2zim.constants import IMAGES_ENCODER_VERSION
 from ifixit2zim.executor import Executor
 from ifixit2zim.scraper import Configuration
 from ifixit2zim.shared import logger
-from ifixit2zim.utils import IFixitRequestClient, get_version_ident_for_url
+from ifixit2zim.utils import (
+    IFixitRequestClient,
+    get_storage_url,
+    get_version_ident_for_url,
+)
 
 
 class Imager:
@@ -156,8 +160,10 @@ class Imager:
         if self.aborted:
             return
 
+        s3_url = self.configuration.s3_url
+
         # just download, optimize and add to ZIM if not using S3
-        if not self.configuration.s3_url:
+        if not s3_url:
             try:
                 fileobj = self.get_image_data(url.geturl())
             except Exception as exc:
@@ -188,7 +194,7 @@ class Imager:
             return path
 
         # key = self.get_s3_key_for(url.geturl())
-        s3_storage = KiwixStorage(self.configuration.s3_url)
+        s3_storage = KiwixStorage(get_storage_url(s3_url))
         meta = {"ident": ident, "encoder_version": str(IMAGES_ENCODER_VERSION)}
 
         download_failed = False  # useful to trigger reupload or not

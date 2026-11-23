@@ -90,6 +90,26 @@ def rebuild_uri(
     )
 
 
+def get_storage_scheme(url: urllib.parse.ParseResult) -> str:
+    if url.scheme.startswith("s3"):
+        if url.scheme.startswith("s3+https"):
+            return "https"
+        if url.scheme.startswith("s3+http"):
+            return "http"
+        return "https"
+    if url.scheme.startswith("https"):
+        return "https"
+    if url.scheme.startswith("http"):
+        return "http"
+    raise ValueError(f"Unsupported URL scheme in: {url}")
+
+
+def get_storage_url(uri: str) -> str:
+    """URL with credentials and bucket usable by KiwixStorage."""
+    parsed_uri = urllib.parse.urlparse(uri)
+    return rebuild_uri(parsed_uri, scheme=get_storage_scheme(parsed_uri)).geturl()
+
+
 def get_kiwix_storage_client(uri: str) -> Any:
     try:
         upload_uri = urllib.parse.urlparse(uri)
@@ -97,19 +117,7 @@ def get_kiwix_storage_client(uri: str) -> Any:
     except Exception as exc:
         raise ValueError(f"invalid upload URI: `{uri}`") from exc
 
-    def get_url_scheme(url: urllib.parse.ParseResult) -> str:
-        if url.scheme.startswith("s3"):
-            if url.scheme.startswith("s3+https"):
-                return "https"
-            elif url.scheme.startswith("s3+http"):
-                return "http"
-            return "https"
-        else:
-            raise ValueError(f"Unsupported URL scheme in: {url}")
-
-    s3 = KiwixStorage(
-        rebuild_uri(upload_uri, scheme=get_url_scheme(upload_uri)).geturl()
-    )
+    s3 = KiwixStorage(get_storage_url(uri))
     if not s3.check_credentials(  # pyright: ignore[reportUnknownMemberType]
         list_buckets=True, bucket=True, write=True, read=True, failsafe=True
     ):
