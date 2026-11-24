@@ -15,10 +15,10 @@ from ifixit2zim.constants import (
     DEFAULT_WIKI_IMAGE_URL,
     NOT_YET_AVAILABLE,
     UNAVAILABLE_OFFLINE,
+    Configuration,
 )
 from ifixit2zim.exceptions import ImageUrlNotFoundError
 from ifixit2zim.imager import Imager
-from ifixit2zim.scraper import Configuration
 from ifixit2zim.shared import logger
 
 

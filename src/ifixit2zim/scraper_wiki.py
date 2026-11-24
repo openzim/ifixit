@@ -17,6 +17,14 @@ TROUBLESHOOTING_PROBLEM_RE = re.compile(
 TROUBLESHOOTING_INDEX_PATH_PARTS = 2
 
 
+def _normalize_problem_href(href: str) -> str:
+    href = href.removeprefix("./")
+    if href.startswith("Troubleshooting/"):
+        href = f"/{href}"
+    path = urllib.parse.urlparse(urllib.parse.urljoin("/Troubleshooting/", href)).path
+    return path.removesuffix(".html")
+
+
 class ScraperWiki(ScraperGeneric):
     """Scraper for WIKI namespace pages and troubleshooting indexes.
 
@@ -131,13 +139,12 @@ class ScraperWiki(ScraperGeneric):
                 toc[-1]["children"].append(item)
         return toc
 
-    def _extract_troubleshooting_problems(
-        self, soup: Any, category: str
-    ) -> list[dict[str, str | None]]:
-        problems: list[dict[str, str | None]] = []
+    def _extract_troubleshooting_sections(self, soup: Any) -> list[dict[str, Any]]:
+        sections: list[dict[str, Any]] = []
         seen: set[str] = set()
 
         def add_problem(
+            target: list[dict[str, str | None]],
             link_href: str,
             title: str,
             summary: str,
@@ -146,10 +153,9 @@ class ScraperWiki(ScraperGeneric):
             device_title: str,
             device_image_url: str | None,
         ) -> None:
+            link_href = _normalize_problem_href(link_href)
             match = TROUBLESHOOTING_PROBLEM_RE.match(link_href)
             if not match:
-                return
-            if match.group("category").lower() != category.lower():
                 return
             wikiid = match.group("wikiid")
             if wikiid in seen:
@@ -163,7 +169,7 @@ class ScraperWiki(ScraperGeneric):
                 device_image_url = urllib.parse.urljoin(
                     self.configuration.main_url.geturl(), device_image_url
                 )
-            problems.append(
+            target.append(
                 {
                     "title": title,
                     "summary": summary,
@@ -175,13 +181,36 @@ class ScraperWiki(ScraperGeneric):
                 }
             )
 
-        problem_list = soup.select_one(".problem-list")
-        if problem_list is not None:
-            for card in problem_list.find_all("div", recursive=False):
+        def append_section(
+            title: str | None, problems: list[dict[str, str | None]]
+        ) -> None:
+            if not problems:
+                return
+            if title is None and sections and sections[-1]["title"] is None:
+                sections[-1]["problems"].extend(problems)
+            else:
+                sections.append({"title": title, "problems": problems})
+
+        # An index can contain several lists: device-specific problems first,
+        # then related problems from a parent category (e.g. iPhone 11 then
+        # generic iPhone problems). The preceding h2, when present, is the
+        # section title (e.g. "Related Apple iPhone Problems"). Trailing
+        # headings such as "Didn't see your problem?" appear after the list
+        # and are therefore never attached to a section.
+        current_title: str | None = None
+        for element in soup.find_all(["h2", "div"]):
+            if element.name == "h2":
+                current_title = element.get_text(" ", strip=True) or None
+                continue
+            if "problem-list" not in (element.get("class") or []):
+                continue
+
+            section_problems: list[dict[str, str | None]] = []
+            for card in element.find_all("div", recursive=False):
                 link = card.find("a", href=True)
                 if link is None:
                     continue
-                title_tag = card.find("h3")
+                title_tag = card.find(["h3", "h4"])
                 summary_tag = card.find("p")
                 images = card.find_all("img")
                 image_tag = images[0] if images else None
@@ -189,6 +218,7 @@ class ScraperWiki(ScraperGeneric):
                 badges_tag = card.select_one(".badges")
                 device_tag = card.select_one(".device")
                 add_problem(
+                    section_problems,
                     link["href"],
                     (
                         title_tag.get_text(" ", strip=True)
@@ -205,17 +235,22 @@ class ScraperWiki(ScraperGeneric):
                         else None
                     ),
                 )
-            if problems:
-                return problems
+            append_section(current_title, section_problems)
+            current_title = None
+
+        if sections:
+            return sections
 
         # Fallback for a changed layout: collect every problem link on the page
+        fallback_problems: list[dict[str, str | None]] = []
         for link in soup.find_all("a", href=True):
-            href = link["href"]
+            href = _normalize_problem_href(link["href"])
             if not TROUBLESHOOTING_PROBLEM_RE.match(href):
                 continue
-            title_tag = link.find("h3")
+            title_tag = link.find(["h3", "h4"])
             summary_tag = link.find_next("p")
             add_problem(
+                fallback_problems,
                 href,
                 (
                     title_tag.get_text(" ", strip=True)
@@ -228,7 +263,8 @@ class ScraperWiki(ScraperGeneric):
                 "",
                 None,
             )
-        return problems
+        append_section(None, fallback_problems)
+        return sections
 
     def _get_troubleshooting_index_content(self, item_key: str) -> Any:
         category = item_key.split("/", 1)[1]
@@ -240,7 +276,10 @@ class ScraperWiki(ScraperGeneric):
             )
             return None
 
-        problems = self._extract_troubleshooting_problems(soup, category)
+        sections = self._extract_troubleshooting_sections(soup)
+        problems: list[dict[str, str | None]] = [
+            problem for section in sections for problem in section["problems"]
+        ]
         if not problems:
             logger.warning(f"No troubleshooting problems found for {category}")
             return None
@@ -257,6 +296,7 @@ class ScraperWiki(ScraperGeneric):
             "title": title,
             "description": description,
             "problems": problems,
+            "sections": sections,
         }
 
     def get_one_item_content(
