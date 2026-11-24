@@ -23,24 +23,21 @@ docker run -v my_dir:/output ghcr.io/openzim/ifixit ifixit2zim --help
 
 ### Python
 
-`ifixit2zim` is a Python3 (**3.6+**) software. If you are not using the [Docker](https://docker.com) image, you are advised to use it in a virtual environment to avoid installing software dependencies on your system. In addition to Python3, you also need to have an up-to-date installation of pip, setuptools and wheel as recommanded [here](https://packaging.python.org/en/latest/tutorials/installing-packages/#id14) (wheel is important since you will have to build some dependencies).
+`ifixit2zim` requires **Python 3.14**. The project uses [Hatch](https://hatch.pypa.io/) as its build backend and environment manager. If you are not using the [Docker](https://docker.com) image, install Hatch once (for example with `pip install hatch`) and use it to run from source in an isolated environment:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+# running from source
+hatch shell
+python3 -m ifixit2zim --help
 
 # using published version
 pip3 install ifixit2zim
 ifixit2zim --help
-
-# running from source
-pip3 install -e ".[dev]"
-python3 ifixit2zim/ --help
 ```
 
-Call `deactivate` to quit the virtual environment.
+Exit the Hatch shell with `exit`.
 
-See `requirements.txt` for the list of python dependencies.
+See `pyproject.toml` for the list of Python dependencies.
 
 
 ## Contributing
@@ -51,51 +48,54 @@ Please open an issue on Github and/or submit a Pull-request.
 
 This project adheres to openZIM's [Contribution Guidelines](https://github.com/openzim/overview/wiki/Contributing).
 
-This project has implemented openZIM's [Python bootstrap, conventions and policies](https://github.com/openzim/_python-bootstrap/blob/main/docs/Policy.md) **v1.0.0**.
+This project adheres to openZIM's [Python bootstrap, conventions and policies](https://github.com/openzim/_python-bootstrap/blob/main/docs/Policy.md) **v2.0.0**.
 
 ### Guidelines
 
 - Don't take assigned issues. Comment if those get staled.
 - If your contribution is far from trivial, open an issue to discuss it first.
-- Ensure your code passed [black formatting](https://pypi.org/project/black/), [isort](https://pypi.org/project/isort/) and [flake8](https://pypi.org/project/flake8/) (88 chars)
+- Ensure your code passes linting and formatting with [Ruff](https://docs.astral.sh/ruff/) and strict static type checking with [Pyright](https://microsoft.github.io/pyright/).
+
+### Quality assurance
+
+The project uses [Ruff](https://docs.astral.sh/ruff/) for both linting and formatting, and [Pyright](https://microsoft.github.io/pyright/) in strict mode for static type checking. The same checks run in CI.
+
+Install the pre-commit hooks after clone so they run automatically before each commit:
+
+```bash
+pre-commit install
+```
+
+Inside the Hatch shell (see [Create an appropriate Python environment](#create-an-appropriate-python-environment)):
+
+```bash
+inv check-lint     # ruff check
+inv check-format   # ruff format --check
+inv check-type     # pyright
+inv check-all      # all of the above
+```
+
+Automatic fixes are available with `inv fix-lint`, `inv fix-format` and `inv fix-all`.
+
+Tests are run with:
+
+```bash
+inv test           # pytest
+inv coverage       # pytest with coverage report
+```
 
 ### Create an appropriate Python environment
 
-First time:
-```
-python3 -m venv .venv
-source .venv/bin/activate
-pip3 install -e ".[dev]"
-```
-
-Next times:
-```
-source .venv/bin/activate
-```
-
-### Update static assets
-
-iFixit generates hashed CSS filenames, so assets must be refreshed when the
-upstream site changes. Mirror the site with [HTTrack](https://www.httrack.com/) into `tmp/www.ifixit.com`
-```bash
-httrack https://www.ifixit.com/ --path=tmp --verbose
-````
-
-and run:
+The project uses [Hatch](https://hatch.pypa.io/) as its build backend and environment manager. Install it once (for example with `pip install hatch`), then from the repository root run:
 
 ```bash
-python scripts/update_assets.py --mirror-dir tmp/www.ifixit.com
+hatch shell
 ```
 
-The script discovers the current CSS URLs from the mirrored HTML, downloads
-the CSS files and their `url(...)` dependencies, rewrites those URLs to local
-`../assets/...` paths, updates the template references to the new hashed
-filenames, and removes stale managed CSS files. Use `--dry-run` to preview the
-changes.
 
 
-NOTA : there is some limitations to the execution of the underlying libzim library on
-MacOS with some known bugs. The main issue is that the full-text index is not working,
+NOTA: there are some limitations to the execution of the underlying libzim library on
+macOS with some known bugs. The main issue is that the full-text index is not working,
 so this shouldn't be a problem for quick tests. In doubt, execute the scraper in a
 Docker container as explained below.
 
@@ -111,6 +111,7 @@ Then run the scraper with CLI arguments needed for your test (everything after `
 For instance, if you want to run a scrape of only the `Apple_PDA` category, including its guides,
 in French :
 ```
+mkdir -p output
 docker run -it -v $(pwd)/output:/output --rm local-ifixit ifixit2zim --language fr --output /output --tmp-dir /tmp --category Apple_PDA
 ```
 
@@ -121,10 +122,34 @@ This will produce a ZIM in the output folder of your current directory.
 To test if the ZIM produced is OK, you should run kiwix-serve, once more with Docker.
 
 For instance, if you produced a file named `ifixit_fr_selection_2022-04.zim` in the
-`output` subfolder, and port 1256 is unused on your machine, you might run:
-```
-docker run -it --rm -v $(pwd)/output:/data -p 1256:80 ghcr.io/kiwix/kiwix-tools kiwix-serve /data/ifixit_fr_selection_2022-04.zim
-```
-And then navigate to (https://localhost:1256) on your favorite browser.
+`output` subfolder, and port 37000 is unused on your machine, you might run:
 
-Once test are complete, you might stop the Docker container by pressing Ctrl-C
+```bash
+docker run -it --rm -v $(pwd)/output:/data -p 37000:8080 ghcr.io/kiwix/kiwix-serve ifixit_fr_selection_2022-04.zim
+```
+
+And then navigate to http://localhost:37000 on your favorite browser.
+
+Once tests are complete, you may stop the Docker container by pressing Ctrl-C.
+
+### Update static assets
+
+**Advanced users only.** This is only needed when upstream iFixit changes its
+frontend. iFixit generates hashed CSS filenames, so assets must be refreshed when the
+upstream site changes. Mirror the site with [HTTrack](https://www.httrack.com/) into `tmp/www.ifixit.com`
+```bash
+mkdir -p tmp
+httrack https://www.ifixit.com/ --path=tmp --verbose
+```
+
+and run:
+
+```bash
+python scripts/update_assets.py --mirror-dir tmp/www.ifixit.com
+```
+
+The script discovers the current CSS URLs from the mirrored HTML, downloads
+the CSS files and their `url(...)` dependencies, rewrites those URLs to local
+`../assets/...` paths, updates the template references to the new hashed
+filenames, and removes stale managed CSS files. Use `--dry-run` to preview the
+changes.
