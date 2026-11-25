@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   upstream CSS assets and update template references
 - Scrape and render WIKI-namespace pages (troubleshooting tips and related wiki
   pages), troubleshooting index pages, and localize links to them
+- Add an integration test suite that scrapes a small part of iFixit, checks the ZIM
+  with zimcheck and runs in the Tests workflow and every day (#121)
 
 ### Changed
 
