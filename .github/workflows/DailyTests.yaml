@@ -1,0 +1,53 @@
+name: Daily Tests
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  run-integration-tests:
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: Retrieve source code
+        uses: actions/checkout@v7
+
+      - name: Build the Docker image
+        run: |
+          docker build -t local-ifixit .
+
+      - name: Run scraper
+        run: |
+          mkdir -p output
+          docker run --rm -v "$PWD/output:/output" local-ifixit ifixit2zim \
+            --language en \
+            --output /output \
+            --tmp-dir /tmp \
+            --name ifixit_en_test \
+            --title "iFixit Test" \
+            --description "Test ZIM for iFixit" \
+            --zim-file tests_en_ifixit.zim \
+            --max-items-per-type 2
+
+      - name: Archive ZIM
+        uses: actions/upload-artifact@v7
+        with:
+          name: tests_en_ifixit.zim
+          path: output/tests_en_ifixit.zim
+          retention-days: 30
+
+      - name: Run zimcheck
+        run: |
+          docker run --rm -v "$PWD/output:/output:ro" \
+            ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/tests_en_ifixit.zim
+
+      - name: Run integration test suite
+        if: ${{ !cancelled() }}
+        run: |
+          docker run --rm \
+            -v "$PWD/tests-integration:/src/tests-integration:ro" \
+            -v "$PWD/output:/output:ro" \
+            -e ZIM_FILE_PATH=/output/tests_en_ifixit.zim \
+            local-ifixit \
+            bash -c "pip install --no-cache-dir pytest && pytest -v /src/tests-integration"
