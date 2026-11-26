@@ -15,8 +15,12 @@
             {% if troubleshooter['description'] %}
             <p class="summary originalText">{{troubleshooter['description']}}</p>
             {% endif %}
+            {% for section in troubleshooter['sections'] %}
+            {% if section['title'] %}
+            <h2 class="troubleshooting-section-title">{{section['title']}}</h2>
+            {% endif %}
             <div class="troubleshooting-problem-grid">
-              {% for problem in troubleshooter['problems'] %}
+              {% for problem in section['problems'] %}
               <a href="{{rel_prefix}}{{problem['link']}}" class="troubleshooting-problem-card">
                 <div class="troubleshooting-problem-card-body">
                   {% if problem['image_url'] %}
@@ -47,6 +51,7 @@
               </a>
               {% endfor %}
             </div>
+            {% endfor %}
             <div class="clearer"></div>
           </div>
         </div>

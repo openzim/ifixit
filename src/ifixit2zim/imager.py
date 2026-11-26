@@ -17,9 +17,8 @@ from zimscraperlib.download import stream_file
 from zimscraperlib.image.optimization import OptimizeWebpOptions, optimize_webp
 from zimscraperlib.zim.creator import Creator
 
-from ifixit2zim.constants import IMAGES_ENCODER_VERSION
+from ifixit2zim.constants import IMAGES_ENCODER_VERSION, Configuration
 from ifixit2zim.executor import Executor
-from ifixit2zim.scraper import Configuration
 from ifixit2zim.shared import logger
 from ifixit2zim.utils import (
     IFixitRequestClient,

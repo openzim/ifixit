@@ -1,3 +1,12 @@
+.troubleshooting-section-title {
+  margin: 32px 0 16px;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 6px;
+  color: #212426;
+  font-size: 26px;
+  font-weight: 700;
+}
+
 .troubleshooting-problem-grid {
   display: grid;
   grid-template-columns: 1fr;
