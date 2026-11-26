@@ -88,11 +88,22 @@ class Processor:
     ) -> None:
         self._get_wiki_link_from_props = get_wiki_link_from_props
 
+    @property
+    def get_item_link_from_props(self) -> Callable[..., str]:
+        return self._get_item_link_from_props
+
+    @get_item_link_from_props.setter
+    def get_item_link_from_props(
+        self, get_item_link_from_props: Callable[..., str]
+    ) -> None:
+        self._get_item_link_from_props = get_item_link_from_props
+
     _get_guide_link_from_props: Callable[..., str]
     _get_category_link_from_props: Callable[..., str]
     _get_info_link_from_props: Callable[..., str]
     _get_user_link_from_props: Callable[..., str]
     _get_wiki_link_from_props: Callable[..., str]
+    _get_item_link_from_props: Callable[..., str]
 
     # no-qa flag is mandatory because this is used in a Jinja filter and arg names are
     # never passed by Jinja
@@ -205,6 +216,7 @@ class Processor:
         r"(?P<troubleshootingid>\d+))"
         r"|(?:(?P<troubleshootingindex>Troubleshooting)/"
         r"(?P<troubleshootingindexcategory>[^/?#]+))"
+        r"|(?:(?P<item>Item)/(?P<itemtitle>[^/?#]+))"
         r"|(?:(?P<kind>"
         + "|".join(NOT_YET_AVAILABLE + UNAVAILABLE_OFFLINE)
         + r")(?:/.+)?)"
@@ -313,6 +325,14 @@ class Processor:
         link = self.get_wiki_link_from_props(wiki_path=href)
         return f"{rel_prefix}{link}"
 
+    def _process_href_regex_item(
+        self, href: str, rel_prefix: str, match: re.Match[str]
+    ) -> str | None:
+        if not match.group("item"):
+            return None
+        link = self.get_item_link_from_props(item_path=href)
+        return f"{rel_prefix}{link}"
+
     def _process_href_regex_kind(
         self, href: str, rel_prefix: str, match: re.Match[str]
     ) -> str | None:
@@ -386,6 +406,9 @@ class Processor:
                 href=href, rel_prefix=rel_prefix, match=strict_match
             )
             or self._process_href_regex_troubleshooting_index(
+                href=href, rel_prefix=rel_prefix, match=strict_match
+            )
+            or self._process_href_regex_item(
                 href=href, rel_prefix=rel_prefix, match=strict_match
             )
             or self._process_href_regex_kind(

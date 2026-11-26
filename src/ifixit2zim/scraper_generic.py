@@ -90,6 +90,9 @@ class ScraperGeneric(ABC):
     ) -> None:
         pass
 
+    def finalize(self) -> None:
+        """Hook called after every scraper queue has been drained."""
+
     def add_item_to_scrape(
         self,
         item_key: str | int,

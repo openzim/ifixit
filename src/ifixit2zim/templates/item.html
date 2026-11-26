@@ -1,0 +1,94 @@
+{% set bodyFullWidth = True %}{% extends "base.html" %} {% block title %}{{item['title']}}{% endblock title%}
+{% block specific_head %}
+<link type="text/css" href="{{rel_prefix}}assets/Wiki-common-qepl4IGOkwqOoA26Vb-xHw.css" rel="stylesheet" as="style">
+<link type="text/css" href="{{rel_prefix}}assets/item.css" rel="stylesheet" as="style">
+{% endblock specific_head%} {% block content %}
+<div id="page">
+  <div id="main">
+    <div id="mainBody">
+      <!-- MAIN BODY -->
+      <div id="contentFloat">
+        <div id="content">
+          <div class="page-container articleContainer item">
+            {% if item.get('image') %}
+            <div class="wikiInfo">
+              <img src="{{rel_prefix}}{{item | get_image_url(for_wiki=True) | get_image_path}}"
+                alt="{{item['display_title']}} Main Image" itemprop="image">
+            </div>
+            {% endif %}
+            <h1 class="pageTitle wikiTitle originalText bordered">{{item['display_title']}}</h1>
+            {% if item.get('description') %}
+            <p class="summary originalText">{{item['description']}}</p>
+            {% endif %}
+
+            {% if item.get('suppliers') %}
+            <table class="table table-bordered table-condensed suppliers-table">
+              <thead>
+                <tr>
+                  <th><span class="suppliers-table-heading-text-type">Type</span></th>
+                  <th><span class="suppliers-table-heading-text-part_#">Part #</span></th>
+                  <th><span class="suppliers-table-heading-text-supplier">Supplier</span></th>
+                  <th><span class="suppliers-table-heading-text-url">URL</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for supplier in item['suppliers'] %}
+                <tr>
+                  <td>{{supplier.get('type', '')}}</td>
+                  <td>{{supplier.get('part_#', '')}}</td>
+                  <td>{{supplier.get('supplier', '')}}</td>
+                  <td>
+                    {% if supplier.get('url') %}
+                    <a {{ ('href="' + supplier['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe }}>Buy</a>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
+
+            <div id="Wiki_Details">
+              <div id="wikiRenderedText" class="wikiRenderedText renderedText originalText" itemprop="text">
+                {{item.get('contents_rendered', '') | cleanup_rendered_content(rel_prefix) | safe}}
+              </div>
+            </div>
+            <div class="clearer"></div>
+          </div>
+
+          {% if guide_references %}
+          <div class="page-container refItems">
+            <div id="guideItemList">
+              <h2>
+                Guide References
+                <small class="itemCount right">({{guide_references | length}})</small>
+              </h2>
+              <table class="table">
+                <tbody>
+                  {% for reference in guide_references %}
+                  <tr>
+                    <td class="title">
+                      <a href="{{rel_prefix}}{{reference['url']}}">{{reference['title']}}</a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div id="guideReferenceCount">
+              <p>Showing {{guide_references | length}} Guide References</p>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <!-- /mainBody -->
+
+    <div class="clearer"></div>
+  </div>
+  <!-- /main -->
+</div>
+<!-- /page -->
+{% endblock content%}

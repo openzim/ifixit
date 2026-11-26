@@ -831,7 +831,6 @@ NOT_YET_AVAILABLE = [
     "document",
     "help",
     "aide",
-    "item",
     "mac-parts",
     "troubleshoot",
     "userwiki",

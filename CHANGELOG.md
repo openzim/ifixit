@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   upstream CSS assets and update template references
 - Scrape and render WIKI-namespace pages (troubleshooting tips and related wiki
   pages), troubleshooting index pages, and localize links to them
+- Scrape and render parts/tools pages using items wiki (#17)
 
 ### Changed
 

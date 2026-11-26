@@ -44,6 +44,7 @@ from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.scraper_guide import ScraperGuide
 from ifixit2zim.scraper_homepage import ScraperHomepage
 from ifixit2zim.scraper_info import ScraperInfo
+from ifixit2zim.scraper_item import ScraperItem
 from ifixit2zim.scraper_user import ScraperUser
 from ifixit2zim.scraper_wiki import ScraperWiki
 from ifixit2zim.shared import logger
@@ -266,15 +267,22 @@ class IFixit2Zim:
         self.scraper_info = ScraperInfo(context=context)
         self.scraper_wiki = ScraperWiki(context=context)
         self.scraper_user = ScraperUser(context=context)
+        self.scraper_item = ScraperItem(context=context)
+        self.scraper_guide.item_reference_recorder = (
+            self.scraper_item.record_guide_reference
+        )
 
         self.scrapers.extend(
             [
                 self.scraper_homepage,
-                self.scraper_category,
+                # Guides are processed before categories so category tool links
+                # can reuse the product URL -> Item page mapping from guides.
                 self.scraper_guide,
+                self.scraper_category,
                 self.scraper_info,
                 self.scraper_wiki,
                 self.scraper_user,
+                self.scraper_item,
             ]
         )
 
@@ -292,6 +300,9 @@ class IFixit2Zim:
         )
         self.processor.get_user_link_from_props = (
             self.scraper_user.get_user_link_from_props
+        )
+        self.processor.get_item_link_from_props = (
+            self.scraper_item.get_item_link_from_props
         )
 
         filters = cast(dict[str, Callable[..., Any]], self.env.filters)
@@ -312,6 +323,11 @@ class IFixit2Zim:
         filters["get_wiki_link_from_props"] = self.scraper_wiki.get_wiki_link_from_props
         filters["get_user_link_from_obj"] = self.scraper_user.get_user_link_from_obj
         filters["get_user_link_from_props"] = self.scraper_user.get_user_link_from_props
+        filters["get_item_link_from_obj"] = self.scraper_item.get_item_link_from_obj
+        filters["get_item_link_from_product"] = (
+            self.scraper_item.get_item_link_from_product
+        )
+        filters["get_item_link_from_props"] = self.scraper_item.get_item_link_from_props
         filters["guides_in_progress"] = self.processor.guides_in_progress
         filters["category_count_parts"] = self.processor.category_count_parts
         filters["category_count_tools"] = self.processor.category_count_tools
@@ -393,6 +409,9 @@ class IFixit2Zim:
                             needs_rerun = True
                 if not needs_rerun:
                     break
+
+            for scraper in self.scrapers:
+                scraper.finalize()
 
             logger.info("Awaiting images")
             self.img_executor.shutdown()
