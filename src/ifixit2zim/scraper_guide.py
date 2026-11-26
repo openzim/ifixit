@@ -1,5 +1,6 @@
 import urllib.parse
-from typing import Any
+from collections.abc import Callable
+from typing import Any, cast
 
 from ifixit2zim.constants import (
     DIFFICULTY_EASY,
@@ -20,6 +21,10 @@ from ifixit2zim.shared import logger
 class ScraperGuide(ScraperGeneric):
     def __init__(self, context: Context) -> None:
         super().__init__(context)
+        # Injected by IFixit2Zim; optional so the scraper stays standalone.
+        self.item_reference_recorder: (
+            Callable[[str, str | None, str, str], None] | None
+        ) = None
 
     def setup(self) -> None:
         self.guide_template = self.env.get_template("guide.html")
@@ -166,6 +171,29 @@ class ScraperGuide(ScraperGeneric):
             target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url': path})}",
         )
 
+    def _record_item_references(
+        self, guide_content: dict[str, Any], guide_path: str
+    ) -> None:
+        recorder = self.item_reference_recorder
+        if recorder is None:
+            return
+        guide_title = str(
+            guide_content.get("title") or guide_content.get("subject") or ""
+        )
+        if not guide_title or not guide_path:
+            return
+        guide_url = urllib.parse.quote(guide_path)
+        for field_name in ("parts", "tools"):
+            items = cast(list[dict[str, Any]], guide_content.get(field_name) or [])
+            for item in items:
+                item_url = item.get("wiki_url")
+                if not isinstance(item_url, str) or not item_url:
+                    continue
+                product_url = item.get("url")
+                if not isinstance(product_url, str) or not product_url:
+                    product_url = None
+                recorder(item_url, product_url, guide_title, guide_url)
+
     def process_one_item(
         self,
         item_key: str,  # noqa: ARG002
@@ -279,10 +307,12 @@ class ScraperGuide(ScraperGeneric):
             metadata=self.metadata,
         )
 
+        guide_path = self._build_guide_path(
+            guideid=guide_content["guideid"], guidetitle=guide_content["title"]
+        )
         self.processor.add_html_item(
-            path=self._build_guide_path(
-                guideid=guide_content["guideid"], guidetitle=guide_content["title"]
-            ),
+            path=guide_path,
             title=guide_content["title"],
             content=guide_rendered,
         )
+        self._record_item_references(guide_content, guide_path)

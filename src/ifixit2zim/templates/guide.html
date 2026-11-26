@@ -203,7 +203,8 @@
                         class="item-list-parts flex flex-col list-none m-0 p-0 pt-3 w-full shrink-0 break-words"
                       >
                         {% for part in guide['parts'] %}
-                        {% set urlhref = (('href="' + part['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe) %}
+                        {% set item_url = part.get('wiki_url') or part['url'] %}
+                        {% set urlhref = (('href="' + item_url + '"') | cleanup_rendered_content(rel_prefix) | safe) %}
                         <li
                           class="flex flex-col gap-2 w-full p-3 border-t border-x first:rounded-t last:rounded-b last:border-b bg-white border-gray-200"
                           itemprop="supply"
@@ -247,7 +248,8 @@
                         class="item-list-tools flex flex-col list-none m-0 p-0 pt-3 w-full shrink-0 break-words"
                       >
                         {% for tool in guide['tools'] %}
-                        {% set urlhref = (('href="' + tool['url'] + '"') | cleanup_rendered_content(rel_prefix) | safe) %}
+                        {% set item_url = tool.get('wiki_url') or tool['url'] %}
+                        {% set urlhref = (('href="' + item_url + '"') | cleanup_rendered_content(rel_prefix) | safe) %}
                         <li
                           class="flex flex-col gap-2 w-full p-3 border-t border-x first:rounded-t last:rounded-b last:border-b bg-white border-gray-200"
                           itemprop="supply"
