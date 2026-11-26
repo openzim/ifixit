@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   copyright and licensing notice.
 - Rename the HTTP utility class to `IFixitRequestClient`
 - Adhere to openZIM's python bootstrap convention (#130)
+- Only install necessary apt packages needed by zimscraperlib at runtime (#95)
 
 ### Fixed
 
