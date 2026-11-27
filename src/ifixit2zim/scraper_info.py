@@ -125,9 +125,11 @@ class ScraperInfo(ScraperGeneric):
         redirect_kind: str,
     ) -> None:
         path = self._build_info_path(item_data["info_title"])
-        self.processor.add_redirect(
+        self.add_dynamic_html_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}",
+            kind=redirect_kind,
+            value=path,
+            title=item_data["info_title"],
         )
 
     def process_one_item(

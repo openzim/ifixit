@@ -15,17 +15,17 @@
 
                   <h1 class="pageTitle wikiTitle originalText bordered">
                   {% if kind == 'not_scrapped' %}
-                  Oups 
+                  Oups
                   {% elif kind == 'external_content' %}
                   External content
                   {% elif kind == 'unavailable_offline' %}
-                  Oups 
+                  Oups
                   {% elif kind == 'not_yet_available' %}
-                  Oups 
+                  Oups
                   {% elif kind == 'missing' %}
-                  Missing item 
+                  Missing item
                   {% elif kind == 'error' %}
-                  Oups 
+                  Oups
                   {% else %}
                   {{ raise("unsupported kind: " + kind)}}
                   {% endif %}
@@ -33,54 +33,54 @@
 
                   <p class="summary originalText">
                      {% if kind == 'not_scrapped' %}
-                     This content has not been scrapped. 
+                     This content has not been scrapped.
                      {% elif kind == 'external_content' %}
                      This link is targeting an EXTERNAL content, not available for offline browsing.
                      {% elif kind == 'unavailable_offline' %}
-                     This content cannot be made available offline. 
+                     This content cannot be made available offline.
                      {% elif kind == 'not_yet_available' %}
-                     This content is not (yet) available offline. 
+                     This content is not (yet) available offline.
                      {% elif kind == 'missing' %}
-                     This content is missing. 
+                     This content is missing.
                      {% elif kind == 'error' %}
-                     This content is missing due to an error. 
+                     This content is missing due to an error.
                      {% endif %}
                   </p>
 
                   <div id="Wiki_Details">
                      <div id="wikiRenderedText" class="wikiRenderedText renderedText originalText">
                         <p>
-                           
+
                      {% if kind == 'not_scrapped' %}
                      Due to the scrapper configuration, only partial content has been scrapped and this content was not selected for this ZIM version.
                      If you are interested in this content, please use another ZIM version.
                      {% elif kind == 'external_content' %}
                      If you want/can, you might go there by clicking on the following link:
-                        <a id="my_link"></a> 
+                        <a id="my_link"></a>
                      </p>
                      <p>
                   If you consider it is an essential item that should be part of the offline archive, please open an issue
-                  <a href="https://github.com/openzim/ifixit/issues">on Github</a> 
+                  <a href="https://github.com/openzim/ifixit/issues">on Github</a>
                   when you are back online, or notify Kiwix team by any other mean.
                      {% elif kind == 'unavailable_offline' %}
-                     Due to the dynamic nature of this content, it cannot be made available offline. 
+                     Due to the dynamic nature of this content, it cannot be made available offline.
                      {% elif kind == 'missing' %}
-                     This item is not accessible since we failed to retrieve it at the time we built this ZIM archive, probably becuase it has been archived or moved. 
+                     This item is not accessible since we failed to retrieve it at the time we built this ZIM archive, probably becuase it has been archived or moved.
                      {% elif kind == 'error' %}
-                     This item is not accessible due to an unexpected error at the time we built this ZIM archive. 
+                     This item is not accessible due to an unexpected error at the time we built this ZIM archive.
                      {% elif kind == 'not_yet_available' %}
-                     This content has unfortunately not yet been retrieved in the archive you are currently browsing. 
+                     This content has unfortunately not yet been retrieved in the archive you are currently browsing.
                      Current scrapper does not yet support this kind of data.
                         </p>
                         <p>
-                     If you consider it is an essential item, please open an issue <a href="https://github.com/openzim/ifixit/issues">on Github</a> 
+                     If you consider it is an essential item, please open an issue <a href="https://github.com/openzim/ifixit/issues">on Github</a>
                      when you are back online, or notify Kiwix team by any other mean.
                      {% endif %}
                         </p>
-                     {% if kind == 'not_scrapped' or kind == 'not_yet_available' or kind == 'unavailable_offline'%}
-                     Original link: <span id="my_link"></span>
+                     {% if kind in ['not_scrapped', 'not_yet_available', 'unavailable_offline', 'missing', 'error'] %}
+                     <p id="my_link_container">Original link: <span id="my_link"></span></p>
                      {% endif %}
-                        
+
 
                   </div>
 

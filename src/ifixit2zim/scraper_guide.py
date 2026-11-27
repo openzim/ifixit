@@ -166,9 +166,11 @@ class ScraperGuide(ScraperGeneric):
             logger.warning(f"Cannot add redirect for guide {guideid} in error")
             return
         path = self._build_guide_path(guideid, guidetitle)
-        self.processor.add_redirect(
+        self.add_dynamic_html_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}",
+            kind=redirect_kind,
+            value=path,
+            title=guidetitle,
         )
 
     def _record_item_references(

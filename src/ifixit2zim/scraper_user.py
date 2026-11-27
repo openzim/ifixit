@@ -122,9 +122,11 @@ class ScraperUser(ScraperGeneric):
             logger.warning(f"Cannot add redirect for user {userid} in error")
             return
         path = self._build_user_path(userid, usertitle)
-        self.processor.add_redirect(
+        self.add_dynamic_html_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}",
+            kind=redirect_kind,
+            value=path,
+            title=usertitle,
         )
 
     def process_one_item(

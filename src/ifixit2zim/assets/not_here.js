@@ -18,8 +18,8 @@ document.addEventListener("DOMContentLoaded", function(){
     const linkContainer = document.getElementById("my_link_container");
     const elink = document.getElementById("my_link");
 
-    // Redirects to this page cannot carry the original URL, since a redirect
-    // target must be an existing ZIM entry path.
+    // The page can also be reached directly without a value; hide the
+    // original-link block in that case.
     if (!value) {
         if (linkContainer) {
             linkContainer.style.display = "none";
