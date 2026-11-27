@@ -16,8 +16,41 @@ from kiwixstorage import (  # pyright: ignore[reportMissingTypeStubs]
 from requests.exceptions import HTTPError
 from zimscraperlib.download import stream_file
 
-from ifixit2zim.constants import API_PREFIX, Configuration
+from ifixit2zim.constants import (
+    API_PREFIX,
+    DYNAMIC_PAGE_ANCHOR,
+    DYNAMIC_PAGE_KINDS,
+    Configuration,
+)
 from ifixit2zim.shared import logger
+
+
+def build_dynamic_page_link(kind: str, value: str, rel_prefix: str = "") -> str:
+    """Build a link to a dynamically generated page."""
+    return (
+        f"{rel_prefix}home/{kind}"
+        f"#{DYNAMIC_PAGE_ANCHOR}={urllib.parse.quote(value, safe='')}"
+    )
+
+
+def is_dynamic_page_link(link: str) -> bool:
+    """Whether a link points to one of our dynamically generated pages."""
+    path = urllib.parse.urldefrag(link)[0].lstrip("./")
+    return path.startswith("home/") and path.removeprefix("home/") in DYNAMIC_PAGE_KINDS
+
+
+def append_fragment_to_link(link: str, fragment: str) -> str:
+    """Append an original fragment to a rewritten link.
+
+    Dynamic pages store their value in a magic anchor, so a second ``#`` would
+    start a new fragment instead of being part of the value. The fragment is
+    therefore percent-encoded into the existing magic anchor value.
+    """
+    if not fragment:
+        return link
+    if is_dynamic_page_link(link):
+        return f"{link}%23{urllib.parse.quote(fragment, safe='')}"
+    return f"{link}#{fragment}"
 
 
 def backoff_hdlr(details: Any):

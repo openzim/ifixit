@@ -16,6 +16,7 @@ from ifixit2zim.context import Context
 from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
 from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.shared import logger
+from ifixit2zim.utils import build_dynamic_page_link
 
 
 class ScraperGuide(ScraperGeneric):
@@ -89,13 +90,12 @@ class ScraperGuide(ScraperGeneric):
     def get_guide_link_from_props(
         self, guideid: str, guidetitle: str, guidelocale: str = UNKNOWN_LOCALE
     ) -> str:
-        guide_path = urllib.parse.quote(
-            self._build_guide_path(guideid=guideid, guidetitle=guidetitle)
-        )
+        raw_guide_path = self._build_guide_path(guideid=guideid, guidetitle=guidetitle)
+        guide_path = urllib.parse.quote(raw_guide_path)
         if self.configuration.no_guide:
-            return f"home/not_scrapped?url={guide_path}"
+            return build_dynamic_page_link("not_scrapped", raw_guide_path)
         if self.configuration.guides and str(guideid) not in self.configuration.guides:
-            return f"home/not_scrapped?url={guide_path}"
+            return build_dynamic_page_link("not_scrapped", raw_guide_path)
         self._add_guide_to_scrape(guideid, guidetitle, guidelocale, False)
         return guide_path
 
@@ -168,7 +168,7 @@ class ScraperGuide(ScraperGeneric):
         path = self._build_guide_path(guideid, guidetitle)
         self.processor.add_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url': path})}",
+            target_path=f"home/{redirect_kind}",
         )
 
     def _record_item_references(
