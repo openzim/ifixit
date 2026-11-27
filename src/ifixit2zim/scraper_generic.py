@@ -7,6 +7,7 @@ from schedule import run_pending
 
 from ifixit2zim.exceptions import FinalScrapingFailureError
 from ifixit2zim.shared import logger
+from ifixit2zim.utils import build_dynamic_page_link
 
 if TYPE_CHECKING:
     from jinja2 import Environment
@@ -125,6 +126,35 @@ class ScraperGeneric(ABC):
                 "key": item_key,
                 "data": item_data,
             }
+        )
+
+    def add_dynamic_html_redirect(
+        self,
+        *,
+        path: str,
+        kind: str,
+        value: str,
+        title: str = "",
+    ) -> None:
+        """Add a small HTML page redirecting to a dynamically generated page.
+
+        A ZIM redirect target is an entry path and cannot carry the original
+        URL. A real HTML page can redirect to the placeholder with the original
+        URL stored in a magic anchor instead.
+        """
+        root_prefix = "../" * path.count("/")
+        target = build_dynamic_page_link(kind, value, root_prefix)
+        content = self.env.get_template("redirect.html").render(
+            metadata=self.metadata,
+            root_prefix=root_prefix,
+            target=target,
+            title=title or path,
+        )
+        self.processor.add_html_item(
+            path=path,
+            title=title or path,
+            content=content,
+            is_front=False,
         )
 
     def add_item_missing_redirect(self, item_key: str, item_data: Any) -> None:

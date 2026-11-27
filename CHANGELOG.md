@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Render homepage collection guides and download their images
 - Format dates without requiring an installed `en_GB` locale
 - Normalize `s3+https://` optimization-cache URLs before handing them to KiwixStorage client (#131)
+- Pass dynamic values to generated pages through magic anchors instead of query
+  strings so that they are preserved by all ZIM readers (#107)
+- Redirect links to placeholder pages through a small HTML redirect page so the
+  original URL is preserved, since a ZIM redirect target cannot carry it
 
 ## [0.3.0] - 2024-03-02
 

@@ -145,11 +145,10 @@ class ScraperItem(ScraperGeneric):
         item_data: dict[str, Any],  # noqa: ARG002
         redirect_kind: str,
     ) -> None:
-        self.processor.add_redirect(
+        self.add_dynamic_html_redirect(
             path=item_key,
-            target_path=(
-                f"home/{redirect_kind}?{urllib.parse.urlencode({'url': item_key})}"
-            ),
+            kind=redirect_kind,
+            value=item_key,
         )
 
     def process_one_item(

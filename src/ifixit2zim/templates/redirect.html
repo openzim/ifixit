@@ -1,0 +1,28 @@
+{% set rel_prefix=root_prefix %}{% set bodyFullWidth = True %}{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block specific_head %}
+<meta http-equiv="refresh" content="0; url={{ target }}">
+{% endblock specific_head %}
+{% block content %}
+<div id="page">
+   <div id="main">
+      <div id="mainBody">
+         <div id="contentFloat">
+            <div id="content">
+               <div class="container articleContainer wiki">
+                  <h1 class="pageTitle wikiTitle originalText bordered">
+                     Redirecting
+                  </h1>
+                  <p class="summary originalText">
+                     You are being redirected. If nothing happens,
+                     <a href="{{ target }}">click here to continue</a>.
+                  </p>
+               </div>
+            </div>
+         </div>
+         <div class="clearer"></div>
+      </div> <!-- /mainBody -->
+      <div class="clearer"></div>
+   </div> <!-- /main -->
+</div> <!-- /page -->
+{% endblock content %}

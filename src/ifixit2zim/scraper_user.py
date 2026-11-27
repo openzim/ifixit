@@ -6,6 +6,7 @@ from ifixit2zim.context import Context
 from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
 from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.shared import logger
+from ifixit2zim.utils import build_dynamic_page_link
 
 
 class ScraperUser(ScraperGeneric):
@@ -65,13 +66,12 @@ class ScraperUser(ScraperGeneric):
         return self.get_user_link_from_props(userid=userid, usertitle=usertitle)
 
     def get_user_link_from_props(self, userid: str, usertitle: str) -> str:
-        user_path = urllib.parse.quote(
-            self._build_user_path(userid=userid, usertitle=usertitle)
-        )
+        raw_user_path = self._build_user_path(userid=userid, usertitle=usertitle)
+        user_path = urllib.parse.quote(raw_user_path)
         if self.configuration.no_user:
-            return f"home/not_scrapped?url={user_path}"
+            return build_dynamic_page_link("not_scrapped", raw_user_path)
         if self.configuration.users and str(userid) not in self.configuration.users:
-            return f"home/not_scrapped?url={user_path}"
+            return build_dynamic_page_link("not_scrapped", raw_user_path)
         self._add_user_to_scrape(userid, usertitle, False)
         return user_path
 
@@ -122,9 +122,11 @@ class ScraperUser(ScraperGeneric):
             logger.warning(f"Cannot add redirect for user {userid} in error")
             return
         path = self._build_user_path(userid, usertitle)
-        self.processor.add_redirect(
+        self.add_dynamic_html_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url': path})}",
+            kind=redirect_kind,
+            value=path,
+            title=usertitle,
         )
 
     def process_one_item(

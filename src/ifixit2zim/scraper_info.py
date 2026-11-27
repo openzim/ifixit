@@ -6,6 +6,7 @@ from ifixit2zim.context import Context
 from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
 from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.shared import logger
+from ifixit2zim.utils import build_dynamic_page_link
 
 
 class ScraperInfo(ScraperGeneric):
@@ -52,11 +53,12 @@ class ScraperInfo(ScraperGeneric):
         return self.get_info_link_from_props(info_title=info_title)
 
     def get_info_link_from_props(self, info_title: str) -> str:
-        info_path = urllib.parse.quote(self._build_info_path(info_title))
+        raw_info_path = self._build_info_path(info_title)
+        info_path = urllib.parse.quote(raw_info_path)
         if self.configuration.no_info:
-            return f"home/not_scrapped?url={info_path}"
+            return build_dynamic_page_link("not_scrapped", raw_info_path)
         if info_title in UNAVAILABLE_OFFLINE_INFOS:
-            return f"home/unavailable_offline?url={info_path}"
+            return build_dynamic_page_link("unavailable_offline", raw_info_path)
         info_key = self._get_info_key_from_title(info_title)
         if self.configuration.infos:
             is_not_included = True
@@ -65,7 +67,7 @@ class ScraperInfo(ScraperGeneric):
                 if other_info_key == info_key:
                     is_not_included = False
             if is_not_included:
-                return f"home/not_scrapped?url={info_path}"
+                return build_dynamic_page_link("not_scrapped", raw_info_path)
         self._add_info_to_scrape(info_key, info_title, False)
         return info_path
 
@@ -123,9 +125,11 @@ class ScraperInfo(ScraperGeneric):
         redirect_kind: str,
     ) -> None:
         path = self._build_info_path(item_data["info_title"])
-        self.processor.add_redirect(
+        self.add_dynamic_html_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url': path})}",
+            kind=redirect_kind,
+            value=path,
+            title=item_data["info_title"],
         )
 
     def process_one_item(

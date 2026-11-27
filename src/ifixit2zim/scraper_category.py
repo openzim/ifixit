@@ -6,6 +6,7 @@ from ifixit2zim.context import Context
 from ifixit2zim.exceptions import UnexpectedDataKindExceptionError
 from ifixit2zim.scraper_generic import ScraperGeneric
 from ifixit2zim.shared import logger
+from ifixit2zim.utils import build_dynamic_page_link
 
 
 class ScraperCategory(ScraperGeneric):
@@ -52,9 +53,10 @@ class ScraperCategory(ScraperGeneric):
         return self.get_category_link_from_props(category_title=category_title)
 
     def get_category_link_from_props(self, category_title: str) -> str:
-        category_path = urllib.parse.quote(self._build_category_path(category_title))
+        raw_category_path = self._build_category_path(category_title)
+        category_path = urllib.parse.quote(raw_category_path)
         if self.configuration.no_category:
-            return f"home/not_scrapped?url={category_path}"
+            return build_dynamic_page_link("not_scrapped", raw_category_path)
         category_key = self._get_category_key_from_title(category_title)
         if self.configuration.categories:
             is_not_included = True
@@ -63,7 +65,7 @@ class ScraperCategory(ScraperGeneric):
                 if other_category_key == category_key:
                     is_not_included = False
             if is_not_included:
-                return f"home/not_scrapped?url={category_path}"
+                return build_dynamic_page_link("not_scrapped", raw_category_path)
         self._add_category_to_scrape(category_key, category_title, False)
         return category_path
 
@@ -132,9 +134,11 @@ class ScraperCategory(ScraperGeneric):
         redirect_kind: str,
     ) -> None:
         path = self._build_category_path(item_data["category_title"])
-        self.processor.add_redirect(
+        self.add_dynamic_html_redirect(
             path=path,
-            target_path=f"home/{redirect_kind}?{urllib.parse.urlencode({'url': path})}",
+            kind=redirect_kind,
+            value=path,
+            title=item_data["category_title"],
         )
 
     def process_one_item(
