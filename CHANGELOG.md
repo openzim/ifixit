@@ -45,6 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   strings so that they are preserved by all ZIM readers (#107)
 - Redirect links to placeholder pages with their plain path, since a ZIM
   redirect target cannot carry the original URL
+- Redirect links to items left unscrapped because of `--max-items-per-type` to the
+  not-scrapped page, avoiding dangling links in the ZIM (#137)
+- Compute the relative asset prefix of info pages from their actual path so
+  link to assets work correctly (#138)
 
 ## [0.3.0] - 2024-03-02
 

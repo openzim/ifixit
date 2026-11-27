@@ -88,7 +88,9 @@ def test_normalize_problem_href(href: str, expected: str) -> None:
 
 
 def _make_scraper(soup: BeautifulSoup) -> ScraperWiki:
-    configuration = SimpleNamespace(main_url=urlparse("https://www.ifixit.com"))
+    configuration = SimpleNamespace(
+        main_url=urlparse("https://www.ifixit.com"), max_items_per_type=0
+    )
 
     def fake_get_soup(path: str) -> tuple[Any, list[str]]:
         return soup, [path]

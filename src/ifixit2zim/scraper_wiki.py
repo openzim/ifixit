@@ -82,11 +82,13 @@ class ScraperWiki(ScraperGeneric):
             )
         wiki_url = wiki["url"]
         wiki_path = self._build_wiki_path(wiki_url)
+        self.record_item_link(wiki_path, wiki_path)
         self._add_wiki_to_scrape(wiki_path, wiki_url)
         return urllib.parse.quote(wiki_path)
 
     def get_wiki_link_from_props(self, wiki_path: str) -> str:
         build_path = self._build_wiki_path(wiki_path)
+        self.record_item_link(build_path, build_path)
         self._add_wiki_to_scrape(build_path, wiki_path)
         return urllib.parse.quote(build_path)
 

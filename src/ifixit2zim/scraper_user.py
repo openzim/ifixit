@@ -72,6 +72,7 @@ class ScraperUser(ScraperGeneric):
             return build_dynamic_page_link("not_scrapped", raw_user_path)
         if self.configuration.users and str(userid) not in self.configuration.users:
             return build_dynamic_page_link("not_scrapped", raw_user_path)
+        self.record_item_link(userid, raw_user_path)
         self._add_user_to_scrape(userid, usertitle, False)
         return user_path
 

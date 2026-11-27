@@ -413,6 +413,12 @@ class IFixit2Zim:
             for scraper in self.scrapers:
                 scraper.finalize()
 
+            # Items still queued have no ZIM entry (limit reached or added to an
+            # already-processed scraper). Redirect their links to home/not_scrapped
+            # instead of leaving dangling links in the ZIM.
+            for scraper in self.scrapers:
+                scraper.add_redirects_for_unscrapped_items()
+
             logger.info("Awaiting images")
             self.img_executor.shutdown()
 

@@ -23,6 +23,7 @@ class ScraperGeneric(ABC):
     expected_items_keys: dict[str, dict[str, Any]]
     unexpected_items_keys: dict[str, dict[str, Any]]
     items_queue: Queue[dict[str, Any]]
+    item_links: dict[str, set[str]]
     missing_items_keys: set[str]
     error_items_keys: set[str]
 
@@ -31,6 +32,7 @@ class ScraperGeneric(ABC):
         self.expected_items_keys = {}
         self.unexpected_items_keys = {}
         self.items_queue = Queue()
+        self.item_links = {}
         self.missing_items_keys = set()
         self.error_items_keys = set()
 
@@ -125,6 +127,36 @@ class ScraperGeneric(ABC):
                 "key": item_key,
                 "data": item_data,
             }
+        )
+
+    def record_item_link(self, item_key: str | int, link_path: str) -> None:
+        """Remember the local path under which an item has been linked.
+
+        This is only useful when the number of scraped items per type is
+        limited, since some queued items will then never be written to the ZIM.
+        """
+        if self.configuration.max_items_per_type <= 0:
+            return
+        self.item_links.setdefault(str(item_key), set()).add(link_path)
+
+    def add_redirects_for_unscrapped_items(self) -> None:
+        """Point links of items left in the queue to ``home/not_scrapped``."""
+        remaining = self.items_queue.qsize()
+        if remaining == 0:
+            return
+
+        redirects = 0
+        while not self.items_queue.empty():
+            item = self.items_queue.get(block=False)
+            for link_path in self.item_links.pop(item["key"], ()):
+                self.processor.add_redirect(
+                    path=link_path,
+                    target_path="home/not_scrapped",
+                )
+                redirects += 1
+        logger.info(
+            f"Redirected {redirects} link(s) to {remaining} unscrapped "
+            f"{self.get_items_name()} item(s) to home/not_scrapped"
         )
 
     def add_item_missing_redirect(self, item_key: str, item_data: Any) -> None:
