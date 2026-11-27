@@ -20,6 +20,7 @@ from ifixit2zim.constants import (
 from ifixit2zim.exceptions import ImageUrlNotFoundError
 from ifixit2zim.imager import Imager
 from ifixit2zim.shared import logger
+from ifixit2zim.utils import append_fragment_to_link, build_dynamic_page_link
 
 
 class Processor:
@@ -235,16 +236,14 @@ class Processor:
     def _process_external_url(self, url: str, rel_prefix: str) -> str:
         if "ifixit" in url:
             self.ifixit_external_content.add(url)
-        return f"{rel_prefix}home/external_content?url={urllib.parse.quote(url)}"
+        return build_dynamic_page_link("external_content", url, rel_prefix)
 
     def _process_unrecognized_href(self, url: str, rel_prefix: str) -> str:
         return self._process_external_url(url, rel_prefix)
 
     def _process_href_regex_dynamics(self, href: str, rel_prefix: str) -> str | None:
         if "Guide/login/register" in href or "Guide/new" in href:
-            return (
-                f"{rel_prefix}home/unavailable_offline?url={urllib.parse.quote(href)}"
-            )
+            return build_dynamic_page_link("unavailable_offline", href, rel_prefix)
         return None
 
     def _process_href_regex_nomatch(
@@ -339,11 +338,9 @@ class Processor:
         if not match.group("kind"):
             return None
         if match.group("kind").lower() in NOT_YET_AVAILABLE:
-            return f"{rel_prefix}home/not_yet_available?url={urllib.parse.quote(href)}"
+            return build_dynamic_page_link("not_yet_available", href, rel_prefix)
         if match.group("kind").lower() in UNAVAILABLE_OFFLINE:
-            return (
-                f"{rel_prefix}home/unavailable_offline?url={urllib.parse.quote(href)}"
-            )
+            return build_dynamic_page_link("unavailable_offline", href, rel_prefix)
         raise Exception(
             f"Unsupported kind '{match.group('kind')}' in _process_href_regex"
         )
@@ -417,9 +414,7 @@ class Processor:
         )
         if res is None:
             raise Exception("Unsupported match in _process_href_regex")
-        if fragment:
-            res = f"{res}#{fragment}"
-        return res
+        return append_fragment_to_link(res, fragment)
 
     def _process_youtube(self, match: re.Match[str], rel_prefix: str) -> str:
         return (

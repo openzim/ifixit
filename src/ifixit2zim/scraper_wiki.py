@@ -321,9 +321,7 @@ class ScraperWiki(ScraperGeneric):
     ) -> None:
         self.processor.add_redirect(
             path=item_key,
-            target_path=(
-                f"home/{redirect_kind}?{urllib.parse.urlencode({'url': item_key})}"
-            ),
+            target_path=f"home/{redirect_kind}",
         )
 
     def process_one_item(

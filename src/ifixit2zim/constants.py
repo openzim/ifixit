@@ -13,6 +13,18 @@ DEFAULT_HOMEPAGE = "Main-Page"
 UNKNOWN_LOCALE = "unknown"
 UNKNOWN_TITLE = "unknown_title"
 
+# Dynamic pages (e.g. unavailable_offline) receive their value through a
+# magic anchor because query strings are not reliably handled by all readers.
+DYNAMIC_PAGE_ANCHOR = "url"
+DYNAMIC_PAGE_KINDS = (
+    "not_scrapped",
+    "external_content",
+    "unavailable_offline",
+    "not_yet_available",
+    "missing",
+    "error",
+)
+
 SCRAPER = f"{NAME} {__version__}"
 
 IMAGES_ENCODER_VERSION = 1
