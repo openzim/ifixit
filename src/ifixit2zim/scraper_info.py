@@ -68,6 +68,7 @@ class ScraperInfo(ScraperGeneric):
                     is_not_included = False
             if is_not_included:
                 return build_dynamic_page_link("not_scrapped", raw_info_path)
+        self.record_item_link(info_key, raw_info_path)
         self._add_info_to_scrape(info_key, info_title, False)
         return info_path
 
@@ -137,16 +138,18 @@ class ScraperInfo(ScraperGeneric):
         item_content: Any,
     ) -> None:
         info_wiki_content = item_content
+        info_path = self._build_info_path(info_wiki_content["title"])
 
         info_wiki_rendered = self.info_template.render(
             info_wiki=info_wiki_content,
             # label=INFO_WIKI_LABELS[self.conf.lang_code],
             metadata=self.metadata,
             lang=self.configuration.lang_code,
+            rel_prefix="../" * info_path.count("/"),
         )
 
         self.processor.add_html_item(
-            path=self._build_info_path(info_wiki_content["title"]),
+            path=info_path,
             title=info_wiki_content["display_title"],
             content=info_wiki_rendered,
         )

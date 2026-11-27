@@ -66,6 +66,7 @@ class ScraperCategory(ScraperGeneric):
                     is_not_included = False
             if is_not_included:
                 return build_dynamic_page_link("not_scrapped", raw_category_path)
+        self.record_item_link(category_key, raw_category_path)
         self._add_category_to_scrape(category_key, category_title, False)
         return category_path
 

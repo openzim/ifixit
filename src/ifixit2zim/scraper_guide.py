@@ -96,6 +96,7 @@ class ScraperGuide(ScraperGeneric):
             return build_dynamic_page_link("not_scrapped", raw_guide_path)
         if self.configuration.guides and str(guideid) not in self.configuration.guides:
             return build_dynamic_page_link("not_scrapped", raw_guide_path)
+        self.record_item_link(guideid, raw_guide_path)
         self._add_guide_to_scrape(guideid, guidetitle, guidelocale, False)
         return guide_path
 

@@ -74,6 +74,7 @@ class ScraperItem(ScraperGeneric):
         item_path = self.product_to_item.get(normalize_product_url(product_url))
         if item_path is None:
             return None
+        self.record_item_link(item_path, item_path)
         return urllib.parse.quote(item_path)
 
     def _add_item_to_scrape(self, item_path: str, item_url: str | None) -> str:
@@ -92,11 +93,13 @@ class ScraperItem(ScraperGeneric):
                 f"Impossible to extract item wiki URL from {item}"
             )
         item_path = build_item_path(item_url)
+        self.record_item_link(item_path, item_path)
         self._add_item_to_scrape(item_path, item_url)
         return urllib.parse.quote(item_path)
 
     def get_item_link_from_props(self, item_path: str) -> str:
         built_path = build_item_path(item_path)
+        self.record_item_link(built_path, built_path)
         self._add_item_to_scrape(built_path, item_path)
         return urllib.parse.quote(built_path)
 
